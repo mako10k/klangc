@@ -1,1 +1,2 @@
-fib = \n -> fib (pred n) (pred (pred n));
+# COMMENT
+fib = \n -> add (fib (pred n)) (fib (pred (pred n)));

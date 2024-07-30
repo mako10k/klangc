@@ -81,13 +81,14 @@ klangc_getc_skipspaces(klangc_input_t *input) {
     int c = klangc_getc(input);
     if (c == EOF)
       return EOF;
-    if (isspace(c))
-      continue;
     if (in_comment) {
       if (c == '\n')
         in_comment = 0;
       continue;
-    } else if (c == '#') {
+    }
+    if (isspace(c))
+      continue;
+    if (c == '#') {
       in_comment = 1;
       continue;
     }

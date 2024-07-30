@@ -1,4 +1,5 @@
 #include "klangc_input.h"
+
 char *klangc_symbol_parse(klangc_input_t *input) {
   klangc_input_buf_t ib = klangc_input_save(input);
   int c = klangc_getc_skipspaces(input);
