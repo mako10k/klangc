@@ -13,10 +13,7 @@ typedef enum klangc_expr_type {
   KLANGC_ETYPE_LAMBDA,
 } klangc_expr_type_t;
 
-typedef struct klangc_expr_lambda {
-  klangc_pattern_t *kvl_arg;
-  klangc_expr_t *kvl_expr;
-} klangc_expr_lambda_t;
+typedef struct klangc_expr_lambda klangc_expr_lambda_t;
 
 typedef struct klangc_expr_appl {
   klangc_expr_t *kva_func;
@@ -32,6 +29,12 @@ struct klangc_expr {
     klangc_expr_appl_t *kv_appl;
     klangc_expr_lambda_t *kv_lambda;
   };
+};
+
+struct klangc_expr_lambda {
+  klangc_pattern_t *kvl_arg;
+  klangc_expr_t *kvl_expr;
+  klangc_expr_lambda_t *kvl_next;
 };
 
 klangc_expr_t *klangc_expr_symbol_new(const char *symbol) {
@@ -57,15 +60,14 @@ klangc_expr_t *klangc_expr_string_new(const char *strval) {
   return expr;
 }
 
-klangc_expr_t *klangc_expr_lambda_new(klangc_pattern_t *arg,
-                                      klangc_expr_t *expr) {
+klangc_expr_lambda_t *klangc_expr_lambda_new(klangc_pattern_t *arg,
+                                             klangc_expr_t *expr) {
   assert(arg != NULL);
   assert(expr != NULL);
-  klangc_expr_t *ret = klangc_malloc(sizeof(klangc_expr_t));
-  ret->type = KLANGC_ETYPE_LAMBDA;
-  ret->kv_lambda = klangc_malloc(sizeof(klangc_expr_lambda_t));
-  ret->kv_lambda->kvl_arg = arg;
-  ret->kv_lambda->kvl_expr = expr;
+  klangc_expr_lambda_t *ret = klangc_malloc(sizeof(klangc_expr_lambda_t));
+  ret->kvl_arg = arg;
+  ret->kvl_expr = expr;
+  ret->kvl_next = NULL;
   return ret;
 }
 
@@ -80,7 +82,7 @@ klangc_expr_t *klangc_expr_appl_new(klangc_expr_t *func, klangc_expr_t *arg) {
   return expr;
 }
 
-klangc_expr_t *klangc_expr_lambda_parse(klangc_input_t *input) {
+klangc_expr_lambda_t *klangc_expr_lambda_parse(klangc_input_t *input) {
   klangc_input_buf_t ib = klangc_input_save(input);
   int c = klangc_getc_skipspaces(input);
   if (c != '\\') {
@@ -107,7 +109,17 @@ klangc_expr_t *klangc_expr_lambda_parse(klangc_input_t *input) {
     klangc_input_restore(input, ib);
     return NULL;
   }
-  return klangc_expr_lambda_new(arg, body);
+  klangc_expr_lambda_t *lambda = klangc_expr_lambda_new(arg, body);
+  ib = klangc_input_save(input);
+  c = klangc_getc_skipspaces(input);
+  if (c != '|') {
+    klangc_input_restore(input, ib);
+    return lambda;
+  }
+  lambda->kvl_next = klangc_expr_lambda_parse(input);
+  if (lambda->kvl_next == NULL)
+    klangc_input_restore(input, ib);
+  return lambda;
 }
 
 klangc_expr_t *klangc_expr_parse_no_appl(klangc_input_t *input) {
@@ -141,9 +153,13 @@ klangc_expr_t *klangc_expr_parse_no_appl(klangc_input_t *input) {
   if (strval != NULL)
     return klangc_expr_string_new(strval);
 
-  klangc_expr_t *lambda = klangc_expr_lambda_parse(input);
-  if (lambda != NULL)
-    return lambda;
+  klangc_expr_lambda_t *lambda = klangc_expr_lambda_parse(input);
+  if (lambda != NULL) {
+    klangc_expr_t *ret = klangc_malloc(sizeof(klangc_expr_t));
+    ret->type = KLANGC_ETYPE_LAMBDA;
+    ret->kv_lambda = lambda;
+    return ret;
+  }
 
   return NULL;
 }
@@ -159,6 +175,18 @@ klangc_expr_t *klangc_expr_parse(klangc_input_t *input) {
     ret = klangc_expr_appl_new(ret, arg);
   }
   return ret;
+}
+
+void klangc_expr_lambda_print(FILE *fp, klangc_expr_lambda_t *lambda) {
+  fprintf(fp, "(\\");
+  klangc_pattern_print(fp, lambda->kvl_arg);
+  fprintf(fp, " -> ");
+  klangc_expr_print(fp, lambda->kvl_expr);
+  fprintf(fp, ")");
+  if (lambda->kvl_next != NULL) {
+    fprintf(fp, " | ");
+    klangc_expr_lambda_print(fp, lambda->kvl_next);
+  }
 }
 
 void klangc_expr_print(FILE *fp, klangc_expr_t *expr) {
@@ -180,11 +208,7 @@ void klangc_expr_print(FILE *fp, klangc_expr_t *expr) {
     fprintf(fp, ")");
     break;
   case KLANGC_ETYPE_LAMBDA:
-    fprintf(fp, "(\\");
-    klangc_pattern_print(fp, expr->kv_lambda->kvl_arg);
-    fprintf(fp, " -> ");
-    klangc_expr_print(fp, expr->kv_lambda->kvl_expr);
-    fprintf(fp, ")");
+    klangc_expr_lambda_print(fp, expr->kv_lambda);
     break;
   }
 }
