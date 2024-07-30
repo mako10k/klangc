@@ -9,7 +9,7 @@
             "program": "${workspaceRoot}/src/klangc",
             "name": "Launch klangc",
             "request": "launch",
-            "args": ["test.kl"],
+            "args": ["${workspaceRoot}/test/test.kl"],
             "cwd": "${workspaceRoot}",
         }
     ]
