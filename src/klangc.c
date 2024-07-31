@@ -1,4 +1,3 @@
-#include "klangc.h"
 #include "klangc_def.h"
 #include "klangc_input.h"
 #include <gc.h>
@@ -15,6 +14,6 @@ int main(int argc, char *argv[]) {
     klangc_hash_t *defs = klangc_def_parse(input);
     if (defs == NULL)
       return 1;
-    klangc_def_print(stdout, defs);
+    klangc_def_print(kstdout, defs);
   }
 }

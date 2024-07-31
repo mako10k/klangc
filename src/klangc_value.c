@@ -1,5 +1,4 @@
-
-#include "klangc.h"
+#include "klangc_types.h"
 #include <gc.h>
 
 typedef struct klangc_value_symbol klangc_value_symbol_t;

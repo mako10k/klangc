@@ -1,4 +1,5 @@
 #include "klangc_hash.h"
+#include "klangc_malloc.h"
 #include <assert.h>
 #include <string.h>
 

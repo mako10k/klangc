@@ -1,5 +1,14 @@
 # COMMENT
-fib = \0 -> 1
-    | \1 -> 1
-    | \Int n -> add (fib (pred n)) (fib (pred (pred n)))
-    ;
+dict = {
+  a = 
+    \x -> 10 |
+    \y -> {
+      i = 10;
+      j = "abc";
+    };
+};
+
+fib = 
+  \0 -> 1 |
+  \1 -> 1 |
+  \Int n -> add (fib (pred n)) (fib (pred (pred n)));

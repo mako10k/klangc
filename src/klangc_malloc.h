@@ -1,6 +1,8 @@
 #ifndef __KLANGC_MALLOC_H__
 #define __KLANGC_MALLOC_H__
 
+#include "klangc.h"
+
 #include <stdio.h>
 
 void *klangc_malloc(size_t size);

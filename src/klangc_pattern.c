@@ -1,9 +1,9 @@
 
 #include "klangc_pattern.h"
 #include "klangc_input.h"
+#include "klangc_output.h"
 #include "klangc_parse.h"
 #include <assert.h>
-#include <ctype.h>
 #include <stdio.h>
 
 struct klangc_pattern {
@@ -147,6 +147,11 @@ klangc_pattern_t *klangc_pattern_parse_as(klangc_input_t *input,
   if (c == '@') {
     klangc_pattern_t *pat = klangc_pattern_parse(input);
     if (pat == NULL) {
+      klangc_message_reset(input);
+      klangc_message_add_buf(input, NULL);
+      klangc_message_add(input,
+                         "expect <pattern>: [<symbol> '@' ^<pattern>]\n");
+      klangc_message_print(input, kstderr);
       klangc_input_restore(input, ib);
       return NULL;
     }
@@ -175,101 +180,58 @@ klangc_pattern_t *klangc_pattern_appl_get_arg(klangc_pattern_t *pattern) {
 
 klangc_pattern_t *klangc_pattern_parse_no_appl(klangc_input_t *input) {
   assert(input != NULL);
-  klangc_pattern_t *ret;
   int c;
 
   klangc_input_buf_t ib = klangc_input_save(input);
   c = klangc_getc_skipspaces(input);
 
   if (c == EOF) {
-    fprintf(stderr, "Unexpected EOF\n");
+    klangc_input_restore(input, ib);
     return NULL;
   }
 
-  klangc_parse_paren(klangc_pattern_parse, input);
   if (c == '(') {
-    ret = klangc_pattern_parse(input);
+    klangc_pattern_t *ret = klangc_pattern_parse(input);
     if (ret == NULL) {
+      klangc_message_reset(input);
+      klangc_message_add_buf(input, NULL);
+      klangc_message_add(input, "expect <pattern>: ['(' ^<pattern> ')']\n");
+      klangc_message_print(input, kstderr);
       klangc_input_restore(input, ib);
       return NULL;
     }
 
     c = klangc_getc_skipspaces(input);
-    if (c == EOF) {
-      fprintf(stderr, "Unexpected EOF\n");
-      klangc_input_restore(input, ib);
-      return NULL;
-    }
-
     if (c == ')')
       return ret;
 
-    fprintf(stderr, "Expected ')' but got '%c'\n", c);
+    klangc_message_reset(input);
+    klangc_message_add_buf(input, NULL);
+    klangc_message_add(input, "expect ')' but get '%c': ['(' <pattern> ^')']\n",
+                       c);
+    klangc_message_print(input, kstderr);
     klangc_input_restore(input, ib);
     return NULL;
   }
+  klangc_input_restore(input, ib);
 
-  if (isalpha(c) || c == '_') {
-    char name[1024]; // TODO: Check for buffer overflow
-    int i = 0;
-    name[i++] = c;
-
-    while (1) {
-      klangc_input_buf_t ib = klangc_input_save(input);
-      c = klangc_getc(input);
-      if (c == EOF)
-        break;
-      if (!isalnum(c) && c != '_') {
-        klangc_input_restore(input, ib);
-        break;
-      }
-      name[i++] = c;
-    }
-    name[i] = '\0';
+  char *name = klangc_symbol_parse(input);
+  if (name != NULL) {
     klangc_pattern_t *symbol = klangc_pattern_new_symbol(name);
-    if (c != EOF) {
-      klangc_pattern_t *as = klangc_pattern_parse_as(input, symbol);
-      if (as != NULL)
-        return as;
-    }
+    klangc_pattern_t *as = klangc_pattern_parse_as(input, symbol);
+    if (as != NULL)
+      return as;
     return symbol;
   }
 
-  if (isdigit(c)) {
-    int value = 0;
-    while (1) {
-      value = value * 10 + (c - '0');
-      klangc_input_buf_t ib = klangc_input_save(input);
-      c = klangc_getc(input);
-      if (c == EOF)
-        break;
-      if (!isdigit(c)) {
-        klangc_input_restore(input, ib);
-        break;
-      }
-    }
-    return klangc_pattern_new_int(value);
-  }
+  int intval;
+  if (klangc_int_parse(input, &intval))
+    return klangc_pattern_new_int(intval);
 
-  if (c == '"') {
-    char buf[1024]; // TODO: Check for buffer overflow
-    int i = 0;
-    while (1) {
-      c = klangc_getc(input);
-      if (c == EOF) {
-        fprintf(stderr, "Unexpected EOF\n");
-        klangc_input_restore(input, ib);
-        return NULL;
-      }
-      if (c == '"')
-        break;
-      buf[i++] = c;
-    }
-    buf[i] = '\0';
-    return klangc_pattern_new_string(buf);
-  }
+  char *strval = klangc_string_parse(input);
+  if (strval != NULL)
+    return klangc_pattern_new_string(strval);
 
-  klangc_input_restore(input, ib);
   return NULL;
 }
 
@@ -279,7 +241,9 @@ klangc_pattern_t *klangc_pattern_parse(klangc_input_t *input) {
 
   ret = klangc_pattern_parse_no_appl(input);
   if (ret == NULL) {
-    fprintf(stderr, "Error parsing pattern\n");
+    klangc_message_reset(input);
+    klangc_message_add_buf(input, NULL);
+    klangc_message_add(input, "expect <pattern>: [^<pattern>]\n");
     return NULL;
   }
 
@@ -329,29 +293,34 @@ int klangc_pattern_walkvars(klangc_hash_t *defs, klangc_def_t *def,
   return cnt;
 }
 
-void klangc_pattern_print(FILE *fp, klangc_pattern_t *pattern) {
-  assert(fp != NULL);
+void klangc_pattern_print(klangc_output_t *output, int prec,
+                          klangc_pattern_t *pattern) {
+  assert(output != NULL);
   assert(pattern != NULL);
   switch (pattern->kp_type) {
   case KLANGC_PTYPE_SYMBOL:
-    fprintf(fp, "%s", pattern->kp_symbol->kps_name);
+    klangc_printf(output, "%s", pattern->kp_symbol->kps_name);
     break;
   case KLANGC_PTYPE_APPL:
-    fprintf(fp, "(");
-    klangc_pattern_print(fp, pattern->kp_appl->kpap_constr);
-    fprintf(fp, " ");
-    klangc_pattern_print(fp, pattern->kp_appl->kpap_arg);
-    fprintf(fp, ")");
+    if (prec > KLANGC_PREC_APPL)
+      klangc_printf(output, "(");
+    klangc_pattern_print(output, KLANGC_PREC_APPL,
+                         pattern->kp_appl->kpap_constr);
+    klangc_printf(output, " ");
+    klangc_pattern_print(output, KLANGC_PREC_APPL + 1,
+                         pattern->kp_appl->kpap_arg);
+    if (prec > KLANGC_PREC_APPL)
+      klangc_printf(output, ")");
     break;
   case KLANGC_PTYPE_AS:
-    fprintf(fp, "%s@", pattern->kp_as->kpas_var->kps_name);
-    klangc_pattern_print(fp, pattern->kp_as->kpas_pattern);
+    klangc_printf(output, "%s@", pattern->kp_as->kpas_var->kps_name);
+    klangc_pattern_print(output, KLANGC_PREC_LOWEST, pattern->kp_as->kpas_pattern);
     break;
   case KLANGC_PTYPE_INT:
-    fprintf(fp, "%d", pattern->kp_int->kpi_value);
+    klangc_printf(output, "%d", pattern->kp_int->kpi_value);
     break;
   case KLANGC_PTYPE_STRING:
-    fprintf(fp, "\"%s\"", pattern->kp_string->kps_value);
+    klangc_printf(output, "\"%s\"", pattern->kp_string->kps_value);
     break;
   }
 }

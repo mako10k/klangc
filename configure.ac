@@ -22,5 +22,7 @@ PKG_CHECK_MODULES([GC], [bdw-gc])
 
 AC_CONFIG_FILES([Makefile src/Makefile]) 
 
+AC_USE_SYSTEM_EXTENSIONS
+
 AC_OUTPUT
 

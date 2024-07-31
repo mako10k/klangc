@@ -2,12 +2,10 @@
 #define __KLANGC_DEF_H__
 
 #include "klangc.h"
-#include "klangc_input.h"
 
-struct klangc_def {
-  klangc_pattern_t *pat;
-  klangc_expr_t *expr;
-};
+#include "klangc_input.h"
+#include "klangc_output.h"
+#include "klangc_types.h"
 
 /**
  * 定義をパースする
@@ -21,7 +19,7 @@ klangc_hash_t *klangc_def_parse(klangc_input_t *input);
  * @param fp ファイルポインタ
  * @param defs 定義
  */
-void klangc_def_print(FILE *fp, klangc_hash_t *defs);
+void klangc_def_print(klangc_output_t *output, klangc_hash_t *defs);
 
 /**
  * 定義をバインドする
