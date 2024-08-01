@@ -150,13 +150,10 @@ klangc_message_reset(klangc_input_t *input) {
 }
 
 __attribute__((unused)) static void
-klangc_message_add_ipos(klangc_input_t *input, klangc_ipos_t *ib) {
-  if (ib != NULL)
-    klangc_message_add(input, "%s(%d,%d): ", input->name, ib->line + 1,
-                       ib->col + 1);
-  else
-    klangc_message_add(input, "%s(%d,%d): ", input->name, input->line + 1,
-                       input->col + 1);
+klangc_message_add_ipos(klangc_input_t *input, klangc_ipos_t ipos) {
+  assert(ipos.input == input);
+  klangc_message_add(input, "%s(%d,%d): ", input->name, ipos.line + 1,
+                     ipos.col + 1);
 }
 
 __attribute__((unused)) static void

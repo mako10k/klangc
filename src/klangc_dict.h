@@ -5,9 +5,11 @@
 
 #include "klangc_input.h"
 #include "klangc_output.h"
+#include "klangc_parse.h"
 #include "klangc_types.h"
 
-klangc_dict_t *klangc_dict_parse(klangc_input_t *input);
+klangc_parse_result_t klangc_dict_parse(klangc_input_t *input,
+                                        klangc_dict_t **pdict);
 void klangc_dict_print(klangc_output_t *output, klangc_dict_t *dict);
 
 #endif // __KLANGC_DICT_H__

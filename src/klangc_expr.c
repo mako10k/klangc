@@ -5,6 +5,7 @@
 #include "klangc_output.h"
 #include "klangc_parse.h"
 #include "klangc_pattern.h"
+#include "klangc_types.h"
 
 typedef enum klangc_expr_type {
   KLANGC_ETYPE_SYMBOL,
@@ -32,7 +33,7 @@ struct klangc_expr {
     klangc_expr_lambda_t *kv_lambda;
     klangc_dict_t *kv_dict;
   };
-  klangc_ipos_t decl_pos;
+  klangc_ipos_t ipos;
 };
 
 struct klangc_expr_lambda {
@@ -62,121 +63,142 @@ klangc_expr_appl_t *klangc_expr_appl_new(klangc_expr_t *func,
   return ret;
 }
 
-klangc_expr_t *klangc_expr_symbol_new(const char *symbol,
-                                      klangc_ipos_t decl_pos) {
+klangc_expr_t *klangc_expr_symbol_new(const char *symbol, klangc_ipos_t ipos) {
   assert(symbol != NULL);
   klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
   expr->type = KLANGC_ETYPE_SYMBOL;
   expr->symbol = klangc_strdup(symbol);
-  expr->decl_pos = decl_pos;
+  expr->ipos = ipos;
   return expr;
 }
 
-klangc_expr_t *klangc_expr_int_new(int intval, klangc_ipos_t decl_pos) {
+klangc_expr_t *klangc_expr_int_new(int intval, klangc_ipos_t ipos) {
   klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
   expr->type = KLANGC_ETYPE_INT;
   expr->intval = intval;
-  expr->decl_pos = decl_pos;
+  expr->ipos = ipos;
   return expr;
 }
 
-klangc_expr_t *klangc_expr_new_string(const char *strval,
-                                      klangc_ipos_t decl_pos) {
+klangc_expr_t *klangc_expr_new_string(const char *strval, klangc_ipos_t ipos) {
   assert(strval != NULL);
   klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
   expr->type = KLANGC_ETYPE_STRING;
   expr->strval = klangc_strdup(strval);
-  expr->decl_pos = decl_pos;
+  expr->ipos = ipos;
   return expr;
 }
 
 klangc_expr_t *klangc_expr_new_lambda(klangc_expr_lambda_t *lambda,
-                                      klangc_ipos_t decl_pos) {
+                                      klangc_ipos_t ipos) {
   assert(lambda != NULL);
   klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
   expr->type = KLANGC_ETYPE_LAMBDA;
   expr->kv_lambda = lambda;
-  expr->decl_pos = decl_pos;
+  expr->ipos = ipos;
   return expr;
 }
 
 klangc_expr_t *klangc_expr_new_appl(klangc_expr_appl_t *appl,
-                                    klangc_ipos_t decl_pos) {
+                                    klangc_ipos_t ipos) {
   assert(appl != NULL);
   klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
   expr->type = KLANGC_ETYPE_APPL;
   expr->kv_appl = appl;
-  expr->decl_pos = decl_pos;
+  expr->ipos = ipos;
   return expr;
 }
 
-klangc_expr_lambda_t *klangc_expr_lambda_parse(klangc_input_t *input) {
+klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
+                                               klangc_expr_lambda_t **plambda) {
   klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos2 = klangc_skipspaces(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   int c = klangc_getc(input);
   if (c != '\\') {
     klangc_input_restore(input, ipos);
-    return NULL;
+    return KLANGC_PARSE_NOPARSE;
   }
-  ipos2 = klangc_skipspaces(input);
-  klangc_pattern_t *arg = klangc_pattern_parse(input);
-  if (arg == NULL) {
+  ipos_ss = klangc_skipspaces(input);
+  klangc_pattern_t *arg;
+  switch (klangc_pattern_parse(input, &arg)) {
+  case KLANGC_PARSE_OK:
+    break;
+  case KLANGC_PARSE_NOPARSE:
     klangc_message_reset(input);
-    klangc_message_add_ipos(input, &ipos2);
+    klangc_message_add_ipos(input, ipos_ss);
     klangc_message_add(input,
                        "expect <pattern>: ['\\' ^<pattern> '->' <expr>]\n");
     klangc_message_print(input, kstderr);
     klangc_input_restore(input, ipos);
-    return NULL;
+    return KLANGC_PARSE_ERROR;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
   }
 
-  ipos2 = klangc_skipspaces(input);
+  ipos_ss = klangc_skipspaces(input);
   c = klangc_getc(input);
   if (c != '-') {
     klangc_message_reset(input);
-    klangc_message_add_ipos(input, &ipos2);
+    klangc_message_add_ipos(input, ipos_ss);
     klangc_message_add(
         input, "expect '-' but get '%c': ['\\' <pattern> ^'->' <expr>]\n", c);
     klangc_message_print(input, kstderr);
     klangc_input_restore(input, ipos);
-    return NULL;
+    return KLANGC_PARSE_ERROR;
   }
   c = klangc_getc(input);
   if (c != '>') {
     klangc_message_reset(input);
-    klangc_message_add_ipos(input, &ipos2);
+    klangc_message_add_ipos(input, ipos_ss);
     klangc_message_add(
         input, "expect '->' but get '-%c': ['\\' <pattern> ^'->' <expr>]\n", c);
     klangc_message_print(input, kstderr);
     klangc_input_restore(input, ipos);
-    return NULL;
+    return KLANGC_PARSE_ERROR;
   }
 
-  ipos2 = klangc_skipspaces(input);
-  klangc_expr_t *body = klangc_expr_parse(input);
-  if (body == NULL) {
+  ipos_ss = klangc_skipspaces(input);
+  klangc_expr_t *body;
+  switch (klangc_expr_parse(input, &body)) {
+  case KLANGC_PARSE_OK:
+    break;
+  case KLANGC_PARSE_NOPARSE:
     klangc_message_reset(input);
-    klangc_message_add_ipos(input, &ipos2);
+    klangc_message_add_ipos(input, ipos_ss);
     klangc_message_add(input, "expect <expr>: ['\\' <pattern> '->' ^<expr>]\n");
     klangc_message_print(input, kstderr);
     klangc_input_restore(input, ipos);
-    return NULL;
+    return KLANGC_PARSE_ERROR;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
   }
 
   klangc_expr_lambda_t *lambda = klangc_expr_lambda_new(arg, body);
 
-  ipos = klangc_input_save(input);
-  ipos2 = klangc_skipspaces(input);
+  ipos_ss = klangc_input_save(input);
+  klangc_ipos_t ipos3 = klangc_skipspaces(input);
+  (void)ipos3;
   c = klangc_getc(input);
   if (c != '|') {
-    klangc_input_restore(input, ipos);
-    return lambda;
+    klangc_input_restore(input, ipos_ss);
+    *plambda = lambda;
+    return KLANGC_PARSE_OK;
   }
-  lambda->kvl_next = klangc_expr_lambda_parse(input);
-  if (lambda->kvl_next == NULL)
+  lambda->kvl_next = NULL;
+  switch (klangc_expr_lambda_parse(input, &lambda->kvl_next)) {
+  case KLANGC_PARSE_OK:
+    break;
+  case KLANGC_PARSE_NOPARSE:
+    klangc_input_restore(input, ipos_ss);
+    break;
+  case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
-
-  return lambda;
+    return KLANGC_PARSE_ERROR;
+  }
+  *plambda = lambda;
+  return KLANGC_PARSE_OK;
 }
 
 klangc_expr_t *klangc_expr_new_dict(klangc_dict_t *def) {
@@ -186,84 +208,148 @@ klangc_expr_t *klangc_expr_new_dict(klangc_dict_t *def) {
   return dict;
 }
 
-klangc_expr_t *klangc_expr_parse_no_appl(klangc_input_t *input) {
+klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
+                                                klangc_expr_t **pexpr) {
   assert(input != NULL);
 
   klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos2 = klangc_skipspaces(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   do {
     int c = klangc_getc(input);
     if (c != '(')
       break;
-    ipos2 = klangc_skipspaces(input);
-    klangc_expr_t *expr = klangc_expr_parse(input);
-    if (expr == NULL) {
+    ipos_ss = klangc_skipspaces(input);
+    klangc_expr_t *expr;
+    switch (klangc_expr_parse(input, &expr)) {
+    case KLANGC_PARSE_OK:
+      break;
+    case KLANGC_PARSE_NOPARSE:
       klangc_message_reset(input);
-      klangc_message_add_ipos(input, &ipos2);
+      klangc_message_add_ipos(input, ipos_ss);
       klangc_message_add(input, "expect <expr>: ['(' ^<expr> ')']\n");
       klangc_message_print(input, kstderr);
       klangc_input_restore(input, ipos);
-      return NULL;
+      return KLANGC_PARSE_ERROR;
+    case KLANGC_PARSE_ERROR:
+      klangc_input_restore(input, ipos);
+      return KLANGC_PARSE_ERROR;
     }
-    ipos2 = klangc_skipspaces(input);
+
+    ipos_ss = klangc_skipspaces(input);
     c = klangc_getc(input);
     if (c != ')') {
       klangc_message_reset(input);
-      klangc_message_add_ipos(input, &ipos2);
+      klangc_message_add_ipos(input, ipos_ss);
       klangc_message_add(input, "expect ')' but get '%c': ['(' <expr> ^')']\n",
                          c);
       klangc_message_print(input, kstderr);
       klangc_input_restore(input, ipos);
-      return NULL;
+      return KLANGC_PARSE_ERROR;
     }
-    return expr;
+    *pexpr = expr;
+    return KLANGC_PARSE_OK;
   } while (0);
 
-  klangc_input_restore(input, ipos2);
+  klangc_input_restore(input, ipos_ss);
 
-  klangc_dict_t *dict = klangc_dict_parse(input);
-  if (dict != NULL)
-    return klangc_expr_new_dict(dict);
+  klangc_dict_t *dict;
+  switch (klangc_dict_parse(input, &dict)) {
+  case KLANGC_PARSE_OK:
+    *pexpr = klangc_expr_new_dict(dict);
+    return KLANGC_PARSE_OK;
+  case KLANGC_PARSE_NOPARSE:
+    break;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
 
-  char *symbol = klangc_symbol_parse(input);
-  if (symbol != NULL)
-    return klangc_expr_symbol_new(symbol, ipos);
+  char *symbol;
+  switch (klangc_symbol_parse(input, &symbol)) {
+  case KLANGC_PARSE_OK:
+    *pexpr = klangc_expr_symbol_new(symbol, ipos_ss);
+    return KLANGC_PARSE_OK;
+  case KLANGC_PARSE_NOPARSE:
+    break;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
 
   int intval;
-  if (klangc_int_parse(input, &intval))
-    return klangc_expr_int_new(intval, ipos);
+  switch (klangc_int_parse(input, &intval)) {
+  case KLANGC_PARSE_OK:
+    *pexpr = klangc_expr_int_new(intval, ipos_ss);
+    return KLANGC_PARSE_OK;
+  case KLANGC_PARSE_NOPARSE:
+    break;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
 
-  char *strval = klangc_string_parse(input);
-  if (strval != NULL)
-    return klangc_expr_new_string(strval, ipos);
+  char *strval;
+  switch (klangc_string_parse(input, &strval)) {
+  case KLANGC_PARSE_OK:
+    *pexpr = klangc_expr_new_string(strval, ipos_ss);
+    return KLANGC_PARSE_OK;
+  case KLANGC_PARSE_NOPARSE:
+    break;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
 
-  klangc_expr_lambda_t *lambda = klangc_expr_lambda_parse(input);
-  if (lambda != NULL)
-    return klangc_expr_new_lambda(lambda, ipos);
+  klangc_expr_lambda_t *lambda;
+  switch (klangc_expr_lambda_parse(input, &lambda)) {
+  case KLANGC_PARSE_OK:
+    *pexpr = klangc_expr_new_lambda(lambda, ipos_ss);
+    return KLANGC_PARSE_OK;
+  case KLANGC_PARSE_NOPARSE:
+    break;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
 
   klangc_input_restore(input, ipos);
-  return NULL;
+  return KLANGC_PARSE_NOPARSE;
 }
 
-klangc_expr_t *klangc_expr_parse(klangc_input_t *input) {
+klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
+                                        klangc_expr_t **pexpr) {
   klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos2 = klangc_skipspaces(input);
-  klangc_expr_t *expr = klangc_expr_parse_no_appl(input);
-  if (expr == NULL) {
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  klangc_expr_t *expr;
+  switch (klangc_expr_parse_no_appl(input, &expr)) {
+  case KLANGC_PARSE_OK:
+    break;
+  case KLANGC_PARSE_NOPARSE:
     klangc_message_reset(input);
-    klangc_message_add_ipos(input, &ipos2);
+    klangc_message_add_ipos(input, ipos_ss);
     klangc_message_add(input, "expect <expr(w/o appl)>: [^<expr(w/o appl)>]\n");
     klangc_message_print(input, kstderr);
     klangc_input_restore(input, ipos);
-    return NULL;
+    return KLANGC_PARSE_ERROR;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
   }
   while (1) {
-    ipos2 = klangc_skipspaces(input);
-    klangc_expr_t *arg = klangc_expr_parse_no_appl(input);
-    if (arg == NULL)
-      return expr;
+    ipos_ss = klangc_skipspaces(input);
+    klangc_expr_t *arg;
+    switch (klangc_expr_parse_no_appl(input, &arg)) {
+    case KLANGC_PARSE_OK:
+      break;
+    case KLANGC_PARSE_NOPARSE:
+      *pexpr = expr;
+      return KLANGC_PARSE_OK;
+    case KLANGC_PARSE_ERROR:
+      klangc_input_restore(input, ipos);
+      return KLANGC_PARSE_ERROR;
+    }
     klangc_expr_appl_t *appl = klangc_expr_appl_new(expr, arg);
-    expr = klangc_expr_new_appl(appl, ipos2);
+    expr = klangc_expr_new_appl(appl, ipos_ss);
   }
 }
 

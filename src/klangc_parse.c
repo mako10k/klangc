@@ -1,22 +1,27 @@
+#include "klangc_parse.h"
 #include "klangc_input.h"
 
-char *klangc_symbol_parse(klangc_input_t *input) {
+klangc_parse_result_t klangc_symbol_parse(klangc_input_t *input,
+                                          char **psymbol) {
+  assert(input != NULL);
+  assert(psymbol != NULL);
+
   klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos2 = klangc_skipspaces(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   int c = klangc_getc(input);
   if (!isalpha(c) && c != '_') {
     klangc_input_restore(input, ipos);
-    return NULL;
+    return KLANGC_PARSE_NOPARSE;
   }
   char *symbol = klangc_malloc(16);
   size_t len = 0;
   size_t cap = 16;
   symbol[len++] = c;
   while (1) {
-    ipos2 = klangc_input_save(input);
+    ipos_ss = klangc_input_save(input);
     c = klangc_getc(input);
     if (!isalnum(c) && c != '_') {
-      klangc_input_restore(input, ipos2);
+      klangc_input_restore(input, ipos_ss);
       break;
     }
     if (cap <= len + 1) {
@@ -27,37 +32,40 @@ char *klangc_symbol_parse(klangc_input_t *input) {
   }
   symbol[len] = '\0';
   symbol = (char *)klangc_realloc(symbol, len + 1);
-  return symbol;
+  *psymbol = symbol;
+  return KLANGC_PARSE_OK;
 }
 
-int klangc_int_parse(klangc_input_t *input, int *intval) {
-  int val = 0;
+klangc_parse_result_t klangc_int_parse(klangc_input_t *input, int *pintval) {
+  int intval = 0;
   klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos2 = klangc_skipspaces(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   int c = klangc_getc(input);
   if (!isdigit(c)) {
     klangc_input_restore(input, ipos);
-    return 0;
+    return KLANGC_PARSE_NOPARSE;
   }
   do {
-    val = val * 10 + (c - '0');
-    ipos2 = klangc_input_save(input);
+    intval = intval * 10 + (c - '0');
+    ipos_ss = klangc_input_save(input);
     c = klangc_getc(input);
   } while (isdigit(c));
-  klangc_input_restore(input, ipos2);
-  *intval = val;
-  return 1;
+  klangc_input_restore(input, ipos_ss);
+  *pintval = intval;
+  return KLANGC_PARSE_OK;
 }
 
-char *klangc_string_parse(klangc_input_t *input) {
+klangc_parse_result_t klangc_string_parse(klangc_input_t *input,
+                                          char **pstrval) {
   klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos2 = klangc_skipspaces(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  (void)ipos_ss;
   int c = klangc_getc(input);
   if (c != '"') {
     klangc_input_restore(input, ipos);
-    return NULL;
+    return KLANGC_PARSE_NOPARSE;
   }
-  char *str = klangc_malloc(16);
+  char *strval = klangc_malloc(16);
   size_t len = 0;
   size_t cap = 16;
   while (1) {
@@ -65,17 +73,18 @@ char *klangc_string_parse(klangc_input_t *input) {
     if (c == EOF) {
       klangc_printf(kstderr, "Unexpected EOF\n");
       klangc_input_restore(input, ipos);
-      return NULL;
+      return KLANGC_PARSE_ERROR;
     }
     if (c == '"')
       break;
     if (cap <= len + 1) {
       cap *= 2;
-      str = (char *)klangc_realloc(str, cap);
+      strval = (char *)klangc_realloc(strval, cap);
     }
-    str[len++] = c;
+    strval[len++] = c;
   }
-  str[len] = '\0';
-  str = (char *)klangc_realloc(str, len + 1);
-  return str;
+  strval[len] = '\0';
+  strval = (char *)klangc_realloc(strval, len + 1);
+  *pstrval = strval;
+  return KLANGC_PARSE_OK;
 }

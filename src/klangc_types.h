@@ -3,8 +3,14 @@
 
 #include "klangc.h"
 
-/** 定義
- * `<def> ::= ( <pattern> "=" <expr> ";" )*;`
+/** 定義エントリ
+ * `<defent> ::= <pattern> "=" <expr> ";";`
+ */
+typedef struct klangc_def_ent klangc_def_ent_t;
+
+/**
+ * 定義
+ * `<def> ::= <defent>*;`
  */
 typedef struct klangc_def klangc_def_t;
 
