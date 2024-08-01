@@ -24,53 +24,55 @@ int klangc_def_bind(klangc_hash_t *defs, const char *name, klangc_def_t *def) {
 
 klangc_hash_t *klangc_def_parse(klangc_input_t *input) {
   klangc_hash_t *defs = klangc_hash_new(16);
+  klangc_ipos_t ipos = klangc_input_save(input);
   while (1) {
-    klangc_input_buf_t ib = klangc_input_save(input);
     klangc_pattern_t *pat = klangc_pattern_parse(input);
     if (pat == NULL)
       return defs;
 
-    int c = klangc_getc_skipspaces(input);
+    klangc_ipos_t ipos2 = klangc_skipspaces(input);
+    int c = klangc_getc(input);
     if (c != '=') {
       klangc_message_reset(input);
-      klangc_message_add_buf(input, NULL);
+      klangc_message_add_ipos(input, &ipos2);
       klangc_message_add(
           input, "expect '=' but get '%c': [<pattern> ^'=' <expr> ';']\n", c);
       klangc_message_print(input, kstderr);
-      klangc_input_restore(input, ib);
+      klangc_input_restore(input, ipos);
       return NULL;
     }
 
+    ipos2 = klangc_skipspaces(input);
     klangc_expr_t *expr = klangc_expr_parse(input);
     if (expr == NULL) {
       klangc_message_reset(input);
-      klangc_message_add_buf(input, NULL);
+      klangc_message_add_ipos(input, &ipos2);
       klangc_message_add(input, "expect <expr>: [<pattern> '=' ^<expr> ';']\n");
       klangc_message_print(input, kstderr);
-      klangc_input_restore(input, ib);
+      klangc_input_restore(input, ipos);
       return NULL;
     }
 
-    c = klangc_getc_skipspaces(input);
+    ipos2 = klangc_skipspaces(input);
+    c = klangc_getc(input);
     if (c != ';') {
       klangc_message_reset(input);
-      klangc_message_add_buf(input, NULL);
+      klangc_message_add_ipos(input, &ipos2);
       klangc_message_add(
           input, "expect ';' but get '%c': [<pattern> '=' <expr> ^';']\n", c);
       klangc_message_print(input, kstderr);
-      klangc_input_restore(input, ib);
+      klangc_input_restore(input, ipos);
       return NULL;
     }
     klangc_def_t *def = klangc_malloc(sizeof(klangc_def_t));
     def->pat = pat;
     def->expr = expr;
     int ret = klangc_pattern_walkvars(defs, def, pat, klangc_def_bind);
-    if (ret < 0) {
-      fprintf(stderr, "Error binding variables\n");
+    if (ret < 0)
       exit(1);
-    }
+
     if (ret == 0) {
-      fprintf(stderr, "Error: no variables in pattern\n");
+      klangc_printf(kstderr, "Error: no variables in pattern\n");
       return NULL;
     }
   }

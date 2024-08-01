@@ -25,10 +25,11 @@ typedef struct klangc_input {
 
 /** 入力バッファ */
 typedef struct klangc_input_buf {
+  klangc_input_t *input;
   off_t off;
   int line;
   int col;
-} klangc_input_buf_t;
+} klangc_ipos_t;
 
 __attribute__((unused)) static void klangc_input_free(klangc_input_t *input) {
   klangc_free((void *)input->name);
@@ -50,27 +51,28 @@ klangc_input_new(FILE *fp, const char *name) {
   return input;
 }
 
-__attribute__((unused)) static klangc_input_buf_t
+__attribute__((unused, warn_unused_result)) static klangc_ipos_t
 klangc_input_save(klangc_input_t *input) {
-  klangc_input_buf_t buf;
-  buf.off = input->off;
-  buf.line = input->line;
-  buf.col = input->col;
-  return buf;
+  klangc_ipos_t ipos;
+  ipos.input = input;
+  ipos.off = input->off;
+  ipos.line = input->line;
+  ipos.col = input->col;
+  return ipos;
 }
 
-__attribute__((unused)) static void
-klangc_input_restore(klangc_input_t *input, klangc_input_buf_t buf) {
-  if (input->off != buf.off) {
-    fseek(input->fp, buf.off, SEEK_SET);
-    input->off = buf.off;
+__attribute__((unused)) static void klangc_input_restore(klangc_input_t *input,
+                                                         klangc_ipos_t ipos) {
+  assert(input == ipos.input);
+  if (input->off != ipos.off) {
+    fseek(input->fp, ipos.off, SEEK_SET);
+    input->off = ipos.off;
   }
-  input->line = buf.line;
-  input->col = buf.col;
+  input->line = ipos.line;
+  input->col = ipos.col;
 }
 
-__attribute__((unused)) static int klangc_getc(klangc_input_t *input) {
-  int c = fgetc(input->fp);
+__attribute__((unused)) static int klangc_procc(klangc_input_t *input, int c) {
   if (c == EOF)
     return EOF;
   input->off++;
@@ -81,26 +83,48 @@ __attribute__((unused)) static int klangc_getc(klangc_input_t *input) {
     input->col++;
   return c;
 }
+__attribute__((unused)) static int klangc_getc(klangc_input_t *input) {
+  return klangc_procc(input, fgetc(input->fp));
+}
+
+__attribute__((unused)) static int klangc_isspace(int c, int *in_comment) {
+  if (c == EOF)
+    return 0;
+  if (*in_comment) {
+    if (c == '\n')
+      *in_comment = 0;
+    return 1;
+  }
+  if (isspace(c))
+    return 1;
+  if (c == '#') {
+    *in_comment = 1;
+    return 1;
+  }
+  return 0;
+}
 
 __attribute__((unused)) static int
 klangc_getc_skipspaces(klangc_input_t *input) {
   int in_comment = 0;
   while (1) {
     int c = klangc_getc(input);
-    if (c == EOF)
-      return EOF;
-    if (in_comment) {
-      if (c == '\n')
-        in_comment = 0;
-      continue;
+    if (!klangc_isspace(c, &in_comment))
+      return c;
+  }
+}
+
+__attribute__((unused, warn_unused_result)) static klangc_ipos_t
+klangc_skipspaces(klangc_input_t *input) {
+  int in_comment = 0;
+  while (1) {
+    int c = fgetc(input->fp);
+    if (!klangc_isspace(c, &in_comment)) {
+      if (c != EOF)
+        ungetc(c, input->fp);
+      return klangc_input_save(input);
     }
-    if (isspace(c))
-      continue;
-    if (c == '#') {
-      in_comment = 1;
-      continue;
-    }
-    return c;
+    klangc_procc(input, c);
   }
 }
 
@@ -126,7 +150,7 @@ klangc_message_reset(klangc_input_t *input) {
 }
 
 __attribute__((unused)) static void
-klangc_message_add_buf(klangc_input_t *input, klangc_input_buf_t *ib) {
+klangc_message_add_ipos(klangc_input_t *input, klangc_ipos_t *ib) {
   if (ib != NULL)
     klangc_message_add(input, "%s(%d,%d): ", input->name, ib->line + 1,
                        ib->col + 1);
@@ -140,4 +164,5 @@ klangc_message_print(klangc_input_t *input, klangc_output_t *output) {
   if (input->message != NULL)
     klangc_printf(output, "%s", input->message);
 }
+
 #endif // __KLANGC_INPUT_H__

@@ -139,25 +139,26 @@ klangc_pattern_t *klangc_pattern_parse_as(klangc_input_t *input,
   assert(input != NULL);
   assert(pattern != NULL);
   assert(klangc_pattern_issymbol(pattern));
-  int c;
-  klangc_input_buf_t ib = klangc_input_save(input);
-  c = klangc_getc_skipspaces(input);
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_ipos_t ipos2 = klangc_skipspaces(input);
+  int c = klangc_getc(input);
   if (c == EOF)
     return NULL;
   if (c == '@') {
+    ipos2 = klangc_skipspaces(input);
     klangc_pattern_t *pat = klangc_pattern_parse(input);
     if (pat == NULL) {
       klangc_message_reset(input);
-      klangc_message_add_buf(input, NULL);
+      klangc_message_add_ipos(input, &ipos2);
       klangc_message_add(input,
                          "expect <pattern>: [<symbol> '@' ^<pattern>]\n");
       klangc_message_print(input, kstderr);
-      klangc_input_restore(input, ib);
+      klangc_input_restore(input, ipos);
       return NULL;
     }
     return klangc_pattern_new_as(klangc_pattern_get_symbol(pattern), pat);
   }
-  klangc_input_restore(input, ib);
+  klangc_input_restore(input, ipos);
   return NULL;
 }
 
@@ -182,38 +183,41 @@ klangc_pattern_t *klangc_pattern_parse_no_appl(klangc_input_t *input) {
   assert(input != NULL);
   int c;
 
-  klangc_input_buf_t ib = klangc_input_save(input);
-  c = klangc_getc_skipspaces(input);
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_ipos_t ipos2 = klangc_skipspaces(input);
+  c = klangc_getc(input);
 
   if (c == EOF) {
-    klangc_input_restore(input, ib);
+    klangc_input_restore(input, ipos);
     return NULL;
   }
 
   if (c == '(') {
+    ipos2 = klangc_skipspaces(input);
     klangc_pattern_t *ret = klangc_pattern_parse(input);
     if (ret == NULL) {
       klangc_message_reset(input);
-      klangc_message_add_buf(input, NULL);
+      klangc_message_add_ipos(input, &ipos2);
       klangc_message_add(input, "expect <pattern>: ['(' ^<pattern> ')']\n");
       klangc_message_print(input, kstderr);
-      klangc_input_restore(input, ib);
+      klangc_input_restore(input, ipos);
       return NULL;
     }
 
-    c = klangc_getc_skipspaces(input);
+    ipos2 = klangc_skipspaces(input);
+    c = klangc_getc(input);
     if (c == ')')
       return ret;
 
     klangc_message_reset(input);
-    klangc_message_add_buf(input, NULL);
+    klangc_message_add_ipos(input, &ipos2);
     klangc_message_add(input, "expect ')' but get '%c': ['(' <pattern> ^')']\n",
                        c);
     klangc_message_print(input, kstderr);
-    klangc_input_restore(input, ib);
+    klangc_input_restore(input, ipos);
     return NULL;
   }
-  klangc_input_restore(input, ib);
+  klangc_input_restore(input, ipos2);
 
   char *name = klangc_symbol_parse(input);
   if (name != NULL) {
@@ -232,6 +236,7 @@ klangc_pattern_t *klangc_pattern_parse_no_appl(klangc_input_t *input) {
   if (strval != NULL)
     return klangc_pattern_new_string(strval);
 
+  klangc_input_restore(input, ipos);
   return NULL;
 }
 
@@ -242,7 +247,7 @@ klangc_pattern_t *klangc_pattern_parse(klangc_input_t *input) {
   ret = klangc_pattern_parse_no_appl(input);
   if (ret == NULL) {
     klangc_message_reset(input);
-    klangc_message_add_buf(input, NULL);
+    klangc_message_add_ipos(input, NULL);
     klangc_message_add(input, "expect <pattern>: [^<pattern>]\n");
     return NULL;
   }
@@ -314,7 +319,8 @@ void klangc_pattern_print(klangc_output_t *output, int prec,
     break;
   case KLANGC_PTYPE_AS:
     klangc_printf(output, "%s@", pattern->kp_as->kpas_var->kps_name);
-    klangc_pattern_print(output, KLANGC_PREC_LOWEST, pattern->kp_as->kpas_pattern);
+    klangc_pattern_print(output, KLANGC_PREC_LOWEST,
+                         pattern->kp_as->kpas_pattern);
     break;
   case KLANGC_PTYPE_INT:
     klangc_printf(output, "%d", pattern->kp_int->kpi_value);
