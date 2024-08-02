@@ -36,6 +36,8 @@ void klangc_def_print(klangc_output_t *output, klangc_def_t *def);
 int klangc_def_bind(klangc_def_t *def, const char *name,
                     klangc_def_ent_t *def_ent);
 
+klangc_def_t *klangc_def_new(klangc_ipos_t ipos, klangc_def_t *enclosed_by);
+
 int klangc_def_get(klangc_def_t *def, const char *name,
                    klangc_def_ent_t **pdef_ent, klangc_def_t **pdef);
 
@@ -43,5 +45,8 @@ int klangc_def_walk(klangc_def_t *def,
                     int (*func)(klangc_def_t *def, klangc_pattern_t *pat,
                                 klangc_expr_t *expr, void *data),
                     void *data);
+
+klangc_def_ent_t *klangc_def_ent_new(klangc_pattern_t *pat, klangc_expr_t *expr,
+                                     klangc_ipos_t ipos);
 
 #endif // __KLANGC_DEF_H__

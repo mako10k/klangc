@@ -35,6 +35,7 @@ struct klangc_expr_appl {
 struct klangc_expr_lambda {
   klangc_pattern_t *kvl_arg;
   klangc_expr_t *kvl_expr;
+  klangc_def_t *kvl_def;
 };
 
 struct klangc_expr_choice {
@@ -64,12 +65,16 @@ int klangc_expr_is_choice(klangc_expr_t *expr) {
 }
 
 klangc_expr_lambda_t *klangc_expr_lambda_new(klangc_pattern_t *arg,
-                                             klangc_expr_t *expr) {
+                                             klangc_expr_t *expr,
+                                             klangc_def_t *enclosed_by) {
   assert(arg != NULL);
   assert(expr != NULL);
   klangc_expr_lambda_t *ret = klangc_malloc(sizeof(klangc_expr_lambda_t));
   ret->kvl_arg = arg;
   ret->kvl_expr = expr;
+  ret->kvl_def = klangc_def_new(expr->ipos, enclosed_by);
+  klangc_def_ent_t *def_ent = klangc_def_ent_new(arg, expr, expr->ipos);
+  klangc_pattern_walkvars(ret->kvl_def, def_ent, arg, klangc_def_bind);
   return ret;
 }
 
@@ -216,7 +221,7 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
     return KLANGC_PARSE_ERROR;
   }
 
-  *plambda = klangc_expr_lambda_new(arg, body);
+  *plambda = klangc_expr_lambda_new(arg, body, enclosed_by);
   return KLANGC_PARSE_OK;
 }
 
@@ -500,8 +505,7 @@ int klangc_expr_bind(klangc_def_t *def, klangc_expr_t *expr) {
     break;
 
   case KLANGC_ETYPE_LAMBDA:
-    // TODO: Change Lambda Argument
-    ret = klangc_expr_bind(def, expr->kv_lambda->kvl_expr);
+    ret = klangc_expr_bind(expr->kv_lambda->kvl_def, expr->kv_lambda->kvl_expr);
     if (ret < 0)
       return -1;
     cnt_unbound += ret;
@@ -530,7 +534,7 @@ int klangc_expr_bind(klangc_def_t *def, klangc_expr_t *expr) {
 }
 
 int klangc_expr_check_unbound(klangc_output_t *output, klangc_def_t *def,
-                               klangc_expr_t *expr) {
+                              klangc_expr_t *expr) {
   int cnt_unbound, ret;
   switch (expr->type) {
   case KLANGC_ETYPE_SYMBOL:
@@ -557,8 +561,8 @@ int klangc_expr_check_unbound(klangc_output_t *output, klangc_def_t *def,
     return cnt_unbound;
 
   case KLANGC_ETYPE_LAMBDA:
-    // TODO: Change Lambda Argument
-    ret = klangc_expr_check_unbound(output, def, expr->kv_lambda->kvl_expr);
+    ret = klangc_expr_check_unbound(output, expr->kv_lambda->kvl_def,
+                                    expr->kv_lambda->kvl_expr);
     if (ret < 0)
       return -1;
     cnt_unbound = ret;

@@ -62,6 +62,16 @@ klangc_def_t *klangc_def_new(klangc_ipos_t ipos, klangc_def_t *enclosed_by) {
   return def;
 }
 
+klangc_def_ent_t *klangc_def_ent_new(klangc_pattern_t *pat, klangc_expr_t *expr,
+                                     klangc_ipos_t ipos) {
+  klangc_def_ent_t *def_ent = klangc_malloc(sizeof(klangc_def_ent_t));
+  def_ent->pat = pat;
+  def_ent->expr = expr;
+  def_ent->next = NULL;
+  def_ent->ipos = ipos;
+  return def_ent;
+}
+
 int klangc_def_expr_bind(klangc_def_t *def, klangc_pattern_t *pat,
                          klangc_expr_t *expr, void *data) {
   return klangc_expr_bind(def, expr);
@@ -125,7 +135,7 @@ klangc_parse_result_t klangc_def_parse(klangc_input_t *input,
 
     ipos_ss1 = klangc_skipspaces(input);
     klangc_expr_t *expr;
-    switch (klangc_expr_parse(input, enclosed_by, &expr)) {
+    switch (klangc_expr_parse(input, def, &expr)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
@@ -145,11 +155,7 @@ klangc_parse_result_t klangc_def_parse(klangc_input_t *input,
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
     }
-    klangc_def_ent_t *def_ent = klangc_malloc(sizeof(klangc_def_ent_t));
-    def_ent->pat = pat;
-    def_ent->expr = expr;
-    def_ent->ipos = ipos_ss1;
-    def_ent->next = NULL;
+    klangc_def_ent_t *def_ent = klangc_def_ent_new(pat, expr, ipos_ss1);
     int ret = klangc_pattern_walkvars(def, def_ent, pat, klangc_def_bind);
     if (ret < 0) {
       klangc_input_restore(input, ipos);
