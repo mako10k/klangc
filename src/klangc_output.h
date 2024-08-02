@@ -75,9 +75,10 @@ extern klangc_output_t *kstdout;
 extern klangc_output_t *kstderr;
 
 enum {
-  KLANGC_PREC_LOWEST = 0,
-  KLANGC_PREC_APPL = 1,
-  KLANGC_PREC_HIGHEST = 2,
+  KLANGC_PREC_LOWEST,
+  KLANGC_PREC_CHOICE,
+  KLANGC_PREC_APPL,
+  KLANGC_PREC_HIGHEST,
 };
 
 #endif // __KLANGC_OUTPUT_H__

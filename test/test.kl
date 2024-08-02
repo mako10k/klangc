@@ -1,12 +1,12 @@
 # COMMENT
-dict = {
-  a = 
-    \x -> 10 |
-    \y -> {
-      i = 10;
-      j = "abc";
-    };
-};
+main =
+ \args ->
+   join (fmap printInt (fib 5));
+
+join = \m -> chain m id;
+id = \x -> x;
+#chain = \m -> \f -> join (fmap f m);
+#fmap = \f -> \m -> chain m \x -> return (f x);
 
 fib = 
   \0 -> 1 |
