@@ -1,6 +1,7 @@
 
 #include "klangc_pattern.h"
 #include "klangc_input.h"
+#include "klangc_message.h"
 #include "klangc_output.h"
 #include "klangc_parse.h"
 #include <assert.h>
@@ -187,10 +188,8 @@ klangc_pattern_parse_no_appl(klangc_input_t *input,
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
-      klangc_message_reset(input);
-      klangc_message_add_ipos(input, ipos_ss2);
-      klangc_message_add(input, "expect <pattern>: ['(' ^<pattern> ')']\n");
-      klangc_message_print(input, kstderr);
+      klangc_print_ipos(kstderr, ipos_ss2);
+      klangc_printf(kstderr, "expect <pattern>: ['(' ^<pattern> ')']\n");
     case KLANGC_PARSE_ERROR:
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
@@ -199,11 +198,9 @@ klangc_pattern_parse_no_appl(klangc_input_t *input,
     ipos_ss2 = klangc_skipspaces(input);
     c = klangc_getc(input);
     if (c != ')') {
-      klangc_message_reset(input);
-      klangc_message_add_ipos(input, ipos_ss2);
-      klangc_message_add(input,
-                         "expect ')' but get '%c': ['(' <pattern> ^')']\n", c);
-      klangc_message_print(input, kstderr);
+      klangc_print_ipos(kstderr, ipos_ss2);
+      klangc_printf(kstderr, "expect ')' but get '%c': ['(' <pattern> ^')']\n",
+                    c);
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
     }
@@ -230,11 +227,8 @@ klangc_pattern_parse_no_appl(klangc_input_t *input,
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
-      klangc_message_reset(input);
-      klangc_message_add_ipos(input, ipos_ss2);
-      klangc_message_add(input,
-                         "expect <pattern>: [<symbol> '@' ^<pattern>]\n");
-      klangc_message_print(input, kstderr);
+      klangc_print_ipos(kstderr, ipos_ss2);
+      klangc_printf(kstderr, "expect <pattern>: [<symbol> '@' ^<pattern>]\n");
     case KLANGC_PARSE_ERROR:
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;

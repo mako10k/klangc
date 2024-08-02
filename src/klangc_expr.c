@@ -1,7 +1,9 @@
 #include "klangc_expr.h"
+#include "klangc_def.h"
 #include "klangc_dict.h"
 #include "klangc_input.h"
 #include "klangc_malloc.h"
+#include "klangc_message.h"
 #include "klangc_output.h"
 #include "klangc_parse.h"
 #include "klangc_pattern.h"
@@ -22,6 +24,7 @@ typedef struct klangc_expr_lambda klangc_expr_lambda_t;
 typedef struct klangc_expr_choice klangc_expr_choice_t;
 
 klangc_parse_result_t klangc_expr_parse_no_choice(klangc_input_t *input,
+                                                  klangc_def_t *enclosed_by,
                                                   klangc_expr_t **pexpr);
 
 struct klangc_expr_appl {
@@ -42,7 +45,10 @@ struct klangc_expr_choice {
 struct klangc_expr {
   klangc_expr_type_t type;
   union {
-    char *symbol;
+    struct {
+      char *symbol;
+      klangc_def_ent_t *symbol_ref;
+    };
     int intval;
     char *strval;
     klangc_expr_appl_t *kv_appl;
@@ -90,6 +96,7 @@ klangc_expr_t *klangc_expr_new_symbol(const char *symbol, klangc_ipos_t ipos) {
   klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
   expr->type = KLANGC_ETYPE_SYMBOL;
   expr->symbol = klangc_strdup(symbol);
+  expr->symbol_ref = NULL;
   expr->ipos = ipos;
   return expr;
 }
@@ -149,6 +156,7 @@ klangc_expr_t *klangc_expr_new_choice(klangc_expr_choice_t *choice,
 }
 
 klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
+                                               klangc_def_t *enclosed_by,
                                                klangc_expr_lambda_t **plambda) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
@@ -163,13 +171,10 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
-    klangc_message_reset(input);
-    klangc_message_add_ipos(input, ipos_ss);
-    klangc_message_add(
-        input, "expect <pattern>: ['\\' ^<pattern> '->' <expr(w/o choice)>]\n");
-    klangc_message_print(input, kstderr);
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
+    klangc_print_ipos(kstderr, ipos_ss);
+    klangc_printf(
+        kstderr,
+        "expect <pattern>: ['\\' ^<pattern> '->' <expr(w/o choice)>]\n");
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
@@ -178,42 +183,34 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   ipos_ss = klangc_skipspaces(input);
   c = klangc_getc(input);
   if (c != '-') {
-    klangc_message_reset(input);
-    klangc_message_add_ipos(input, ipos_ss);
-    klangc_message_add(
-        input,
+    klangc_print_ipos(kstderr, ipos_ss);
+    klangc_printf(
+        kstderr,
         "expect '-' but get '%c': ['\\' <pattern> ^'->' <expr(w/o choice)>]\n",
         c);
-    klangc_message_print(input, kstderr);
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
   c = klangc_getc(input);
   if (c != '>') {
-    klangc_message_reset(input);
-    klangc_message_add_ipos(input, ipos_ss);
-    klangc_message_add(input,
-                       "expect '->' but get '-%c': ['\\' <pattern> ^'->' "
-                       "<expr(w/o choice)>]\n",
-                       c);
-    klangc_message_print(input, kstderr);
+    klangc_print_ipos(kstderr, ipos_ss);
+    klangc_printf(kstderr,
+                  "expect '->' but get '-%c': ['\\' <pattern> ^'->' "
+                  "<expr(w/o choice)>]\n",
+                  c);
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
 
   ipos_ss = klangc_skipspaces(input);
   klangc_expr_t *body;
-  switch (klangc_expr_parse_no_choice(input, &body)) {
+  switch (klangc_expr_parse_no_choice(input, enclosed_by, &body)) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
-    klangc_message_reset(input);
-    klangc_message_add_ipos(input, ipos_ss);
-    klangc_message_add(
-        input, "expect <expr>: ['\\' <pattern> '->' ^<expr(w/o choice)>]\n");
-    klangc_message_print(input, kstderr);
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
+    klangc_print_ipos(kstderr, ipos_ss);
+    klangc_printf(kstderr,
+                  "expect <expr>: ['\\' <pattern> '->' ^<expr(w/o choice)>]\n");
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
@@ -224,6 +221,7 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
 }
 
 klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
+                                                klangc_def_t *enclosed_by,
                                                 klangc_expr_t **pexpr) {
   assert(input != NULL);
 
@@ -235,16 +233,12 @@ klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
       break;
     ipos_ss = klangc_skipspaces(input);
     klangc_expr_t *expr;
-    switch (klangc_expr_parse(input, &expr)) {
+    switch (klangc_expr_parse(input, enclosed_by, &expr)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
-      klangc_message_reset(input);
-      klangc_message_add_ipos(input, ipos_ss);
-      klangc_message_add(input, "expect <expr>: ['(' ^<expr> ')']\n");
-      klangc_message_print(input, kstderr);
-      klangc_input_restore(input, ipos);
-      return KLANGC_PARSE_ERROR;
+      klangc_print_ipos(kstderr, ipos_ss);
+      klangc_printf(kstderr, "expect <expr>: ['(' ^<expr> ')']\n");
     case KLANGC_PARSE_ERROR:
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
@@ -253,11 +247,8 @@ klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
     ipos_ss = klangc_skipspaces(input);
     c = klangc_getc(input);
     if (c != ')') {
-      klangc_message_reset(input);
-      klangc_message_add_ipos(input, ipos_ss);
-      klangc_message_add(input, "expect ')' but get '%c': ['(' <expr> ^')']\n",
-                         c);
-      klangc_message_print(input, kstderr);
+      klangc_print_ipos(kstderr, ipos_ss);
+      klangc_printf(kstderr, "expect ')' but get '%c': ['(' <expr> ^')']\n", c);
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
     }
@@ -268,7 +259,7 @@ klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
   klangc_input_restore(input, ipos_ss);
 
   klangc_dict_t *dict;
-  switch (klangc_dict_parse(input, &dict)) {
+  switch (klangc_dict_parse(input, enclosed_by, &dict)) {
   case KLANGC_PARSE_OK:
     *pexpr = klangc_expr_new_dict(dict, ipos_ss);
     return KLANGC_PARSE_OK;
@@ -316,7 +307,7 @@ klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
   }
 
   klangc_expr_lambda_t *lambda;
-  switch (klangc_expr_lambda_parse(input, &lambda)) {
+  switch (klangc_expr_lambda_parse(input, enclosed_by, &lambda)) {
   case KLANGC_PARSE_OK:
     *pexpr = klangc_expr_new_lambda(lambda, ipos_ss);
     return KLANGC_PARSE_OK;
@@ -332,20 +323,17 @@ klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
 }
 
 klangc_parse_result_t klangc_expr_parse_no_choice(klangc_input_t *input,
+                                                  klangc_def_t *enclosed_by,
                                                   klangc_expr_t **pexpr) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   klangc_expr_t *expr;
-  switch (klangc_expr_parse_no_appl(input, &expr)) {
+  switch (klangc_expr_parse_no_appl(input, enclosed_by, &expr)) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
-    klangc_message_reset(input);
-    klangc_message_add_ipos(input, ipos_ss);
-    klangc_message_add(input, "expect <expr(w/o appl)>: [^<expr(w/o appl)>]\n");
-    klangc_message_print(input, kstderr);
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
+    klangc_print_ipos(kstderr, ipos_ss);
+    klangc_printf(kstderr, "expect <expr(w/o appl)>: [^<expr(w/o appl)>]\n");
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
@@ -353,7 +341,7 @@ klangc_parse_result_t klangc_expr_parse_no_choice(klangc_input_t *input,
   while (1) {
     ipos_ss = klangc_skipspaces(input);
     klangc_expr_t *arg;
-    switch (klangc_expr_parse_no_appl(input, &arg)) {
+    switch (klangc_expr_parse_no_appl(input, enclosed_by, &arg)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
@@ -369,22 +357,19 @@ klangc_parse_result_t klangc_expr_parse_no_choice(klangc_input_t *input,
 }
 
 klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
+                                        klangc_def_t *enclosed_by,
                                         klangc_expr_t **pexpr) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   klangc_expr_t *expr;
-  switch (klangc_expr_parse_no_choice(input, &expr)) {
+  switch (klangc_expr_parse_no_choice(input, enclosed_by, &expr)) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
-    klangc_message_reset(input);
-    klangc_message_add_ipos(input, ipos_ss);
-    klangc_message_add(
-        input,
+    klangc_print_ipos(kstderr, ipos_ss);
+    klangc_printf(
+        kstderr,
         "expect <expr(w/o choice)>: [^<expr(w/o choice)> ('|' <expr>)?]\n");
-    klangc_message_print(input, kstderr);
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
@@ -401,15 +386,13 @@ klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
   klangc_expr_t *otherwise;
   ipos2 = klangc_input_save(input);
   ipos_ss2 = klangc_skipspaces(input);
-  switch (klangc_expr_parse(input, &otherwise)) {
+  switch (klangc_expr_parse(input, enclosed_by, &otherwise)) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
-    klangc_message_reset(input);
-    klangc_message_add_ipos(input, ipos_ss2);
-    klangc_message_add(input,
-                       "expect <expr>: [^<expr(w/o choice)> ('|' ^<expr>)?]\n");
-    klangc_message_print(input, kstderr);
+    klangc_print_ipos(kstderr, ipos_ss2);
+    klangc_printf(kstderr,
+                  "expect <expr>: [^<expr(w/o choice)> ('|' ^<expr>)?]\n");
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
@@ -481,4 +464,132 @@ void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {
     klangc_expr_choice_print(output, prec, expr->kv_choice, 0);
     break;
   }
+}
+int klangc_expr_varcheck(klangc_def_t *def, klangc_expr_t *expr);
+
+int klangc_expr_bindvar_walk(klangc_def_t *def, klangc_pattern_t *pat,
+                             klangc_expr_t *expr, void *data) {
+  return klangc_expr_varcheck(def, expr);
+}
+
+int klangc_expr_varcheck(klangc_def_t *def, klangc_expr_t *expr) {
+  klangc_def_t *enclosed_by;
+  klangc_def_ent_t *def_ent;
+  int cnt_unbound = 0, ret;
+  switch (expr->type) {
+  case KLANGC_ETYPE_SYMBOL:
+    if (klangc_def_get(def, expr->symbol, &def_ent, &enclosed_by)) {
+      expr->symbol_ref = def_ent;
+      return cnt_unbound;
+    }
+    cnt_unbound++;
+    return cnt_unbound;
+
+  case KLANGC_ETYPE_INT:
+  case KLANGC_ETYPE_STRING:
+    return 0;
+
+  case KLANGC_ETYPE_APPL:
+    ret = klangc_expr_varcheck(def, expr->kv_appl->kva_func);
+    if (ret < 0)
+      return -1;
+    cnt_unbound += ret;
+    ret = klangc_expr_varcheck(def, expr->kv_appl->kva_arg);
+    if (ret < 0)
+      return -1;
+    cnt_unbound += ret;
+    break;
+
+  case KLANGC_ETYPE_LAMBDA:
+    // TODO: Change Lambda Argument
+    ret = klangc_expr_varcheck(def, expr->kv_lambda->kvl_expr);
+    if (ret < 0)
+      return -1;
+    cnt_unbound += ret;
+    break;
+
+  case KLANGC_ETYPE_DICT:
+    ret = klangc_def_walk(klangc_dict_get_def(expr->kv_dict),
+                          klangc_expr_bindvar_walk, NULL);
+    if (ret < 0)
+      return -1;
+    cnt_unbound += ret;
+    break;
+
+  case KLANGC_ETYPE_CHOICE:
+    ret = klangc_expr_varcheck(def, expr->kv_choice->kvc_base);
+    if (ret < 0)
+      return -1;
+    cnt_unbound += ret;
+    ret = klangc_expr_varcheck(def, expr->kv_choice->kvc_otherwise);
+    if (ret < 0)
+      return -1;
+    cnt_unbound += ret;
+    break;
+  }
+  return cnt_unbound;
+}
+
+int klangc_expr_check_unbound2(klangc_output_t *output, klangc_def_t *def,
+                               klangc_expr_t *expr) {
+  int cnt_unbound, ret;
+  switch (expr->type) {
+  case KLANGC_ETYPE_SYMBOL:
+    if (expr->symbol_ref == NULL) {
+      klangc_print_ipos(output, expr->ipos);
+      klangc_printf(output, "Unbound variable: %s\n", expr->symbol);
+      return 1;
+    }
+    return 0;
+
+  case KLANGC_ETYPE_INT:
+  case KLANGC_ETYPE_STRING:
+    return 0;
+
+  case KLANGC_ETYPE_APPL:
+    ret = klangc_expr_check_unbound2(output, def, expr->kv_appl->kva_func);
+    if (ret < 0)
+      return -1;
+    cnt_unbound = ret;
+    ret = klangc_expr_check_unbound2(output, def, expr->kv_appl->kva_arg);
+    if (ret < 0)
+      return -1;
+    cnt_unbound += ret;
+    return cnt_unbound;
+
+  case KLANGC_ETYPE_LAMBDA:
+    // TODO: Change Lambda Argument
+    ret = klangc_expr_check_unbound2(output, def, expr->kv_lambda->kvl_expr);
+    if (ret < 0)
+      return -1;
+    cnt_unbound = ret;
+    return cnt_unbound;
+
+  case KLANGC_ETYPE_DICT:
+    ret = klangc_def_walk(klangc_dict_get_def(expr->kv_dict),
+                          klangc_expr_check_unbound, output);
+    if (ret < 0)
+      return -1;
+    cnt_unbound = ret;
+    return cnt_unbound;
+
+  case KLANGC_ETYPE_CHOICE:
+    ret = klangc_expr_check_unbound2(output, def, expr->kv_choice->kvc_base);
+    if (ret < 0)
+      return -1;
+    cnt_unbound = ret;
+    ret =
+        klangc_expr_check_unbound2(output, def, expr->kv_choice->kvc_otherwise);
+    if (ret < 0)
+      return -1;
+    cnt_unbound += ret;
+    return cnt_unbound;
+  }
+  assert(0);
+}
+
+int klangc_expr_check_unbound(klangc_def_t *def, klangc_pattern_t *pat,
+                              klangc_expr_t *expr, void *data) {
+  klangc_output_t *output = (klangc_output_t *)data;
+  return klangc_expr_check_unbound2(output, def, expr);
 }

@@ -15,6 +15,8 @@ klangc_SOURCES =     \
     klangc_input.c   \
     klangc_malloc.h  \
     klangc_malloc.c  \
+    klangc_message.h \
+    klangc_message.c \
     klangc_output.h  \
     klangc_output.c  \
     klangc_parse.h   \

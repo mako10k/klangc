@@ -128,38 +128,4 @@ klangc_skipspaces(klangc_input_t *input) {
   }
 }
 
-__attribute__((unused, format(printf, 2, 3))) static void
-klangc_message_add(klangc_input_t *input, const char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  int newlen = vsnprintf(NULL, 0, fmt, ap);
-  va_end(ap);
-  int oldlen = 0;
-  if (input->message != NULL)
-    oldlen = strlen(input->message);
-  input->message = (char *)klangc_realloc(input->message, newlen + oldlen + 1);
-  va_start(ap, fmt);
-  vsnprintf(input->message + oldlen, newlen + 1, fmt, ap);
-  va_end(ap);
-}
-
-__attribute__((unused)) static void
-klangc_message_reset(klangc_input_t *input) {
-  klangc_free(input->message);
-  input->message = NULL;
-}
-
-__attribute__((unused)) static void
-klangc_message_add_ipos(klangc_input_t *input, klangc_ipos_t ipos) {
-  assert(ipos.input == input);
-  klangc_message_add(input, "%s(%d,%d): ", input->name, ipos.line + 1,
-                     ipos.col + 1);
-}
-
-__attribute__((unused)) static void
-klangc_message_print(klangc_input_t *input, klangc_output_t *output) {
-  if (input->message != NULL)
-    klangc_printf(output, "%s", input->message);
-}
-
 #endif // __KLANGC_INPUT_H__
