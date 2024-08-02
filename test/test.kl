@@ -5,8 +5,8 @@ main =
 
 join = \m -> chain m id;
 id = \x -> x;
-#chain = \m -> \f -> join (fmap f m);
-#fmap = \f -> \m -> chain m \x -> return (f x);
+chain = \m -> \f -> join (fmap f m);
+fmap = \f -> \m -> chain m \x -> return (f x);
 
 fib = 
   \0 -> 1 |

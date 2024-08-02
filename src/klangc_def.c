@@ -62,9 +62,9 @@ klangc_def_t *klangc_def_new(klangc_ipos_t ipos, klangc_def_t *enclosed_by) {
   return def;
 }
 
-int klangc_def_expr_varcheck(klangc_def_t *def, klangc_pattern_t *pat,
-                             klangc_expr_t *expr, void *data) {
-  return klangc_expr_varcheck(def, expr);
+int klangc_def_expr_bind(klangc_def_t *def, klangc_pattern_t *pat,
+                         klangc_expr_t *expr, void *data) {
+  return klangc_expr_bind(def, expr);
 }
 
 int klangc_def_walk(klangc_def_t *def,
@@ -165,7 +165,7 @@ klangc_parse_result_t klangc_def_parse(klangc_input_t *input,
   }
   *pdef = def;
 
-  klangc_def_walk(def, klangc_def_expr_varcheck, NULL);
+  klangc_def_walk(def, klangc_def_expr_bind, NULL);
   return KLANGC_PARSE_OK;
 }
 
