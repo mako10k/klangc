@@ -8,7 +8,9 @@ id = \x -> x;
 chain = \m -> \f -> join (fmap f m);
 fmap = \f -> \m -> chain m \x -> return (f x);
 
-fib = 
+pred = \(Cons x y) -> y;
+
+fib = fix \f -> (
   \0 -> 1 |
   \1 -> 1 |
-  \Int n -> add (fib (pred n)) (fib (pred (pred n)));
+  \Int n -> add (f (pred n)) (f (pred (pred n))));
