@@ -1,4 +1,4 @@
-#include "klangc_dict.h"
+#include "klangc_eclosure.h"
 #include "klangc_closure.h"
 #include "klangc_input.h"
 #include "klangc_malloc.h"
@@ -7,25 +7,27 @@
 #include "klangc_parse.h"
 #include "klangc_types.h"
 
-struct klangc_dict {
-  klangc_closure_t *kd_closure;
-  klangc_ipos_t kd_ipos;
+struct klangc_expr_closure {
+  klangc_closure_t *kec_closure;
+  klangc_ipos_t kec_ipos;
 };
 
-klangc_closure_t *klangc_dict_get_closure(klangc_dict_t *dict) {
-  return dict->kd_closure;
+klangc_closure_t *klangc_eclosure_get_closure(klangc_expr_closure_t *eclosure) {
+  return eclosure->kec_closure;
 }
 
-klangc_dict_t *klangc_dict_new(klangc_closure_t *closure, klangc_ipos_t ipos) {
-  klangc_dict_t *dict = klangc_malloc(sizeof(klangc_dict_t));
-  dict->kd_closure = closure;
-  dict->kd_ipos = ipos;
-  return dict;
+klangc_expr_closure_t *klangc_eclosure_new(klangc_closure_t *closure,
+                                           klangc_ipos_t ipos) {
+  klangc_expr_closure_t *eclosure =
+      klangc_malloc(sizeof(klangc_expr_closure_t));
+  eclosure->kec_closure = closure;
+  eclosure->kec_ipos = ipos;
+  return eclosure;
 }
 
-klangc_parse_result_t klangc_dict_parse(klangc_input_t *input,
-                                        klangc_closure_t *upper,
-                                        klangc_dict_t **pdict) {
+klangc_parse_result_t klangc_eclosure_parse(klangc_input_t *input,
+                                            klangc_closure_t *upper,
+                                            klangc_expr_closure_t **peclosure) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   int c = klangc_getc(input);
@@ -53,14 +55,15 @@ klangc_parse_result_t klangc_dict_parse(klangc_input_t *input,
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
-  *pdict = klangc_dict_new(closure, ipos_ss);
+  *peclosure = klangc_eclosure_new(closure, ipos_ss);
   return KLANGC_PARSE_OK;
 }
 
-void klangc_dict_print(klangc_output_t *output, klangc_dict_t *dict) {
+void klangc_eclosure_print(klangc_output_t *output,
+                           klangc_expr_closure_t *eclosure) {
   klangc_printf(output, "{\n");
   klangc_indent(output, 2);
-  klangc_closure_print(output, dict->kd_closure);
+  klangc_closure_print(output, eclosure->kec_closure);
   klangc_indent(output, -2);
   klangc_printf(output, "}");
 }

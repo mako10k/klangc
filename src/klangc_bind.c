@@ -1,5 +1,4 @@
 #include "klangc_bind.h"
-#include "klangc_expr.h"
 
 struct klangc_bind {
   klangc_pattern_t *pat;

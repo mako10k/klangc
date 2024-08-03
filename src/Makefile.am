@@ -7,8 +7,8 @@ klangc_SOURCES =     \
     klangc_bind.c    \
     klangc_closure.h \
     klangc_closure.c \
-    klangc_dict.h    \
-    klangc_dict.c    \
+    klangc_eclosure.h\
+    klangc_eclosure.c\
     klangc_expr.h    \
     klangc_expr.c    \
     klangc_hash.h    \

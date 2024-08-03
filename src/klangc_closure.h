@@ -1,5 +1,5 @@
-#ifndef __KLANGC_DEF_H__
-#define __KLANGC_DEF_H__
+#ifndef __KLANGC_CLOSURE_H__
+#define __KLANGC_CLOSURE_H__
 
 #include "klangc.h"
 
@@ -29,4 +29,4 @@ int klangc_closure_walk_bind(klangc_closure_t *closure,
                                          klangc_expr_t *expr, void *data),
                              void *data);
 
-#endif // __KLANGC_DEF_H__
+#endif // __KLANGC_CLOSURE_H__
