@@ -1,8 +1,6 @@
-#ifndef __KLANGC_HASH_H__
-#define __KLANGC_HASH_H__
+#pragma once
 
 #include "klangc.h"
-
 #include "klangc_types.h"
 
 typedef struct klangc_hash_entry klangc_hash_entry_t;
@@ -15,5 +13,3 @@ int klangc_hash_remove(klangc_hash_t *hash, const char *key, void **value);
 void klangc_hash_walk(klangc_hash_t *hash,
                       void (*callback)(const char *, void *, void *),
                       void *data);
-
-#endif // __KLANGC_HASH_H__

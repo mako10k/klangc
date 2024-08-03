@@ -1,8 +1,6 @@
-#ifndef __KLANGC_INPUT_H__
-#define __KLANGC_INPUT_H__
+#pragma once
 
 #include "klangc.h"
-
 #include "klangc_malloc.h"
 #include "klangc_output.h"
 
@@ -127,5 +125,3 @@ klangc_skipspaces(klangc_input_t *input) {
     klangc_procc(input, c);
   }
 }
-
-#endif // __KLANGC_INPUT_H__

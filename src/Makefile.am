@@ -9,6 +9,8 @@ klangc_SOURCES =     \
     klangc_closure.c \
     klangc_eclosure.h\
     klangc_eclosure.c\
+    klangc_elambda.h \
+    klangc_elambda.c \
     klangc_expr.h    \
     klangc_expr.c    \
     klangc_hash.h    \

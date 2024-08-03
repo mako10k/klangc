@@ -1,8 +1,6 @@
-#ifndef __KLANGC_PATTERN_H__
-#define __KLANGC_PATTERN_H__
+#pragma once
 
 #include "klangc.h"
-
 #include "klangc_input.h"
 #include "klangc_output.h"
 #include "klangc_parse.h"
@@ -32,5 +30,3 @@ int klangc_pattern_walkvars(klangc_closure_t *closure, klangc_bind_t *bind,
                             klangc_pattern_t *pat,
                             int (*bind_fn)(klangc_closure_t *, const char *,
                                            klangc_bind_t *));
-
-#endif // __KLANGC_PATTERN_H__

@@ -1,8 +1,6 @@
-#ifndef __KLANGC_EXPR_H__
-#define __KLANGC_EXPR_H__
+#pragma once
 
 #include "klangc.h"
-
 #include "klangc_input.h"
 #include "klangc_output.h"
 #include "klangc_parse.h"
@@ -23,4 +21,4 @@ int klangc_expr_check_unbound_by_walk(klangc_closure_t *closure,
                                       klangc_pattern_t *pat,
                                       klangc_expr_t *expr, void *data);
 
-#endif // __KLANGC_EXPR_H__
+klangc_ipos_t klangc_expr_get_ipos(klangc_expr_t *expr);

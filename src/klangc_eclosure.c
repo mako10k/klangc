@@ -12,7 +12,8 @@ struct klangc_expr_closure {
   klangc_ipos_t kec_ipos;
 };
 
-klangc_closure_t *klangc_eclosure_get_closure(klangc_expr_closure_t *eclosure) {
+klangc_closure_t *
+klangc_expr_closure_get_closure(klangc_expr_closure_t *eclosure) {
   return eclosure->kec_closure;
 }
 

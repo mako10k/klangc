@@ -1,8 +1,6 @@
-#ifndef __KLANGC_PARSE_H__
-#define __KLANGC_PARSE_H__
+#pragma once
 
 #include "klangc.h"
-
 #include "klangc_input.h"
 
 typedef enum klangc_parse_result {
@@ -16,5 +14,3 @@ klangc_parse_result_t klangc_symbol_parse(klangc_input_t *input,
 klangc_parse_result_t klangc_int_parse(klangc_input_t *input, int *pintval);
 klangc_parse_result_t klangc_string_parse(klangc_input_t *input,
                                           char **pstrval);
-
-#endif // __KLANGC_PARSE_H__

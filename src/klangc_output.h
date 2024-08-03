@@ -1,8 +1,6 @@
-#ifndef __KLANGC_OUTPUT_H__
-#define __KLANGC_OUTPUT_H__
+#pragma once
 
 #include "klangc.h"
-
 #include "klangc_malloc.h"
 
 #include <stdarg.h>
@@ -80,5 +78,3 @@ enum {
   KLANGC_PREC_APPL,
   KLANGC_PREC_HIGHEST,
 };
-
-#endif // __KLANGC_OUTPUT_H__
