@@ -16,15 +16,15 @@
  * @return パース結果
  */
 klangc_parse_result_t klangc_def_parse(klangc_input_t *input,
-                                       klangc_def_t *enclosed_by,
-                                       klangc_def_t **pdef);
+                                       klangc_closure_t *enclosed_by,
+                                       klangc_closure_t **pdef);
 
 /**
  * 定義を表示する
  * @param output 出力
  * @param def 定義
  */
-void klangc_def_print(klangc_output_t *output, klangc_def_t *def);
+void klangc_def_print(klangc_output_t *output, klangc_closure_t *def);
 
 /**
  * 定義をバインドする
@@ -33,16 +33,17 @@ void klangc_def_print(klangc_output_t *output, klangc_def_t *def);
  * @param def_next 次の定義
  * @return バインド結果
  */
-int klangc_def_bind(klangc_def_t *def, const char *name,
+int klangc_def_bind(klangc_closure_t *def, const char *name,
                     klangc_def_ent_t *def_ent);
 
-klangc_def_t *klangc_def_new(klangc_ipos_t ipos, klangc_def_t *enclosed_by);
+klangc_closure_t *klangc_def_new(klangc_ipos_t ipos,
+                                 klangc_closure_t *enclosed_by);
 
-int klangc_def_get(klangc_def_t *def, const char *name,
-                   klangc_def_ent_t **pdef_ent, klangc_def_t **pdef);
+int klangc_def_get(klangc_closure_t *def, const char *name,
+                   klangc_def_ent_t **pdef_ent, klangc_closure_t **pdef);
 
-int klangc_def_walk(klangc_def_t *def,
-                    int (*func)(klangc_def_t *def, klangc_pattern_t *pat,
+int klangc_def_walk(klangc_closure_t *def,
+                    int (*func)(klangc_closure_t *def, klangc_pattern_t *pat,
                                 klangc_expr_t *expr, void *data),
                     void *data);
 

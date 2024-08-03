@@ -3,21 +3,40 @@
 ----
 
 ```
-<INCLUDE> ::= <MODULE> ("@" <INCLUDE>)*;
-<MODULE> ::= "{" <BINDS> "}";
-<BINDS> ::= <BIND>*;
-<BIND> ::= <NAME> "=" <EXPR_N> ";";
-<EXPR> ::= <EXPR'> ("." <NAME>)*; 
-<EXPR'> ::= <NAME> /*VAR or CONSTR*/
-         | <LITERAL>
-         | <APPL>
-         | <LAMBDAS>
-         | "(" <EXPR> ")";
-<LITERAL> ::= "0" | "1";
-<APPL> ::= <EXPR> <EXPR>+ ;
-<LAMBDAS> ::= <LAMBDA> ("|" <LAMBDA>)*;
-<LAMBDA> ::= "\" <PATTERN> "->" <EXPR> ;
-<PATTERN> ::= <WILDCARD>
-            | <PAPPL>
+<prog> ::= <defs>*;
+
+<defs> = <def>*;
+
+<def> ::= <lambda>
+        | <bind>
+        ;
+
+<lambda> ::= "\" <pat> "->" <expr>;
+
+<bind> ::= <pat> "=" <expr>;
+
+<pat> ::= <pat_data>
+        | <pat_simp>
+        ;
+
+<pat_data> ::= <pat_constr>
+             | <pat_data> <pat_simp>;
+
+<pat_simp> ::= <pat_noappl>
+             | <pat_simp> <pat>;
+
+<pat_noappl> ::= <pat_var_or_at>
+               | <pat_int>
+               | <pat_str>
+               ;
+
+<pat_var_or_at> ::= <pat_var>
+                  | <pat_var> "@" <pat>;
+
+<pat_var> ::= [a-z_][a-zA-Z_]*;
+
+<pat_int> ::= [0-9]+;
+
+<pat_str> ::= ["][^"]*["];
 
 ```
