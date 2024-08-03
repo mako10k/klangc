@@ -28,9 +28,9 @@ klangc_parse_result_t klangc_pattern_parse(klangc_input_t *input,
 void klangc_pattern_print(klangc_output_t *output, int prec,
                           klangc_pattern_t *pattern);
 
-int klangc_pattern_walkvars(klangc_closure_t *def, klangc_def_ent_t *def_ent,
+int klangc_pattern_walkvars(klangc_closure_t *closure, klangc_bind_t *bind,
                             klangc_pattern_t *pat,
                             int (*bind_fn)(klangc_closure_t *, const char *,
-                                           klangc_def_ent_t *));
+                                           klangc_bind_t *));
 
 #endif // __KLANGC_PATTERN_H__

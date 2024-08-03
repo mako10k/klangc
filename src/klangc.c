@@ -14,8 +14,8 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
     klangc_input_t *input = klangc_input_new(fp, argv[i]);
-    klangc_closure_t *def;
-    switch (klangc_def_parse(input, prelude, &def)) {
+    klangc_closure_t *closure;
+    switch (klangc_closure_parse(input, prelude, &closure)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
@@ -24,8 +24,9 @@ int main(int argc, char *argv[]) {
     case KLANGC_PARSE_ERROR:
       return EXIT_FAILURE;
     }
-    klangc_def_print(kstdout, def);
-    klangc_def_walk(def, klangc_expr_bind_by_walk, kstdout);
-    klangc_def_walk(def, klangc_expr_check_unbound_by_walk, kstdout);
+    klangc_closure_print(kstdout, closure);
+    klangc_closure_walk_bind(closure, klangc_expr_bind_by_walk, kstdout);
+    klangc_closure_walk_bind(closure, klangc_expr_check_unbound_by_walk,
+                             kstdout);
   }
 }

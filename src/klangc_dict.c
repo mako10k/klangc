@@ -8,21 +8,23 @@
 #include "klangc_types.h"
 
 struct klangc_dict {
-  klangc_closure_t *def;
-  klangc_ipos_t ipos;
+  klangc_closure_t *kd_closure;
+  klangc_ipos_t kd_ipos;
 };
 
-klangc_closure_t *klangc_dict_get_def(klangc_dict_t *dict) { return dict->def; }
+klangc_closure_t *klangc_dict_get_closure(klangc_dict_t *dict) {
+  return dict->kd_closure;
+}
 
-klangc_dict_t *klangc_dict_new(klangc_closure_t *def, klangc_ipos_t ipos) {
+klangc_dict_t *klangc_dict_new(klangc_closure_t *closure, klangc_ipos_t ipos) {
   klangc_dict_t *dict = klangc_malloc(sizeof(klangc_dict_t));
-  dict->def = def;
-  dict->ipos = ipos;
+  dict->kd_closure = closure;
+  dict->kd_ipos = ipos;
   return dict;
 }
 
 klangc_parse_result_t klangc_dict_parse(klangc_input_t *input,
-                                        klangc_closure_t *enclosed_by,
+                                        klangc_closure_t *upper,
                                         klangc_dict_t **pdict) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
@@ -32,8 +34,8 @@ klangc_parse_result_t klangc_dict_parse(klangc_input_t *input,
     return KLANGC_PARSE_NOPARSE;
   }
   ipos_ss = klangc_skipspaces(input);
-  klangc_closure_t *def;
-  switch (klangc_def_parse(input, enclosed_by, &def)) {
+  klangc_closure_t *closure;
+  switch (klangc_closure_parse(input, upper, &closure)) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
@@ -51,14 +53,14 @@ klangc_parse_result_t klangc_dict_parse(klangc_input_t *input,
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
-  *pdict = klangc_dict_new(def, ipos_ss);
+  *pdict = klangc_dict_new(closure, ipos_ss);
   return KLANGC_PARSE_OK;
 }
 
 void klangc_dict_print(klangc_output_t *output, klangc_dict_t *dict) {
   klangc_printf(output, "{\n");
   klangc_indent(output, 2);
-  klangc_def_print(output, dict->def);
+  klangc_closure_print(output, dict->kd_closure);
   klangc_indent(output, -2);
   klangc_printf(output, "}");
 }

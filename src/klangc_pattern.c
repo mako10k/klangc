@@ -308,39 +308,39 @@ klangc_parse_result_t klangc_pattern_parse(klangc_input_t *input,
   }
 }
 
-int klangc_pattern_walkvars(klangc_closure_t *def, klangc_def_ent_t *def_ent,
+int klangc_pattern_walkvars(klangc_closure_t *closure, klangc_bind_t *bind,
                             klangc_pattern_t *pat,
                             int (*bind_fn)(klangc_closure_t *, const char *,
-                                           klangc_def_ent_t *)) {
-  assert(def != NULL);
-  assert(def_ent != NULL);
+                                           klangc_bind_t *)) {
+  assert(closure != NULL);
+  assert(bind != NULL);
   assert(pat != NULL);
   assert(bind_fn != NULL);
 
   int ret = 0;
   int cnt = 0;
   if (pat->kp_type == KLANGC_PTYPE_SYMBOL) {
-    ret = bind_fn(def, pat->kp_symbol->kps_name, def_ent);
+    ret = bind_fn(closure, pat->kp_symbol->kps_name, bind);
     if (ret < 0)
       return ret;
     cnt++;
   } else if (pat->kp_type == KLANGC_PTYPE_APPL) {
-    ret = klangc_pattern_walkvars(def, def_ent, pat->kp_appl->kpap_constr,
+    ret = klangc_pattern_walkvars(closure, bind, pat->kp_appl->kpap_constr,
                                   bind_fn);
     if (ret < 0)
       return ret;
     cnt += ret;
     ret =
-        klangc_pattern_walkvars(def, def_ent, pat->kp_appl->kpap_arg, bind_fn);
+        klangc_pattern_walkvars(closure, bind, pat->kp_appl->kpap_arg, bind_fn);
     if (ret < 0)
       return ret;
     cnt += ret;
   } else if (pat->kp_type == KLANGC_PTYPE_AS) {
-    ret = bind_fn(def, pat->kp_as->kpas_var->kps_name, def_ent);
+    ret = bind_fn(closure, pat->kp_as->kpas_var->kps_name, bind);
     if (ret < 0)
       return ret;
     cnt++;
-    ret = klangc_pattern_walkvars(def, def_ent, pat->kp_as->kpas_pattern,
+    ret = klangc_pattern_walkvars(closure, bind, pat->kp_as->kpas_pattern,
                                   bind_fn);
     if (ret < 0)
       return ret;

@@ -1,4 +1,5 @@
 #include "klangc_expr.h"
+#include "klangc_bind.h"
 #include "klangc_closure.h"
 #include "klangc_dict.h"
 #include "klangc_input.h"
@@ -35,7 +36,7 @@ struct klangc_expr_appl {
 struct klangc_expr_lambda {
   klangc_pattern_t *kvl_arg;
   klangc_expr_t *kvl_body;
-  klangc_closure_t *kvl_def;
+  klangc_closure_t *kvl_closure;
 };
 
 struct klangc_expr_choice {
@@ -48,7 +49,7 @@ struct klangc_expr {
   union {
     struct {
       char *symbol;
-      klangc_def_ent_t *symbol_ref;
+      klangc_bind_t *symbol_ref;
     };
     int intval;
     char *strval;
@@ -72,9 +73,10 @@ klangc_expr_lambda_t *klangc_expr_lambda_new(klangc_pattern_t *arg,
   klangc_expr_lambda_t *lambda = klangc_malloc(sizeof(klangc_expr_lambda_t));
   lambda->kvl_arg = arg;
   lambda->kvl_body = body;
-  lambda->kvl_def = klangc_def_new(body->ipos, enclosed_by);
-  klangc_def_ent_t *def_ent = klangc_def_ent_new(arg, body, body->ipos);
-  klangc_pattern_walkvars(lambda->kvl_def, def_ent, arg, klangc_def_bind);
+  lambda->kvl_closure = klangc_closure_new(body->ipos, enclosed_by);
+  klangc_bind_t *bind = klangc_bind_new(arg, body, body->ipos);
+  klangc_pattern_walkvars(lambda->kvl_closure, bind, arg,
+                          klangc_closure_makeref_bind);
   return lambda;
 }
 
@@ -143,12 +145,12 @@ klangc_expr_t *klangc_expr_new_appl(klangc_expr_appl_t *appl,
   return expr;
 }
 
-klangc_expr_t *klangc_expr_new_dict(klangc_dict_t *def, klangc_ipos_t ipos) {
-  klangc_expr_t *dict = klangc_malloc(sizeof(klangc_expr_t));
-  dict->type = KLANGC_ETYPE_DICT;
-  dict->kv_dict = def;
-  dict->ipos = ipos;
-  return dict;
+klangc_expr_t *klangc_expr_new_dict(klangc_dict_t *dict, klangc_ipos_t ipos) {
+  klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
+  expr->type = KLANGC_ETYPE_DICT;
+  expr->kv_dict = dict;
+  expr->ipos = ipos;
+  return expr;
 }
 
 klangc_expr_t *klangc_expr_new_choice(klangc_expr_choice_t *choice,
@@ -161,7 +163,7 @@ klangc_expr_t *klangc_expr_new_choice(klangc_expr_choice_t *choice,
 }
 
 klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
-                                               klangc_closure_t *enclosed_by,
+                                               klangc_closure_t *upper,
                                                klangc_expr_lambda_t **plambda) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
@@ -209,7 +211,7 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
 
   ipos_ss = klangc_skipspaces(input);
   klangc_expr_t *body;
-  switch (klangc_expr_parse_no_choice(input, enclosed_by, &body)) {
+  switch (klangc_expr_parse_no_choice(input, upper, &body)) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
@@ -221,7 +223,7 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
     return KLANGC_PARSE_ERROR;
   }
 
-  *plambda = klangc_expr_lambda_new(arg, body, enclosed_by);
+  *plambda = klangc_expr_lambda_new(arg, body, upper);
   return KLANGC_PARSE_OK;
 }
 
@@ -471,18 +473,18 @@ void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {
   }
 }
 
-int klangc_expr_bind_by_walk(klangc_closure_t *def, klangc_pattern_t *pat,
+int klangc_expr_bind_by_walk(klangc_closure_t *closure, klangc_pattern_t *pat,
                              klangc_expr_t *expr, void *data) {
-  return klangc_expr_bind(def, expr);
+  return klangc_expr_bind(closure, expr);
 }
 
-int klangc_expr_bind(klangc_closure_t *def, klangc_expr_t *expr) {
-  klangc_closure_t *enclosed_by;
-  klangc_def_ent_t *def_ent;
+int klangc_expr_bind(klangc_closure_t *closure, klangc_expr_t *expr) {
+  klangc_closure_t *upper;
+  klangc_bind_t *bind;
   int cnt_unbound = 0, ret;
   switch (expr->type) {
   case KLANGC_ETYPE_SYMBOL:
-    if (klangc_def_get(def, expr->symbol, &def_ent, &enclosed_by)) {
+    if (klangc_closure_get_bind(closure, expr->symbol, &bind, &upper)) {
       if (expr->symbol_ref != NULL) {
         klangc_print_ipos(kstderr, expr->ipos);
         klangc_printf(kstderr,
@@ -491,7 +493,7 @@ int klangc_expr_bind(klangc_closure_t *def, klangc_expr_t *expr) {
                       expr->symbol);
         return -1;
       }
-      expr->symbol_ref = def_ent;
+      expr->symbol_ref = bind;
       return cnt_unbound;
     }
     cnt_unbound++;
@@ -502,37 +504,38 @@ int klangc_expr_bind(klangc_closure_t *def, klangc_expr_t *expr) {
     return 0;
 
   case KLANGC_ETYPE_APPL:
-    ret = klangc_expr_bind(def, expr->kv_appl->kva_func);
+    ret = klangc_expr_bind(closure, expr->kv_appl->kva_func);
     if (ret < 0)
       return -1;
     cnt_unbound += ret;
-    ret = klangc_expr_bind(def, expr->kv_appl->kva_arg);
+    ret = klangc_expr_bind(closure, expr->kv_appl->kva_arg);
     if (ret < 0)
       return -1;
     cnt_unbound += ret;
     break;
 
   case KLANGC_ETYPE_LAMBDA:
-    ret = klangc_expr_bind(expr->kv_lambda->kvl_def, expr->kv_lambda->kvl_body);
+    ret = klangc_expr_bind(expr->kv_lambda->kvl_closure,
+                           expr->kv_lambda->kvl_body);
     if (ret < 0)
       return -1;
     cnt_unbound += ret;
     break;
 
   case KLANGC_ETYPE_DICT:
-    ret = klangc_def_walk(klangc_dict_get_def(expr->kv_dict),
-                          klangc_expr_bind_by_walk, NULL);
+    ret = klangc_closure_walk_bind(klangc_dict_get_closure(expr->kv_dict),
+                                   klangc_expr_bind_by_walk, NULL);
     if (ret < 0)
       return -1;
     cnt_unbound += ret;
     break;
 
   case KLANGC_ETYPE_CHOICE:
-    ret = klangc_expr_bind(def, expr->kv_choice->kvc_base);
+    ret = klangc_expr_bind(closure, expr->kv_choice->kvc_base);
     if (ret < 0)
       return -1;
     cnt_unbound += ret;
-    ret = klangc_expr_bind(def, expr->kv_choice->kvc_otherwise);
+    ret = klangc_expr_bind(closure, expr->kv_choice->kvc_otherwise);
     if (ret < 0)
       return -1;
     cnt_unbound += ret;
@@ -541,8 +544,8 @@ int klangc_expr_bind(klangc_closure_t *def, klangc_expr_t *expr) {
   return cnt_unbound;
 }
 
-int klangc_expr_check_unbound(klangc_output_t *output, klangc_closure_t *def,
-                              klangc_expr_t *expr) {
+int klangc_expr_check_unbound(klangc_output_t *output,
+                              klangc_closure_t *closure, klangc_expr_t *expr) {
   int cnt_unbound, ret;
   switch (expr->type) {
   case KLANGC_ETYPE_SYMBOL:
@@ -558,18 +561,18 @@ int klangc_expr_check_unbound(klangc_output_t *output, klangc_closure_t *def,
     return 0;
 
   case KLANGC_ETYPE_APPL:
-    ret = klangc_expr_check_unbound(output, def, expr->kv_appl->kva_func);
+    ret = klangc_expr_check_unbound(output, closure, expr->kv_appl->kva_func);
     if (ret < 0)
       return -1;
     cnt_unbound = ret;
-    ret = klangc_expr_check_unbound(output, def, expr->kv_appl->kva_arg);
+    ret = klangc_expr_check_unbound(output, closure, expr->kv_appl->kva_arg);
     if (ret < 0)
       return -1;
     cnt_unbound += ret;
     return cnt_unbound;
 
   case KLANGC_ETYPE_LAMBDA:
-    ret = klangc_expr_check_unbound(output, expr->kv_lambda->kvl_def,
+    ret = klangc_expr_check_unbound(output, expr->kv_lambda->kvl_closure,
                                     expr->kv_lambda->kvl_body);
     if (ret < 0)
       return -1;
@@ -577,20 +580,20 @@ int klangc_expr_check_unbound(klangc_output_t *output, klangc_closure_t *def,
     return cnt_unbound;
 
   case KLANGC_ETYPE_DICT:
-    ret = klangc_def_walk(klangc_dict_get_def(expr->kv_dict),
-                          klangc_expr_check_unbound_by_walk, output);
+    ret = klangc_closure_walk_bind(klangc_dict_get_closure(expr->kv_dict),
+                                   klangc_expr_check_unbound_by_walk, output);
     if (ret < 0)
       return -1;
     cnt_unbound = ret;
     return cnt_unbound;
 
   case KLANGC_ETYPE_CHOICE:
-    ret = klangc_expr_check_unbound(output, def, expr->kv_choice->kvc_base);
+    ret = klangc_expr_check_unbound(output, closure, expr->kv_choice->kvc_base);
     if (ret < 0)
       return -1;
     cnt_unbound = ret;
-    ret =
-        klangc_expr_check_unbound(output, def, expr->kv_choice->kvc_otherwise);
+    ret = klangc_expr_check_unbound(output, closure,
+                                    expr->kv_choice->kvc_otherwise);
     if (ret < 0)
       return -1;
     cnt_unbound += ret;
@@ -599,9 +602,9 @@ int klangc_expr_check_unbound(klangc_output_t *output, klangc_closure_t *def,
   assert(0);
 }
 
-int klangc_expr_check_unbound_by_walk(klangc_closure_t *def,
+int klangc_expr_check_unbound_by_walk(klangc_closure_t *closure,
                                       klangc_pattern_t *pat,
                                       klangc_expr_t *expr, void *data) {
   klangc_output_t *output = (klangc_output_t *)data;
-  return klangc_expr_check_unbound(output, def, expr);
+  return klangc_expr_check_unbound(output, closure, expr);
 }
