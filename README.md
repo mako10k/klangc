@@ -24,10 +24,12 @@
 
 <pat_data> ::= ":" <pat>*;
 
+
+TOKENS
+
 <symbol> ::= [A-Za-z_][A-Za-z_0-9]*;
-
+<reference> ::= "~" <symbol>;
 <int> ::= [0-9]+;
-
 <str> ::= ["][^"]*["];
 
 ```
