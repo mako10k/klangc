@@ -6,6 +6,8 @@ typedef struct klangc_bind klangc_bind_t;
 
 typedef struct klangc_closure klangc_closure_t;
 
+typedef struct klangc_closure_ent klangc_closure_ent_t;
+
 typedef struct klangc_pattern klangc_pattern_t;
 
 typedef struct klangc_expr klangc_expr_t;

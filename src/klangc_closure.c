@@ -1,6 +1,7 @@
 
 #include "klangc_closure.h"
 #include "klangc_bind.h"
+#include "klangc_closure_ent.h"
 #include "klangc_expr.h"
 #include "klangc_hash.h"
 #include "klangc_input.h"
@@ -10,22 +11,6 @@
 #include "klangc_types.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-typedef enum klangc_closure_ent_type {
-  KLANGC_CLOSURE_ENT_BIND,
-  KLANGC_CLOSURE_ENT_LAMBDA,
-} klangc_closure_ent_type_t;
-
-typedef struct klangc_closure_ent klangc_closure_ent_t;
-
-struct klangc_closure_ent {
-  klangc_closure_ent_type_t kce_type;
-  union {
-    klangc_bind_t *kce_bind;
-    klangc_closure_t *kce_lambda;
-  };
-  klangc_closure_ent_t *kce_next;
-};
 
 struct klangc_closure {
   klangc_hash_t *kc_bind_ref;
@@ -53,7 +38,7 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   klangc_closure_t *closure = klangc_closure_new(ipos_ss, pupper);
-  klangc_closure_ent_t **pent = &closure->kc_ent;
+  klangc_closure_ent_t *ent_prev = NULL;
   while (1) {
     klangc_ipos_t ipos_ss1 = klangc_skipspaces(input);
     klangc_pattern_t *pat;
@@ -101,8 +86,8 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
       return KLANGC_PARSE_ERROR;
     }
     klangc_bind_t *bind = klangc_bind_new(pat, expr, ipos_ss1);
-    int ret =
-        klangc_pattern_walkvars(closure, bind, pat, klangc_closure_put_bind);
+    int ret = klangc_pattern_walkvars(closure, bind, pat,
+                                      klangc_closure_put_bind_by_name);
     if (ret < 0) {
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
@@ -112,12 +97,12 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
       klangc_printf(kstderr, "Error: no variables in pattern\n");
       return KLANGC_PARSE_ERROR;
     }
-    klangc_closure_ent_t *ent = klangc_malloc(sizeof(klangc_closure_ent_t));
-    ent->kce_type = KLANGC_CLOSURE_ENT_BIND;
-    ent->kce_bind = bind;
-    ent->kce_next = NULL;
-    *pent = ent;
-    pent = &ent->kce_next;
+    klangc_closure_ent_t *ent = klangc_closure_ent_new_bind(bind);
+    if (ent_prev != NULL)
+      klangc_closure_ent_set_next(ent, ent_prev);
+    else
+      closure->kc_ent = ent;
+    ent_prev = ent;
   }
   *pclosure = closure;
 
@@ -155,8 +140,8 @@ int klangc_closure_get_bind_by_name(klangc_closure_t *closure, const char *name,
   return 0;
 }
 
-int klangc_closure_put_bind(klangc_closure_t *closure, const char *name,
-                            klangc_bind_t *bind) {
+int klangc_closure_put_bind_by_name(klangc_closure_t *closure, const char *name,
+                                    klangc_bind_t *bind) {
   if (klangc_closure_get_bind_by_name(closure, name, NULL, NULL) != 0) {
     klangc_printf(kstderr, "Duplicate definition: %s\n", name);
     return -1;
@@ -166,42 +151,63 @@ int klangc_closure_put_bind(klangc_closure_t *closure, const char *name,
 }
 
 int klangc_closure_walk(klangc_closure_t *closure,
-                        int (*func)(klangc_closure_t *, klangc_closure_ent_t *,
-                                    void *),
-                        void *data) {
+                        klangc_closure_walk_func_t func, void *data) {
   klangc_closure_ent_t *ent = closure->kc_ent;
   int cnt = 0, ret;
   while (ent != NULL) {
-    if (ent->kce_type != KLANGC_CLOSURE_ENT_BIND) {
-      ent = ent->kce_next;
-      continue;
+    if (klangc_closure_ent_isbind(ent)) {
+      ret = func(closure, ent, data);
+      if (ret < 0)
+        return -1;
     }
-    ret = func(closure, ent, data);
-    if (ret < 0)
-      return -1;
-    ent = ent->kce_next;
+    ent = klangc_closure_ent_get_next(ent);
     cnt += ret;
   }
   return cnt;
 }
 
-struct klangc_closure_walk_bind_data {
-  int (*func)(klangc_closure_t *, klangc_bind_t *, void *);
-  void *data;
-};
+typedef struct klangc_closure_walk_bind_data {
+  klangc_closure_walk_bind_func_t kcwbd_func;
+  void *kcwbd_data;
+} klangc_closure_walk_bind_data_t;
 
-int find_bind(klangc_closure_t *closure, klangc_closure_ent_t *ent,
-              void *data) {
+int klangc_closure_walk_bind_for_walk(klangc_closure_t *closure,
+                                      klangc_closure_ent_t *ent, void *data) {
 
   struct klangc_closure_walk_bind_data *fdata =
       (struct klangc_closure_walk_bind_data *)data;
-  if (ent->kce_type != KLANGC_CLOSURE_ENT_BIND)
+  if (!klangc_closure_ent_isbind(ent))
     return 0;
-  return fdata->func(closure, ent->kce_bind, fdata->data);
+  return fdata->kcwbd_func(closure, klangc_closure_ent_get_bind(ent),
+                           fdata->kcwbd_data);
 }
 
 int klangc_closure_walk_bind(klangc_closure_t *closure,
                              klangc_closure_walk_bind_func_t func, void *data) {
   struct klangc_closure_walk_bind_data fdata = {func, data};
-  return klangc_closure_walk(closure, find_bind, &fdata);
+  return klangc_closure_walk(closure, klangc_closure_walk_bind_for_walk,
+                             &fdata);
+}
+
+typedef struct klangc_closure_walk_lambda_data {
+  klangc_closure_walk_lambda_func_t kcwld_func;
+  void *kcwld_data;
+} klangc_closure_walk_lambda_data_t;
+
+int klangc_closure_walk_lambda_for_walk(klangc_closure_t *closure,
+                                        klangc_closure_ent_t *ent, void *data) {
+  struct klangc_closure_walk_lambda_data *fdata =
+      (struct klangc_closure_walk_lambda_data *)data;
+  if (!klangc_closure_ent_islambda(ent))
+    return 0;
+  return fdata->kcwld_func(closure, klangc_closure_ent_get_lambda(ent),
+                           fdata->kcwld_data);
+}
+
+int klangc_closure_walk_lambda(klangc_closure_t *closure,
+                               klangc_closure_walk_lambda_func_t func,
+                               void *data) {
+  struct klangc_closure_walk_lambda_data fdata = {func, data};
+  return klangc_closure_walk(closure, klangc_closure_walk_lambda_for_walk,
+                             &fdata);
 }
