@@ -1,5 +1,4 @@
 #include "klangc_parse.h"
-#include "klangc_input.h"
 
 klangc_parse_result_t klangc_int_parse(klangc_input_t *input, int *pintval) {
   int intval = 0;

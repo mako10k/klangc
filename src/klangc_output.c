@@ -4,6 +4,13 @@
 #include <stdio.h>
 #include <string.h>
 
+struct klangc_output {
+  FILE *fp;
+  FILE *fp_cookie;
+  int indent;
+  int onhead;
+};
+
 klangc_output_t *kstdout = NULL;
 klangc_output_t *kstderr = NULL;
 

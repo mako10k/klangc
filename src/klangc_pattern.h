@@ -1,15 +1,6 @@
 #pragma once
 
 #include "klangc.h"
-#include "klangc_input.h"
-#include "klangc_output.h"
-#include "klangc_parse.h"
-#include "klangc_types.h"
-
-typedef struct klangc_pattern_appl klangc_pattern_appl_t;
-typedef struct klangc_pattern_as klangc_pattern_as_t;
-typedef struct klangc_pattern_int klangc_pattern_int_t;
-typedef struct klangc_pattern_string klangc_pattern_string_t;
 
 typedef enum {
   KLANGC_PTYPE_SYMBOL,

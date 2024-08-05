@@ -1,3 +1,6 @@
+#include "klangc_bind.h"
+#include "klangc_elambda.h"
+#include "klangc_input.h"
 #include "klangc_malloc.h"
 #include "klangc_types.h"
 #include <assert.h>
@@ -66,4 +69,51 @@ void klangc_closure_ent_set_next(klangc_closure_ent_t *ent,
                                  klangc_closure_ent_t *ent_prev) {
   assert(ent != NULL);
   ent_prev->kce_next = ent;
+}
+
+klangc_parse_result_t klangc_closure_ent_parse(klangc_input_t *input,
+                                               klangc_closure_t *upper,
+                                               klangc_closure_ent_t **pent) {
+  assert(input != NULL);
+  assert(pent != NULL);
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  (void)ipos_ss;
+  klangc_bind_t *bind;
+  switch (klangc_bind_parse(input, &bind)) {
+  case KLANGC_PARSE_OK:
+    *pent = klangc_closure_ent_new_bind(bind);
+    return KLANGC_PARSE_OK;
+  case KLANGC_PARSE_NOPARSE:
+    break;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
+  klangc_expr_lambda_t *lambda;
+  switch (klangc_expr_lambda_parse(input, upper, &lambda)) {
+  case KLANGC_PARSE_OK:
+    *pent = klangc_closure_ent_new_lambda(lambda);
+    return KLANGC_PARSE_OK;
+  case KLANGC_PARSE_NOPARSE:
+    break;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
+
+  klangc_input_restore(input, ipos);
+  return KLANGC_PARSE_NOPARSE;
+}
+
+void klangc_closure_ent_print(klangc_output_t *output,
+                              klangc_closure_ent_t *ent) {
+  switch (ent->kce_type) {
+  case KLANGC_CLOSURE_ENT_BIND:
+    klangc_bind_print(output, ent->kce_bind);
+    break;
+  case KLANGC_CLOSURE_ENT_LAMBDA:
+    klangc_expr_lambda_print(output, ent->kce_lambda);
+    break;
+  }
 }

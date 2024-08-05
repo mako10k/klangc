@@ -1,13 +1,15 @@
 #pragma once
 
 #include "klangc.h"
-#include "klangc_input.h"
-#include "klangc_types.h"
 
 klangc_expr_lambda_t *klangc_expr_lambda_new(klangc_pattern_t *arg,
                                              klangc_expr_t *body,
                                              klangc_closure_t *upper,
                                              klangc_ipos_t ipos);
+
+klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
+                                               klangc_closure_t *upper,
+                                               klangc_expr_lambda_t **plambda);
 
 void klangc_expr_lambda_print(klangc_output_t *output,
                               klangc_expr_lambda_t *lambda);

@@ -23,9 +23,6 @@ typedef enum klangc_expr_type {
   KLANGC_ETYPE_CHOICE,
 } klangc_expr_type_t;
 
-typedef struct klangc_expr_appl klangc_expr_appl_t;
-typedef struct klangc_expr_choice klangc_expr_choice_t;
-
 klangc_parse_result_t klangc_expr_parse_no_choice(klangc_input_t *input,
                                                   klangc_closure_t *enclosed_by,
                                                   klangc_expr_t **pexpr);

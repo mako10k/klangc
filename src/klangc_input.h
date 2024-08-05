@@ -13,13 +13,6 @@
 
 typedef struct klangc_input klangc_input_t;
 
-typedef struct klangc_ipos {
-  klangc_input_t *kip_input;
-  off_t kip_offset;
-  int kip_line;
-  int kip_col;
-} klangc_ipos_t;
-
 klangc_input_t *klangc_input_new(FILE *fp, const char *name);
 
 const char *klangc_input_get_name(klangc_input_t *input);

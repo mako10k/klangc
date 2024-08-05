@@ -3,13 +3,6 @@
 #include "klangc.h"
 #include "klangc_malloc.h"
 
-typedef struct klangc_output {
-  FILE *fp;
-  FILE *fp_cookie;
-  int indent;
-  int onhead;
-} klangc_output_t;
-
 klangc_output_t *klangc_output_new(FILE *fp);
 
 void klangc_output_free(klangc_output_t *output);

@@ -1,13 +1,10 @@
 
 #include "klangc_closure.h"
-#include "klangc_bind.h"
 #include "klangc_closure_ent.h"
 #include "klangc_expr.h"
 #include "klangc_hash.h"
 #include "klangc_input.h"
 #include "klangc_output.h"
-#include "klangc_parse.h"
-#include "klangc_pattern.h"
 #include "klangc_types.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,74 +27,31 @@ klangc_closure_t *klangc_closure_new(klangc_ipos_t ipos,
 }
 
 klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
-                                           klangc_closure_t *pupper,
+                                           klangc_closure_t *upper,
                                            klangc_closure_t **pclosure) {
   assert(input != NULL);
   assert(pclosure != NULL);
 
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  klangc_closure_t *closure = klangc_closure_new(ipos_ss, pupper);
+  klangc_closure_t *closure = klangc_closure_new(ipos_ss, upper);
   klangc_closure_ent_t *ent_prev = NULL;
   while (1) {
-    klangc_ipos_t ipos_ss1 = klangc_skipspaces(input);
-    klangc_pattern_t *pat;
-    switch (klangc_pattern_parse(input, &pat)) {
+    klangc_closure_ent_t *ent;
+    switch (klangc_closure_ent_parse(input, upper, &ent)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
-      *pclosure = closure;
-      return KLANGC_PARSE_OK;
+      klangc_ipos_print(kstderr, ipos_ss);
+      int c = klangc_getc(input);
+      if (c == EOF)
+        klangc_printf(kstderr, "expect <bind> or <lambda> but get EOF\n");
+      else
+        klangc_printf(kstderr, "expect <bind> or <lambda> but get '%c'\n", c);
     case KLANGC_PARSE_ERROR:
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
     }
-
-    ipos_ss1 = klangc_skipspaces(input);
-    int c = klangc_getc(input);
-    if (c != '=') {
-      klangc_ipos_print(kstderr, ipos_ss1);
-      klangc_printf(
-          kstderr, "expect '=' but get '%c': [<pattern> ^'=' <expr> ';']\n", c);
-      klangc_input_restore(input, ipos);
-      return KLANGC_PARSE_ERROR;
-    }
-
-    ipos_ss1 = klangc_skipspaces(input);
-    klangc_expr_t *expr;
-    switch (klangc_expr_parse(input, closure, &expr)) {
-    case KLANGC_PARSE_OK:
-      break;
-    case KLANGC_PARSE_NOPARSE:
-      klangc_ipos_print(kstderr, ipos_ss1);
-      klangc_printf(kstderr, "expect <expr>: [<pattern> '=' ^<expr> ';']\n");
-    case KLANGC_PARSE_ERROR:
-      klangc_input_restore(input, ipos);
-      return KLANGC_PARSE_ERROR;
-    }
-
-    ipos_ss1 = klangc_skipspaces(input);
-    c = klangc_getc(input);
-    if (c != ';') {
-      klangc_ipos_print(kstderr, ipos_ss1);
-      klangc_printf(
-          kstderr, "expect ';' but get '%c': [<pattern> '=' <expr> ^';']\n", c);
-      klangc_input_restore(input, ipos);
-      return KLANGC_PARSE_ERROR;
-    }
-    klangc_bind_t *bind = klangc_bind_new(pat, expr, ipos_ss1);
-    int ret = klangc_pattern_walkvars(closure, bind, pat,
-                                      klangc_closure_put_bind_by_name);
-    if (ret < 0) {
-      klangc_input_restore(input, ipos);
-      return KLANGC_PARSE_ERROR;
-    }
-
-    if (ret == 0) {
-      klangc_printf(kstderr, "Error: no variables in pattern\n");
-      return KLANGC_PARSE_ERROR;
-    }
-    klangc_closure_ent_t *ent = klangc_closure_ent_new_bind(bind);
     if (ent_prev != NULL)
       klangc_closure_ent_set_next(ent, ent_prev);
     else
@@ -110,20 +64,16 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
   return KLANGC_PARSE_OK;
 }
 
-static int klangc_closure_print_ent(klangc_closure_t *closure,
-                                    klangc_bind_t *bind, void *data) {
+static int klangc_closure_ent_print_for_walk(klangc_closure_t *closure,
+                                             klangc_closure_ent_t *ent,
+                                             void *data) {
   klangc_output_t *output = (klangc_output_t *)data;
-  klangc_pattern_t *pat = klangc_bind_get_pat(bind);
-  klangc_expr_t *expr = klangc_bind_get_expr(bind);
-  klangc_pattern_print(output, KLANGC_PREC_LOWEST, pat);
-  klangc_printf(output, " = ");
-  klangc_expr_print(output, KLANGC_PREC_LOWEST, expr);
-  klangc_printf(output, ";\n");
+  klangc_closure_ent_print(output, ent);
   return 0;
 }
 
 void klangc_closure_print(klangc_output_t *output, klangc_closure_t *closure) {
-  klangc_closure_walk_bind(closure, klangc_closure_print_ent, output);
+  klangc_closure_walk(closure, klangc_closure_ent_print_for_walk, output);
 }
 
 int klangc_closure_get_bind_by_name(klangc_closure_t *closure, const char *name,
