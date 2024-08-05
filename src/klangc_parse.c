@@ -1,41 +1,6 @@
 #include "klangc_parse.h"
 #include "klangc_input.h"
 
-klangc_parse_result_t klangc_symbol_parse(klangc_input_t *input,
-                                          char **psymbol) {
-  assert(input != NULL);
-  assert(psymbol != NULL);
-
-  klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  int c = klangc_getc(input);
-  if (!isalpha(c) && c != '_') {
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_NOPARSE;
-  }
-  char *symbol = klangc_malloc(16);
-  size_t len = 0;
-  size_t cap = 16;
-  symbol[len++] = c;
-  while (1) {
-    ipos_ss = klangc_input_save(input);
-    c = klangc_getc(input);
-    if (!isalnum(c) && c != '_') {
-      klangc_input_restore(input, ipos_ss);
-      break;
-    }
-    if (cap <= len + 1) {
-      cap *= 2;
-      symbol = (char *)klangc_realloc(symbol, cap);
-    }
-    symbol[len++] = c;
-  }
-  symbol[len] = '\0';
-  symbol = (char *)klangc_realloc(symbol, len + 1);
-  *psymbol = symbol;
-  return KLANGC_PARSE_OK;
-}
-
 klangc_parse_result_t klangc_int_parse(klangc_input_t *input, int *pintval) {
   int intval = 0;
   klangc_ipos_t ipos = klangc_input_save(input);

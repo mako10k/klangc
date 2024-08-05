@@ -25,8 +25,8 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
     klangc_closure_print(kstdout, closure);
-    klangc_closure_walk_bind(closure, klangc_expr_bind_by_walk, kstdout);
-    klangc_closure_walk_bind(closure, klangc_expr_check_unbound_by_walk,
+    klangc_closure_walk_bind(closure, klangc_expr_bind_for_walk, kstdout);
+    klangc_closure_walk_bind(closure, klangc_expr_check_unbound_for_walk,
                              kstdout);
   }
 }

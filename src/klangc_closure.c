@@ -4,7 +4,6 @@
 #include "klangc_expr.h"
 #include "klangc_hash.h"
 #include "klangc_input.h"
-#include "klangc_message.h"
 #include "klangc_output.h"
 #include "klangc_parse.h"
 #include "klangc_pattern.h"
@@ -35,30 +34,6 @@ struct klangc_closure {
   klangc_ipos_t kc_ipos;
 };
 
-int klangc_closure_get_bind_by_name(klangc_closure_t *closure, const char *name,
-                                    klangc_bind_t **pbind,
-                                    klangc_closure_t **pclosure) {
-  while (closure != NULL) {
-    if (klangc_hash_get(closure->kc_bind_ref, name, (void **)pbind) != 0) {
-      if (pclosure != NULL)
-        *pclosure = closure;
-      return 1;
-    }
-    closure = closure->kc_upper;
-  }
-  return 0;
-}
-
-int klangc_closure_put_bind(klangc_closure_t *closure, const char *name,
-                            klangc_bind_t *bind) {
-  if (klangc_closure_get_bind_by_name(closure, name, NULL, NULL) != 0) {
-    klangc_printf(kstderr, "Duplicate definition: %s\n", name);
-    return -1;
-  }
-  klangc_hash_put(closure->kc_bind_ref, name, bind, NULL);
-  return 0;
-}
-
 klangc_closure_t *klangc_closure_new(klangc_ipos_t ipos,
                                      klangc_closure_t *upper) {
   klangc_closure_t *closure = klangc_malloc(sizeof(klangc_closure_t));
@@ -67,54 +42,6 @@ klangc_closure_t *klangc_closure_new(klangc_ipos_t ipos,
   closure->kc_ipos = ipos;
   closure->kc_upper = upper;
   return closure;
-}
-
-int klangc_closure_walk(klangc_closure_t *closure,
-                        int (*func)(klangc_closure_t *, klangc_closure_ent_t *,
-                                    void *),
-                        void *data) {
-  klangc_closure_ent_t *ent = closure->kc_ent;
-  int cnt = 0, ret;
-  while (ent != NULL) {
-    if (ent->kce_type != KLANGC_CLOSURE_ENT_BIND) {
-      ent = ent->kce_next;
-      continue;
-    }
-    ret = func(closure, ent, data);
-    if (ret < 0)
-      return -1;
-    ent = ent->kce_next;
-    cnt += ret;
-  }
-  return cnt;
-}
-
-struct klangc_closure_walk_bind_data {
-  int (*func)(klangc_closure_t *, klangc_bind_t *, void *);
-  void *data;
-};
-
-int find_bind(klangc_closure_t *closure, klangc_closure_ent_t *ent,
-              void *data) {
-
-  struct klangc_closure_walk_bind_data *fdata =
-      (struct klangc_closure_walk_bind_data *)data;
-  if (ent->kce_type != KLANGC_CLOSURE_ENT_BIND)
-    return 0;
-  return fdata->func(closure, ent->kce_bind, fdata->data);
-}
-
-int klangc_closure_walk_bind(klangc_closure_t *closure,
-                             int (*func)(klangc_closure_t *, klangc_bind_t *,
-                                         void *),
-                             void *data) {
-  struct klangc_closure_walk_bind_data fdata = {func, data};
-  return klangc_closure_walk(closure, find_bind, &fdata);
-}
-
-static int klangc_expr_bind_for_walk(klangc_closure_t *closure,
-                                     klangc_bind_t *bind, void *data) {
-  return klangc_expr_bind(closure, klangc_bind_get_expr(bind));
 }
 
 klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
@@ -144,7 +71,7 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
     ipos_ss1 = klangc_skipspaces(input);
     int c = klangc_getc(input);
     if (c != '=') {
-      klangc_print_ipos(kstderr, ipos_ss1);
+      klangc_ipos_print(kstderr, ipos_ss1);
       klangc_printf(
           kstderr, "expect '=' but get '%c': [<pattern> ^'=' <expr> ';']\n", c);
       klangc_input_restore(input, ipos);
@@ -157,7 +84,7 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
-      klangc_print_ipos(kstderr, ipos_ss1);
+      klangc_ipos_print(kstderr, ipos_ss1);
       klangc_printf(kstderr, "expect <expr>: [<pattern> '=' ^<expr> ';']\n");
     case KLANGC_PARSE_ERROR:
       klangc_input_restore(input, ipos);
@@ -167,7 +94,7 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
     ipos_ss1 = klangc_skipspaces(input);
     c = klangc_getc(input);
     if (c != ';') {
-      klangc_print_ipos(kstderr, ipos_ss1);
+      klangc_ipos_print(kstderr, ipos_ss1);
       klangc_printf(
           kstderr, "expect ';' but get '%c': [<pattern> '=' <expr> ^';']\n", c);
       klangc_input_restore(input, ipos);
@@ -212,4 +139,69 @@ static int klangc_closure_print_ent(klangc_closure_t *closure,
 
 void klangc_closure_print(klangc_output_t *output, klangc_closure_t *closure) {
   klangc_closure_walk_bind(closure, klangc_closure_print_ent, output);
+}
+
+int klangc_closure_get_bind_by_name(klangc_closure_t *closure, const char *name,
+                                    klangc_bind_t **pbind,
+                                    klangc_closure_t **pclosure) {
+  while (closure != NULL) {
+    if (klangc_hash_get(closure->kc_bind_ref, name, (void **)pbind) != 0) {
+      if (pclosure != NULL)
+        *pclosure = closure;
+      return 1;
+    }
+    closure = closure->kc_upper;
+  }
+  return 0;
+}
+
+int klangc_closure_put_bind(klangc_closure_t *closure, const char *name,
+                            klangc_bind_t *bind) {
+  if (klangc_closure_get_bind_by_name(closure, name, NULL, NULL) != 0) {
+    klangc_printf(kstderr, "Duplicate definition: %s\n", name);
+    return -1;
+  }
+  klangc_hash_put(closure->kc_bind_ref, name, bind, NULL);
+  return 0;
+}
+
+int klangc_closure_walk(klangc_closure_t *closure,
+                        int (*func)(klangc_closure_t *, klangc_closure_ent_t *,
+                                    void *),
+                        void *data) {
+  klangc_closure_ent_t *ent = closure->kc_ent;
+  int cnt = 0, ret;
+  while (ent != NULL) {
+    if (ent->kce_type != KLANGC_CLOSURE_ENT_BIND) {
+      ent = ent->kce_next;
+      continue;
+    }
+    ret = func(closure, ent, data);
+    if (ret < 0)
+      return -1;
+    ent = ent->kce_next;
+    cnt += ret;
+  }
+  return cnt;
+}
+
+struct klangc_closure_walk_bind_data {
+  int (*func)(klangc_closure_t *, klangc_bind_t *, void *);
+  void *data;
+};
+
+int find_bind(klangc_closure_t *closure, klangc_closure_ent_t *ent,
+              void *data) {
+
+  struct klangc_closure_walk_bind_data *fdata =
+      (struct klangc_closure_walk_bind_data *)data;
+  if (ent->kce_type != KLANGC_CLOSURE_ENT_BIND)
+    return 0;
+  return fdata->func(closure, ent->kce_bind, fdata->data);
+}
+
+int klangc_closure_walk_bind(klangc_closure_t *closure,
+                             klangc_closure_walk_bind_func_t func, void *data) {
+  struct klangc_closure_walk_bind_data fdata = {func, data};
+  return klangc_closure_walk(closure, find_bind, &fdata);
 }

@@ -19,14 +19,16 @@ klangc_SOURCES =     \
     klangc_input.c   \
     klangc_malloc.h  \
     klangc_malloc.c  \
-    klangc_message.h \
-    klangc_message.c \
     klangc_output.h  \
     klangc_output.c  \
     klangc_parse.h   \
     klangc_parse.c   \
     klangc_pattern.h \
     klangc_pattern.c \
+    klangc_ref.h     \
+    klangc_ref.c     \
+    klangc_symbol.h  \
+    klangc_symbol.c  \
     klangc_types.h   \
     klangc_value.h   \
     klangc_value.c   \

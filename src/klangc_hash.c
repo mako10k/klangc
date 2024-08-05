@@ -4,15 +4,15 @@
 #include <string.h>
 
 struct klangc_hash_entry {
-  char *key;
-  void *value;
-  klangc_hash_entry_t *next;
+  char *khe_key;
+  void *khe_value;
+  klangc_hash_entry_t *khe_next;
 };
 
 struct klangc_hash {
-  klangc_hash_entry_t **entries;
-  int size;
-  int capacity;
+  klangc_hash_entry_t **kh_entries;
+  int kh_size;
+  int kh_capacity;
 };
 
 /**
@@ -23,12 +23,13 @@ struct klangc_hash {
  */
 
 klangc_hash_t *klangc_hash_new(int capacity) {
+  assert(capacity > 0);
   klangc_hash_t *hash = klangc_malloc(sizeof(klangc_hash_t));
-  hash->capacity = capacity;
-  hash->size = 0;
-  hash->entries = klangc_malloc(capacity * sizeof(klangc_hash_entry_t *));
+  hash->kh_capacity = capacity;
+  hash->kh_size = 0;
+  hash->kh_entries = klangc_malloc(capacity * sizeof(klangc_hash_entry_t *));
   for (int i = 0; i < capacity; i++) {
-    hash->entries[i] = NULL;
+    hash->kh_entries[i] = NULL;
   }
   return hash;
 }
@@ -40,6 +41,7 @@ klangc_hash_t *klangc_hash_new(int capacity) {
  * @return The calculated hash value.
  */
 static int klangc_calc_hash(const char *key) {
+  assert(key != NULL);
   int hash = 0;
   for (int i = 0; key[i] != '\0'; i++)
     hash = hash * 31 + key[i];
@@ -57,15 +59,17 @@ static int klangc_calc_hash(const char *key) {
  * otherwise.
  */
 int klangc_hash_get(klangc_hash_t *hash, const char *key, void **value) {
-  int hash_value = klangc_calc_hash(key) % hash->capacity;
-  klangc_hash_entry_t *entry = hash->entries[hash_value];
+  assert(hash != NULL);
+  assert(key != NULL);
+  int hash_value = klangc_calc_hash(key) % hash->kh_capacity;
+  klangc_hash_entry_t *entry = hash->kh_entries[hash_value];
   while (entry != NULL) {
-    if (strcmp(entry->key, key) == 0) {
+    if (strcmp(entry->khe_key, key) == 0) {
       if (value != NULL)
-        *value = entry->value;
+        *value = entry->khe_value;
       return 1;
     }
-    entry = entry->next;
+    entry = entry->khe_next;
   }
   return 0;
 }
@@ -85,19 +89,22 @@ static int klangc_hash_put_raw(klangc_hash_entry_t **pentry, int capacity,
                                int *size, char *key, void *value,
                                void **old_value) {
   assert(pentry != NULL);
+  assert(size != NULL);
+  assert(capacity >= *size);
+  assert(key != NULL);
   while (*pentry != NULL) {
-    if (strcmp((*pentry)->key, key) == 0) {
+    if (strcmp((*pentry)->khe_key, key) == 0) {
       if (old_value != NULL)
-        *old_value = (*pentry)->value;
-      (*pentry)->value = value;
+        *old_value = (*pentry)->khe_value;
+      (*pentry)->khe_value = value;
       return 1;
     }
-    pentry = &(*pentry)->next;
+    pentry = &(*pentry)->khe_next;
   }
   *pentry = klangc_malloc(sizeof(klangc_hash_entry_t));
-  (*pentry)->key = key;
-  (*pentry)->value = value;
-  (*pentry)->next = NULL;
+  (*pentry)->khe_key = key;
+  (*pentry)->khe_value = value;
+  (*pentry)->khe_next = NULL;
   (*size)++;
   return 0;
 }
@@ -113,11 +120,13 @@ static int klangc_hash_put_raw(klangc_hash_entry_t **pentry, int capacity,
 void klangc_hash_walk(klangc_hash_t *hash,
                       void (*callback)(const char *, void *, void *),
                       void *data) {
-  for (int i = 0; i < hash->capacity; i++) {
-    klangc_hash_entry_t *entry = hash->entries[i];
+  assert(hash != NULL);
+  assert(callback != NULL);
+  for (int i = 0; i < hash->kh_capacity; i++) {
+    klangc_hash_entry_t *entry = hash->kh_entries[i];
     while (entry != NULL) {
-      callback(entry->key, entry->value, data);
-      entry = entry->next;
+      callback(entry->khe_key, entry->khe_value, data);
+      entry = entry->khe_next;
     }
   }
 }
@@ -129,22 +138,25 @@ void klangc_hash_walk(klangc_hash_t *hash,
  * @param new_capacity The new capacity of the hash table.
  */
 static void klangc_hash_rehash(klangc_hash_t *hash, int new_capacity) {
+  assert(hash != NULL);
+  assert(new_capacity >= hash->kh_size);
   klangc_hash_entry_t **new_entries =
       klangc_malloc(new_capacity * sizeof(klangc_hash_entry_t *));
   for (int i = 0; i < new_capacity; i++)
     new_entries[i] = NULL;
-  for (int i = 0; i < hash->capacity; i++) {
-    klangc_hash_entry_t *entry = hash->entries[i];
+  for (int i = 0; i < hash->kh_capacity; i++) {
+    klangc_hash_entry_t *entry = hash->kh_entries[i];
     while (entry != NULL) {
-      int hash_value = klangc_calc_hash(entry->key) % new_capacity;
-      klangc_hash_put_raw(&new_entries[hash_value], new_capacity, &hash->size,
-                          entry->key, entry->value, NULL);
-      entry = entry->next;
+      int hash_value = klangc_calc_hash(entry->khe_key) % new_capacity;
+      klangc_hash_put_raw(&new_entries[hash_value], new_capacity,
+                          &hash->kh_size, entry->khe_key, entry->khe_value,
+                          NULL);
+      entry = entry->khe_next;
     }
   }
-  klangc_free(hash->entries);
-  hash->entries = new_entries;
-  hash->capacity = new_capacity;
+  klangc_free(hash->kh_entries);
+  hash->kh_entries = new_entries;
+  hash->kh_capacity = new_capacity;
 }
 
 /**
@@ -158,11 +170,13 @@ static void klangc_hash_rehash(klangc_hash_t *hash, int new_capacity) {
  */
 int klangc_hash_put(klangc_hash_t *hash, const char *key, void *value,
                     void **old_value) {
-  if (hash->size >= hash->capacity * 0.75)
-    klangc_hash_rehash(hash, hash->capacity * 2);
+  assert(hash != NULL);
+  assert(key != NULL);
+  if (hash->kh_size >= hash->kh_capacity * 0.75)
+    klangc_hash_rehash(hash, hash->kh_capacity * 2);
   return klangc_hash_put_raw(
-      &hash->entries[klangc_calc_hash(key) % hash->capacity], hash->capacity,
-      &hash->size, klangc_strdup(key), value, old_value);
+      &hash->kh_entries[klangc_calc_hash(key) % hash->kh_capacity],
+      hash->kh_capacity, &hash->kh_size, klangc_strdup(key), value, old_value);
 }
 
 /**
@@ -174,20 +188,22 @@ int klangc_hash_put(klangc_hash_t *hash, const char *key, void *value,
  * @return 1 if the entry was successfully removed, 0 otherwise.
  */
 int klangc_hash_remove(klangc_hash_t *hash, const char *key, void **value) {
-  int hash_value = klangc_calc_hash(key) % hash->capacity;
-  klangc_hash_entry_t **pentry = &hash->entries[hash_value];
+  assert(hash != NULL);
+  assert(key != NULL);
+  int hash_value = klangc_calc_hash(key) % hash->kh_capacity;
+  klangc_hash_entry_t **pentry = &hash->kh_entries[hash_value];
   while (*pentry != NULL) {
-    if (strcmp((*pentry)->key, key) == 0) {
+    if (strcmp((*pentry)->khe_key, key) == 0) {
       if (value != NULL)
-        *value = (*pentry)->value;
+        *value = (*pentry)->khe_value;
       klangc_hash_entry_t *entry = *pentry;
-      *pentry = entry->next;
-      klangc_free(entry->key);
+      *pentry = entry->khe_next;
+      klangc_free(entry->khe_key);
       klangc_free(entry);
-      hash->size--;
+      hash->kh_size--;
       return 1;
     }
-    pentry = &(*pentry)->next;
+    pentry = &(*pentry)->khe_next;
   }
   return 0;
 }
