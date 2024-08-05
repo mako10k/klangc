@@ -1,4 +1,5 @@
 #include "klangc_expr.h"
+#include "klangc_bind.h"
 #include "klangc_closure.h"
 #include "klangc_eclosure.h"
 #include "klangc_elambda.h"
@@ -455,7 +456,7 @@ int klangc_expr_bind(klangc_closure_t *closure, klangc_expr_t *expr) {
   int cnt_unbound = 0, ret;
   switch (expr->type) {
   case KLANGC_ETYPE_SYMBOL:
-    if (klangc_closure_get_bind(closure, expr->symbol, &bind, &upper)) {
+    if (klangc_closure_get_bind_by_name(closure, expr->symbol, &bind, &upper)) {
       if (expr->symbol_ref != NULL) {
         klangc_print_ipos(kstderr, expr->ipos);
         klangc_printf(kstderr,
@@ -577,10 +578,9 @@ int klangc_expr_check_unbound(klangc_output_t *output,
 }
 
 int klangc_expr_check_unbound_by_walk(klangc_closure_t *closure,
-                                      klangc_pattern_t *pat,
-                                      klangc_expr_t *expr, void *data) {
+                                      klangc_bind_t *bind, void *data) {
   klangc_output_t *output = (klangc_output_t *)data;
-  return klangc_expr_check_unbound(output, closure, expr);
+  return klangc_expr_check_unbound(output, closure, klangc_bind_get_expr(bind));
 }
 
 klangc_ipos_t klangc_expr_get_ipos(klangc_expr_t *expr) { return expr->ipos; }

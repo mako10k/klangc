@@ -18,7 +18,6 @@ int klangc_expr_bind_by_walk(klangc_closure_t *closure, klangc_pattern_t *pat,
                              klangc_expr_t *expr, void *data);
 
 int klangc_expr_check_unbound_by_walk(klangc_closure_t *closure,
-                                      klangc_pattern_t *pat,
-                                      klangc_expr_t *expr, void *data);
+                                      klangc_bind_t *bind, void *data);
 
 klangc_ipos_t klangc_expr_get_ipos(klangc_expr_t *expr);
