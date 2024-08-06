@@ -34,7 +34,7 @@ void klangc_expr_lambda_print(klangc_output_t *output,
   klangc_printf(output, "\\");
   klangc_pattern_print(output, KLANGC_PREC_LOWEST, lambda->kvl_arg);
   klangc_printf(output, " -> ");
-  klangc_expr_print(output, KLANGC_PREC_CHOICE + 1, lambda->kvl_body);
+  klangc_expr_print(output, KLANGC_PREC_LOWEST, lambda->kvl_body);
 }
 
 klangc_pattern_t *klangc_expr_lambda_get_arg(klangc_lambda_t *lambda) {
