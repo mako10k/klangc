@@ -129,4 +129,5 @@ void klangc_closure_ent_print(klangc_output_t *output,
     klangc_expr_lambda_print(output, ent->kce_lambda);
     break;
   }
+  klangc_printf(output, ";\n");
 }

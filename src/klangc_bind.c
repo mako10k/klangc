@@ -81,5 +81,4 @@ void klangc_bind_print(klangc_output_t *output, klangc_bind_t *bind) {
   klangc_pattern_print(output, KLANGC_PREC_LOWEST, bind->kb_pat);
   klangc_printf(output, " = ");
   klangc_expr_print(output, KLANGC_PREC_LOWEST, bind->kb_expr);
-  klangc_printf(output, ";\n");
 }

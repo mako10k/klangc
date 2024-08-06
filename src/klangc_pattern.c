@@ -37,7 +37,7 @@ struct klangc_pattern_appl {
 };
 
 struct klangc_pattern_as {
-  klangc_ref_t *kpas_var;
+  klangc_ref_t *kpas_ref;
   klangc_pattern_t *kpas_pattern;
 };
 
@@ -66,7 +66,7 @@ static klangc_pattern_as_t *klangc_pattern_as_new(klangc_ref_t *var,
   assert(pattern != NULL);
 
   klangc_pattern_as_t *as = klangc_malloc(sizeof(klangc_pattern_as_t));
-  as->kpas_var = var;
+  as->kpas_ref = var;
   as->kpas_pattern = pattern;
   return as;
 }
@@ -379,8 +379,7 @@ klangc_parse_result_t klangc_pattern_parse(klangc_input_t *input,
 
 int klangc_pattern_walkvars(klangc_closure_t *closure, klangc_bind_t *bind,
                             klangc_pattern_t *pat,
-                            int (*bind_fn)(klangc_closure_t *, const char *,
-                                           klangc_bind_t *)) {
+                            klangc_pattern_walkref_func_t bind_fn) {
   assert(closure != NULL);
   assert(bind != NULL);
   assert(pat != NULL);
@@ -388,8 +387,8 @@ int klangc_pattern_walkvars(klangc_closure_t *closure, klangc_bind_t *bind,
 
   int ret = 0;
   int cnt = 0;
-  if (pat->kp_type == KLANGC_PTYPE_SYMBOL) {
-    ret = bind_fn(closure, klangc_symbol_get_name(pat->kp_symbol), bind);
+  if (pat->kp_type == KLANGC_PTYPE_REF) {
+    ret = bind_fn(closure, pat->kp_ref, bind);
     if (ret < 0)
       return ret;
     cnt++;
@@ -405,7 +404,7 @@ int klangc_pattern_walkvars(klangc_closure_t *closure, klangc_bind_t *bind,
       return ret;
     cnt += ret;
   } else if (pat->kp_type == KLANGC_PTYPE_AS) {
-    ret = bind_fn(closure, klangc_ref_get_name(pat->kp_as->kpas_var), bind);
+    ret = bind_fn(closure, pat->kp_as->kpas_ref, bind);
     if (ret < 0)
       return ret;
     cnt++;
@@ -444,7 +443,7 @@ void klangc_pattern_print(klangc_output_t *output, int prec,
       klangc_printf(output, ")");
     break;
   case KLANGC_PTYPE_AS:
-    klangc_printf(output, "%s@", klangc_ref_get_name(pattern->kp_as->kpas_var));
+    klangc_printf(output, "%s@", klangc_ref_get_name(pattern->kp_as->kpas_ref));
     klangc_pattern_print(output, KLANGC_PREC_LOWEST,
                          pattern->kp_as->kpas_pattern);
     break;

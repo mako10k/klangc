@@ -27,7 +27,7 @@ klangc_parse_result_t klangc_bare_closure_parse(klangc_input_t *input,
       if (ent_prev != NULL)
         klangc_closure_ent_set_next(ent, ent_prev);
       else
-        klangc_closure_set_ent(closure, ent);
+        klangc_closure_set_ent_first(closure, ent);
       ent_prev = ent;
       break;
 

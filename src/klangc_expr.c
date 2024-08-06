@@ -371,13 +371,12 @@ int klangc_expr_bind(klangc_closure_t *closure, klangc_expr_t *expr) {
   case KLANGC_ETYPE_SYMBOL:
     return 0;
   case KLANGC_ETYPE_REF:
-    if (klangc_closure_get_bind_by_name(closure, klangc_ref_get_name(expr->ref),
-                                        &bind, &upper)) {
+    if (klangc_closure_get_bind(closure, expr->ref, &bind, &upper)) {
       if (expr->ref_ref != NULL) {
         klangc_ipos_print(kstderr, expr->ipos);
         klangc_printf(kstderr,
                       "Variable ~%s is bound to different "
-                      "definitions in different scopes",
+                      "definitions in different scopes\n",
                       klangc_ref_get_name(expr->ref));
         return -1;
       }

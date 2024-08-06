@@ -4,6 +4,7 @@
 #include "klangc_hash.h"
 #include "klangc_input.h"
 #include "klangc_output.h"
+#include "klangc_ref.h"
 #include "klangc_types.h"
 
 struct klangc_closure {
@@ -65,16 +66,17 @@ void klangc_closure_print(klangc_output_t *output, klangc_closure_t *closure) {
   klangc_printf(output, "}");
 }
 
-void klangc_closure_set_ent(klangc_closure_t *closure,
-                            klangc_closure_ent_t *ent) {
+void klangc_closure_set_ent_first(klangc_closure_t *closure,
+                                  klangc_closure_ent_t *ent) {
   closure->kc_ent = ent;
 }
 
-int klangc_closure_get_bind_by_name(klangc_closure_t *closure, const char *name,
-                                    klangc_bind_t **pbind,
-                                    klangc_closure_t **pclosure) {
+int klangc_closure_get_bind(klangc_closure_t *closure, klangc_ref_t *ref,
+                            klangc_bind_t **pbind,
+                            klangc_closure_t **pclosure) {
   while (closure != NULL) {
-    if (klangc_hash_get(closure->kc_bind_ref, name, (void **)pbind) != 0) {
+    if (klangc_hash_get(closure->kc_bind_ref, klangc_ref_get_name(ref),
+                        (void **)pbind) != 0) {
       if (pclosure != NULL)
         *pclosure = closure;
       return 1;
@@ -84,9 +86,10 @@ int klangc_closure_get_bind_by_name(klangc_closure_t *closure, const char *name,
   return 0;
 }
 
-int klangc_closure_put_bind_by_name(klangc_closure_t *closure, const char *name,
-                                    klangc_bind_t *bind) {
-  if (klangc_closure_get_bind_by_name(closure, name, NULL, NULL) != 0) {
+int klangc_closure_put_bind(klangc_closure_t *closure, klangc_ref_t *ref,
+                            klangc_bind_t *bind) {
+  const char *name = klangc_ref_get_name(ref);
+  if (klangc_closure_get_bind(closure, ref, NULL, NULL) != 0) {
     klangc_printf(kstderr, "Duplicate definition: %s\n", name);
     return -1;
   }
@@ -99,11 +102,9 @@ int klangc_closure_walk(klangc_closure_t *closure,
   klangc_closure_ent_t *ent = closure->kc_ent;
   int cnt = 0, ret;
   while (ent != NULL) {
-    if (klangc_closure_ent_isbind(ent)) {
-      ret = func(closure, ent, data);
-      if (ret < 0)
-        return -1;
-    }
+    ret = func(closure, ent, data);
+    if (ret < 0)
+      return -1;
     ent = klangc_closure_ent_get_next(ent);
     cnt += ret;
   }

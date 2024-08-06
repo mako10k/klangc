@@ -26,7 +26,7 @@ klangc_lambda_t *klangc_expr_lambda_new(klangc_pattern_t *arg,
   lambda->kvl_ipos = ipos;
   klangc_bind_t *bind = klangc_bind_new(arg, body, ipos);
   klangc_pattern_walkvars(lambda->kvl_closure, bind, arg,
-                          klangc_closure_put_bind_by_name);
+                          klangc_closure_put_bind);
   return lambda;
 }
 
