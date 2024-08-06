@@ -89,7 +89,7 @@ klangc_parse_result_t klangc_closure_ent_parse(klangc_input_t *input,
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
-  if (ent != NULL) {
+  if (ent == NULL) {
     klangc_expr_lambda_t *lambda;
     switch (klangc_expr_lambda_parse(input, upper, &lambda)) {
     case KLANGC_PARSE_OK:
