@@ -21,7 +21,7 @@ void klangc_closure_ent_set_next(klangc_closure_ent_t *ent,
                                  klangc_closure_ent_t *ent_prev);
 
 klangc_parse_result_t klangc_closure_ent_parse(klangc_input_t *input,
-                                               klangc_closure_t *closure,
+                                               klangc_bare_closure_t *closure,
                                                klangc_closure_ent_t **pent);
 
 void klangc_closure_ent_print(klangc_output_t *output,

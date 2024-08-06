@@ -1,6 +1,6 @@
 #include "klangc_expr.h"
+#include "klangc_bare_closure.h"
 #include "klangc_bind.h"
-#include "klangc_closure.h"
 #include "klangc_eclosure.h"
 #include "klangc_input.h"
 #include "klangc_lambda.h"
@@ -39,7 +39,7 @@ struct klangc_expr {
     char *strval;
     klangc_expr_appl_t *kv_appl;
     klangc_lambda_t *kv_lambda;
-    klangc_closure_t *kv_closure;
+    klangc_bare_closure_t *kv_closure;
   };
   klangc_ipos_t ipos;
 };
@@ -110,7 +110,7 @@ klangc_expr_t *klangc_expr_new_appl(klangc_expr_appl_t *appl,
   return expr;
 }
 
-klangc_expr_t *klangc_expr_new_closure(klangc_closure_t *closure,
+klangc_expr_t *klangc_expr_new_closure(klangc_bare_closure_t *closure,
                                        klangc_ipos_t ipos) {
   klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
   expr->type = KLANGC_ETYPE_CLOSURE;
@@ -120,7 +120,7 @@ klangc_expr_t *klangc_expr_new_closure(klangc_closure_t *closure,
 }
 
 klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
-                                               klangc_closure_t *upper,
+                                               klangc_bare_closure_t *upper,
                                                klangc_lambda_t **plambda) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
@@ -177,9 +177,10 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   return KLANGC_PARSE_OK;
 }
 
-klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
-                                                klangc_closure_t *enclosed_by,
-                                                klangc_expr_t **pexpr) {
+klangc_parse_result_t
+klangc_expr_parse_no_appl(klangc_input_t *input,
+                          klangc_bare_closure_t *enclosed_by,
+                          klangc_expr_t **pexpr) {
   assert(input != NULL);
 
   klangc_ipos_t ipos = klangc_input_save(input);
@@ -215,7 +216,7 @@ klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
 
   klangc_input_restore(input, ipos_ss);
 
-  klangc_closure_t *closure;
+  klangc_bare_closure_t *closure;
   switch (klangc_expr_closure_parse(input, enclosed_by, &closure)) {
   case KLANGC_PARSE_OK:
     *pexpr = klangc_expr_new_closure(closure, ipos_ss);
@@ -292,7 +293,7 @@ klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
 }
 
 klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
-                                        klangc_closure_t *enclosed_by,
+                                        klangc_bare_closure_t *enclosed_by,
                                         klangc_expr_t **pexpr) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
@@ -359,13 +360,13 @@ void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {
   }
 }
 
-int klangc_expr_bind_for_walk(klangc_closure_t *closure, klangc_bind_t *bind,
-                              void *data) {
+int klangc_expr_bind_for_walk(klangc_bare_closure_t *closure,
+                              klangc_bind_t *bind, void *data) {
   return klangc_expr_bind(closure, klangc_bind_get_expr(bind));
 }
 
-int klangc_expr_bind(klangc_closure_t *closure, klangc_expr_t *expr) {
-  klangc_closure_t *upper;
+int klangc_expr_bind(klangc_bare_closure_t *closure, klangc_expr_t *expr) {
+  klangc_bare_closure_t *upper;
   klangc_bind_t *bind;
   int cnt_unbound = 0, ret;
   switch (expr->type) {
@@ -423,7 +424,8 @@ int klangc_expr_bind(klangc_closure_t *closure, klangc_expr_t *expr) {
 }
 
 int klangc_expr_check_unbound(klangc_output_t *output,
-                              klangc_closure_t *closure, klangc_expr_t *expr) {
+                              klangc_bare_closure_t *closure,
+                              klangc_expr_t *expr) {
   int cnt_unbound, ret;
   switch (expr->type) {
   case KLANGC_ETYPE_SYMBOL:
@@ -472,7 +474,7 @@ int klangc_expr_check_unbound(klangc_output_t *output,
   assert(0);
 }
 
-int klangc_expr_check_unbound_for_walk(klangc_closure_t *closure,
+int klangc_expr_check_unbound_for_walk(klangc_bare_closure_t *closure,
                                        klangc_bind_t *bind, void *data) {
   klangc_output_t *output = (klangc_output_t *)data;
   return klangc_expr_check_unbound(output, closure, klangc_bind_get_expr(bind));

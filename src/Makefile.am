@@ -3,10 +3,10 @@ bin_PROGRAMS = klangc
 CFLAGS=-g -O0 -Wall -Werror -I$(top_srcdir)/src -I$(top_srcdir)/src/gc
 
 klangc_SOURCES =     \
+    klangc_bare_closure.h \
+    klangc_bare_closure.c \
     klangc_bind.h    \
     klangc_bind.c    \
-    klangc_closure.h \
-    klangc_closure.c \
     klangc_closure_ent.h \
     klangc_closure_ent.c \
     klangc_eclosure.h \

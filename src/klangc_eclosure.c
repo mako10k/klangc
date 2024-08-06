@@ -1,12 +1,12 @@
 #include "klangc_eclosure.h"
-#include "klangc_closure.h"
+#include "klangc_bare_closure.h"
 #include "klangc_input.h"
 #include "klangc_output.h"
 #include "klangc_types.h"
 
-klangc_parse_result_t klangc_expr_closure_parse(klangc_input_t *input,
-                                                klangc_closure_t *upper,
-                                                klangc_closure_t **pclosure) {
+klangc_parse_result_t
+klangc_expr_closure_parse(klangc_input_t *input, klangc_bare_closure_t *upper,
+                          klangc_bare_closure_t **pclosure) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   int c;
@@ -15,7 +15,7 @@ klangc_parse_result_t klangc_expr_closure_parse(klangc_input_t *input,
     return KLANGC_PARSE_NOPARSE;
   }
   ipos_ss = klangc_skipspaces(input);
-  klangc_closure_t *closure;
+  klangc_bare_closure_t *closure;
   switch (klangc_closure_parse(input, upper, &closure)) {
   case KLANGC_PARSE_OK:
     break;
@@ -39,7 +39,7 @@ klangc_parse_result_t klangc_expr_closure_parse(klangc_input_t *input,
 }
 
 void klangc_expr_closure_print(klangc_output_t *output,
-                               klangc_closure_t *closure) {
+                               klangc_bare_closure_t *closure) {
   klangc_printf(output, "{\n");
   klangc_indent(output, 2);
   klangc_closure_print(output, closure);

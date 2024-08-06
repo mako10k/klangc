@@ -1,4 +1,4 @@
-#include "klangc_closure.h"
+#include "klangc_bare_closure.h"
 #include "klangc_expr.h"
 #include "klangc_input.h"
 #include <gc.h>
@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 int main(int argc, char *argv[]) {
-  klangc_closure_t *prelude = NULL;
+  klangc_bare_closure_t *prelude = NULL;
   for (int i = 1; i < argc; i++) {
     FILE *fp = fopen(argv[i], "r");
     if (fp == NULL) {
@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
     klangc_input_t *input = klangc_input_new(fp, argv[i]);
-    klangc_closure_t *closure;
+    klangc_bare_closure_t *closure;
     switch (klangc_closure_parse(input, prelude, &closure)) {
     case KLANGC_PARSE_OK:
       break;
