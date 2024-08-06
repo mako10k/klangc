@@ -27,11 +27,6 @@ struct klangc_expr_appl {
   klangc_expr_t *kva_arg;
 };
 
-struct klangc_expr_choice {
-  klangc_expr_t *kvc_base;
-  klangc_expr_t *kvc_otherwise;
-};
-
 struct klangc_expr {
   klangc_expr_type_t type;
   union {
@@ -45,7 +40,6 @@ struct klangc_expr {
     klangc_expr_appl_t *kv_appl;
     klangc_lambda_t *kv_lambda;
     klangc_closure_t *kv_closure;
-    klangc_expr_choice_t *kv_choice;
   };
   klangc_ipos_t ipos;
 };
@@ -57,14 +51,6 @@ klangc_expr_appl_t *klangc_expr_appl_new(klangc_expr_t *func,
   klangc_expr_appl_t *ret = klangc_malloc(sizeof(klangc_expr_appl_t));
   ret->kva_func = func;
   ret->kva_arg = arg;
-  return ret;
-}
-
-klangc_expr_choice_t *klangc_expr_choice_new(klangc_expr_t *base,
-                                             klangc_expr_t *otherwise) {
-  klangc_expr_choice_t *ret = klangc_malloc(sizeof(klangc_expr_choice_t));
-  ret->kvc_base = base;
-  ret->kvc_otherwise = otherwise;
   return ret;
 }
 

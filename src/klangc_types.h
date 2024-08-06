@@ -23,8 +23,6 @@ typedef struct klangc_expr klangc_expr_t;
 
 typedef struct klangc_expr_appl klangc_expr_appl_t;
 
-typedef struct klangc_expr_choice klangc_expr_choice_t;
-
 typedef struct klangc_lambda klangc_lambda_t;
 
 typedef struct klangc_hash klangc_hash_t;
