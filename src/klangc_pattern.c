@@ -9,6 +9,15 @@
 #include <assert.h>
 #include <stdio.h>
 
+typedef enum {
+  KLANGC_PTYPE_SYMBOL,
+  KLANGC_PTYPE_REF,
+  KLANGC_PTYPE_APPL,
+  KLANGC_PTYPE_AS,
+  KLANGC_PTYPE_INT,
+  KLANGC_PTYPE_STRING,
+} klangc_pattern_type_t;
+
 struct klangc_pattern {
   klangc_pattern_type_t kp_type;
   union {
