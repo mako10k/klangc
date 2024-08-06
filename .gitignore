@@ -18,6 +18,8 @@ Makefile.in
 /missing
 /stamp-h1
 /depcomp
+/ltmain.sh
+/libtool
 
-
+/m4/
 
