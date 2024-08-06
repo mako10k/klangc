@@ -5,8 +5,7 @@
 
 klangc_closure_ent_t *klangc_closure_ent_new_bind(klangc_bind_t *bind);
 
-klangc_closure_ent_t *
-klangc_closure_ent_new_lambda(klangc_lambda_t *lambda);
+klangc_closure_ent_t *klangc_closure_ent_new_lambda(klangc_lambda_t *lambda);
 
 int klangc_closure_ent_isbind(klangc_closure_ent_t *ent);
 

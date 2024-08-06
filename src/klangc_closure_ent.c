@@ -1,6 +1,6 @@
 #include "klangc_bind.h"
-#include "klangc_lambda.h"
 #include "klangc_input.h"
+#include "klangc_lambda.h"
 #include "klangc_malloc.h"
 #include "klangc_parse.h"
 #include "klangc_types.h"
@@ -29,8 +29,7 @@ klangc_closure_ent_t *klangc_closure_ent_new_bind(klangc_bind_t *bind) {
   return ent;
 }
 
-klangc_closure_ent_t *
-klangc_closure_ent_new_lambda(klangc_lambda_t *lambda) {
+klangc_closure_ent_t *klangc_closure_ent_new_lambda(klangc_lambda_t *lambda) {
   assert(lambda != NULL);
   klangc_closure_ent_t *ent = klangc_malloc(sizeof(klangc_closure_ent_t));
   ent->kce_type = KLANGC_CLOSURE_ENT_LAMBDA;

@@ -13,9 +13,9 @@ struct klangc_lambda {
 };
 
 klangc_lambda_t *klangc_expr_lambda_new(klangc_pattern_t *arg,
-                                             klangc_expr_t *body,
-                                             klangc_closure_t *upper,
-                                             klangc_ipos_t ipos) {
+                                        klangc_expr_t *body,
+                                        klangc_closure_t *upper,
+                                        klangc_ipos_t ipos) {
   assert(arg != NULL);
   assert(body != NULL);
   klangc_lambda_t *lambda = klangc_malloc(sizeof(klangc_lambda_t));
