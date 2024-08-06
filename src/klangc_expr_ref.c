@@ -32,6 +32,10 @@ klangc_bind_t *klangc_expr_ref_get_bind(klangc_expr_ref_t *expr) {
   return expr->ker_bind;
 }
 
+klangc_ipos_t klangc_expr_ref_get_ipos(klangc_expr_ref_t *expr) {
+  return klangc_ref_get_ipos(expr->ker_ref);
+}
+
 void klangc_expr_ref_set_bind(klangc_expr_ref_t *expr, klangc_bind_t *bind) {
   expr->ker_bind = bind;
 }

@@ -96,7 +96,7 @@ int klangc_closure_put_bind(klangc_closure_t *closure, klangc_ref_t *ref,
   const char *name = klangc_ref_get_name(ref);
   klangc_bind_t *bind_ref;
   if (klangc_closure_get_bind(closure, ref, &bind_ref, NULL) != 0) {
-    klangc_ipos_print(kstderr, klangc_bind_get_ipos(bind));
+    klangc_ipos_print(kstderr, klangc_ref_get_ipos(ref));
     klangc_printf(kstderr, "Duplicate definition: %s\n", name);
     klangc_ipos_print(kstderr, klangc_bind_get_ipos(bind_ref));
     klangc_printf(kstderr, "  previous definition: %s\n", name);

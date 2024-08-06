@@ -15,5 +15,4 @@
   \Int ~n -> ~add (~f (~pred ~n)) (~f (~pred (~pred ~n)));
 };
 
-~pred = 1;
 ~f = \~x -> \~x -> ~x;

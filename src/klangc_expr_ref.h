@@ -10,6 +10,8 @@ klangc_symbol_t *klangc_expr_ref_get_symbol(klangc_expr_ref_t *expr);
 
 char *klangc_expr_ref_get_name(klangc_expr_ref_t *expr);
 
+klangc_ipos_t klangc_expr_ref_get_ipos(klangc_expr_ref_t *expr);
+
 klangc_bind_t *klangc_expr_ref_get_bind(klangc_expr_ref_t *expr);
 
 void klangc_expr_ref_set_bind(klangc_expr_ref_t *expr, klangc_bind_t *bind);

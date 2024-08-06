@@ -8,6 +8,8 @@ klangc_ref_t *klangc_pattern_ref_get_ref(klangc_pattern_ref_t *pattern_ref);
 
 const char *klangc_pattern_ref_get_name(klangc_pattern_ref_t *pattern_ref);
 
+klangc_ipos_t klangc_pattern_ref_get_ipos(klangc_pattern_ref_t *pattern_ref);
+
 int klangc_pattern_ref_is_used(klangc_pattern_ref_t *pattern_ref);
 
 void klangc_pattern_ref_set_used(klangc_pattern_ref_t *pattern_ref);

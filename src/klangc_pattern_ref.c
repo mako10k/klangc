@@ -23,6 +23,10 @@ const char *klangc_pattern_ref_get_name(klangc_pattern_ref_t *pattern_ref) {
   return klangc_ref_get_name(pattern_ref->ref);
 }
 
+klangc_ipos_t klangc_pattern_ref_get_ipos(klangc_pattern_ref_t *pattern_ref) {
+  return klangc_ref_get_ipos(pattern_ref->ref);
+}
+
 int klangc_pattern_ref_is_used(klangc_pattern_ref_t *pattern_ref) {
   return pattern_ref->used;
 }

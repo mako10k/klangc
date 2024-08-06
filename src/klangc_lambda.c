@@ -134,5 +134,6 @@ int klangc_lambda_bind(klangc_closure_t *closure, klangc_lambda_t *lambda) {
 int klangc_lambda_check_unbound(klangc_output_t *output,
                                 klangc_lambda_t *lambda) {
   klangc_expr_t *body = klangc_lambda_get_body(lambda);
-  return klangc_expr_check_unbound(output, klangc_lambda_get_upper(lambda), body);
+  return klangc_expr_check_unbound(output, klangc_lambda_get_upper(lambda),
+                                   body);
 }
