@@ -24,9 +24,7 @@ klangc_parse_result_t klangc_symbol_parse(klangc_input_t *input,
   assert(psymbol != NULL);
 
   klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  (void)ipos_ss;
-  int c = klangc_getc(input);
+  int c = klangc_getc_skipspaces(input);
   if (!isalpha(c) && c != '_') {
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_NOPARSE;

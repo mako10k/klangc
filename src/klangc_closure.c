@@ -31,37 +31,37 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
                                            klangc_closure_t **pclosure) {
   assert(input != NULL);
   assert(pclosure != NULL);
-
   klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  klangc_closure_t *closure = klangc_closure_new(ipos_ss, upper);
+  klangc_closure_t *closure = NULL;
   klangc_closure_ent_t *ent_prev = NULL;
   while (1) {
     klangc_closure_ent_t *ent;
+    klangc_ipos_t ipos2 = klangc_input_save(input);
+    klangc_ipos_t ipos_ss = klangc_skipspaces(input);
     switch (klangc_closure_ent_parse(input, upper, &ent)) {
     case KLANGC_PARSE_OK:
-      break;
-    case KLANGC_PARSE_NOPARSE:
-      klangc_ipos_print(kstderr, ipos_ss);
-      int c = klangc_getc(input);
-      if (c == EOF)
-        klangc_printf(kstderr, "expect <bind> or <lambda> but get EOF\n");
+      if (closure == NULL)
+        closure = klangc_closure_new(ipos_ss, upper);
+      if (ent_prev != NULL)
+        klangc_closure_ent_set_next(ent, ent_prev);
       else
-        klangc_printf(kstderr, "expect <bind> or <lambda> but get '%c'\n", c);
+        closure->kc_ent = ent;
+      ent_prev = ent;
+      break;
+
+    case KLANGC_PARSE_NOPARSE:
+      if (closure == NULL)
+        closure = klangc_closure_new(ipos_ss, upper);
+      klangc_input_restore(input, ipos2);
+      *pclosure = closure;
+      klangc_closure_walk_bind(closure, klangc_expr_bind_for_walk, NULL);
+      return KLANGC_PARSE_OK;
+
     case KLANGC_PARSE_ERROR:
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
     }
-    if (ent_prev != NULL)
-      klangc_closure_ent_set_next(ent, ent_prev);
-    else
-      closure->kc_ent = ent;
-    ent_prev = ent;
   }
-  *pclosure = closure;
-
-  klangc_closure_walk_bind(closure, klangc_expr_bind_for_walk, NULL);
-  return KLANGC_PARSE_OK;
 }
 
 static int klangc_closure_ent_print_for_walk(klangc_closure_t *closure,

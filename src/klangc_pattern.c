@@ -353,8 +353,6 @@ klangc_parse_result_t klangc_pattern_parse(klangc_input_t *input,
   while (1) {
     klangc_pattern_t *arg;
     klangc_ipos_t ipos2 = klangc_input_save(input);
-    klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
-    (void)ipos_ss2;
     switch (klangc_pattern_parse_no_appl(input, &arg)) {
     case KLANGC_PARSE_OK:
       break;

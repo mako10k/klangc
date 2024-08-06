@@ -1,4 +1,5 @@
 #include "klangc_input.h"
+#include "klangc_types.h"
 struct klangc_input {
   FILE *kip_stream;
   const char *kip_name;
@@ -77,6 +78,7 @@ int klangc_isspace(int c, int *in_comment) {
 }
 
 int klangc_getc_skipspaces(klangc_input_t *input) {
+  assert(input != NULL);
   int in_comment = 0;
   while (1) {
     int c = klangc_getc(input);

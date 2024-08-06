@@ -2,6 +2,7 @@
 #include "klangc_elambda.h"
 #include "klangc_input.h"
 #include "klangc_malloc.h"
+#include "klangc_parse.h"
 #include "klangc_types.h"
 #include <assert.h>
 
@@ -75,35 +76,48 @@ klangc_parse_result_t klangc_closure_ent_parse(klangc_input_t *input,
                                                klangc_closure_t *upper,
                                                klangc_closure_ent_t **pent) {
   assert(input != NULL);
-  assert(pent != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  (void)ipos_ss;
+  klangc_skipspaces(input);
+  klangc_closure_ent_t *ent = NULL;
   klangc_bind_t *bind;
   switch (klangc_bind_parse(input, &bind)) {
   case KLANGC_PARSE_OK:
-    *pent = klangc_closure_ent_new_bind(bind);
-    return KLANGC_PARSE_OK;
+    ent = klangc_closure_ent_new_bind(bind);
   case KLANGC_PARSE_NOPARSE:
     break;
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
-  klangc_expr_lambda_t *lambda;
-  switch (klangc_expr_lambda_parse(input, upper, &lambda)) {
-  case KLANGC_PARSE_OK:
-    *pent = klangc_closure_ent_new_lambda(lambda);
-    return KLANGC_PARSE_OK;
-  case KLANGC_PARSE_NOPARSE:
-    break;
-  case KLANGC_PARSE_ERROR:
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
+  if (ent != NULL) {
+    klangc_expr_lambda_t *lambda;
+    switch (klangc_expr_lambda_parse(input, upper, &lambda)) {
+    case KLANGC_PARSE_OK:
+      ent = klangc_closure_ent_new_lambda(lambda);
+    case KLANGC_PARSE_NOPARSE:
+      break;
+    case KLANGC_PARSE_ERROR:
+      klangc_input_restore(input, ipos);
+      return KLANGC_PARSE_ERROR;
+    }
   }
 
-  klangc_input_restore(input, ipos);
-  return KLANGC_PARSE_NOPARSE;
+  if (ent == NULL) {
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_NOPARSE;
+  }
+
+  int c;
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  if (!klangc_expect(input, ';', &c)) {
+    klangc_ipos_print(kstderr, ipos_ss);
+    klangc_printf(kstderr, "Expected ';', got '%c'\n", c);
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
+  if (pent != NULL)
+    *pent = ent;
+  return KLANGC_PARSE_OK;
 }
 
 void klangc_closure_ent_print(klangc_output_t *output,
