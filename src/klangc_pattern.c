@@ -3,7 +3,7 @@
 #include "klangc_input.h"
 #include "klangc_output.h"
 #include "klangc_parse.h"
-#include "klangc_ref.h"
+#include "klangc_pattern_ref.h"
 #include "klangc_symbol.h"
 #include "klangc_types.h"
 #include <assert.h>
@@ -22,7 +22,7 @@ struct klangc_pattern {
   klangc_pattern_type_t kp_type;
   union {
     klangc_symbol_t *kp_symbol;
-    klangc_ref_t *kp_ref;
+    klangc_pattern_ref_t *kp_ref;
     klangc_pattern_appl_t *kp_appl;
     klangc_pattern_as_t *kp_as;
     klangc_pattern_int_t *kp_int;
@@ -37,7 +37,7 @@ struct klangc_pattern_appl {
 };
 
 struct klangc_pattern_as {
-  klangc_ref_t *kpas_ref;
+  klangc_pattern_ref_t *kpas_ref;
   klangc_pattern_t *kpas_pattern;
 };
 
@@ -60,7 +60,7 @@ static klangc_pattern_appl_t *klangc_pattern_appl_new(klangc_pattern_t *constr,
   return appl;
 }
 
-static klangc_pattern_as_t *klangc_pattern_as_new(klangc_ref_t *var,
+static klangc_pattern_as_t *klangc_pattern_as_new(klangc_pattern_ref_t *var,
                                                   klangc_pattern_t *pattern) {
   assert(var != NULL);
   assert(pattern != NULL);
@@ -103,7 +103,7 @@ klangc_pattern_t *klangc_pattern_new_symbol(klangc_symbol_t *symbol,
   return pattern;
 }
 
-klangc_pattern_t *klangc_pattern_new_ref(klangc_ref_t *ref,
+klangc_pattern_t *klangc_pattern_new_ref(klangc_pattern_ref_t *ref,
                                          klangc_ipos_t ipos) {
   assert(ref != NULL);
 
@@ -141,7 +141,7 @@ klangc_pattern_t *klangc_pattern_new_appl(klangc_pattern_t *constr,
  * @param pattern The pattern to apply the symbol to.
  * @return A pointer to the newly created klangc_pattern_t object.
  */
-klangc_pattern_t *klangc_pattern_new_as(klangc_ref_t *var,
+klangc_pattern_t *klangc_pattern_new_as(klangc_pattern_ref_t *var,
                                         klangc_pattern_t *pattern,
                                         klangc_ipos_t ipos) {
   assert(var != NULL);
@@ -207,7 +207,7 @@ int klangc_pattern_isref(klangc_pattern_t *pattern) {
 klangc_ref_t *klangc_pattern_get_ref(klangc_pattern_t *pattern) {
   assert(pattern != NULL);
   assert(klangc_pattern_isref(pattern));
-  return pattern->kp_ref;
+  return klangc_pattern_ref_get_ref(pattern->kp_ref);
 }
 
 int klangc_pattern_isappl(klangc_pattern_t *pattern) {
@@ -280,8 +280,8 @@ klangc_pattern_parse_no_appl(klangc_input_t *input,
 
   klangc_input_restore(input, ipos_ss);
 
-  klangc_ref_t *ref;
-  switch (klangc_ref_parse(input, &ref)) {
+  klangc_pattern_ref_t *ref;
+  switch (klangc_pattern_ref_parse(input, &ref)) {
   case KLANGC_PARSE_OK: {
     klangc_pattern_t *reference = klangc_pattern_new_ref(ref, ipos_ss);
     klangc_ipos_t ipos_refend = klangc_input_save(input);
@@ -377,39 +377,34 @@ klangc_parse_result_t klangc_pattern_parse(klangc_input_t *input,
   }
 }
 
-int klangc_pattern_walkvars(klangc_closure_t *closure, klangc_bind_t *bind,
-                            klangc_pattern_t *pat,
-                            klangc_pattern_walkref_func_t bind_fn) {
-  assert(closure != NULL);
-  assert(bind != NULL);
+int klangc_pattern_foreach_ref(klangc_pattern_t *pat,
+                               klangc_pattern_foreach_ref_func_t bind_fn,
+                               void *data) {
   assert(pat != NULL);
   assert(bind_fn != NULL);
 
   int ret = 0;
   int cnt = 0;
   if (pat->kp_type == KLANGC_PTYPE_REF) {
-    ret = bind_fn(closure, pat->kp_ref, bind);
+    ret = bind_fn(pat->kp_ref, data);
     if (ret < 0)
       return ret;
     cnt++;
   } else if (pat->kp_type == KLANGC_PTYPE_APPL) {
-    ret = klangc_pattern_walkvars(closure, bind, pat->kp_appl->kpap_constr,
-                                  bind_fn);
+    ret = klangc_pattern_foreach_ref(pat->kp_appl->kpap_constr, bind_fn, data);
     if (ret < 0)
       return ret;
     cnt += ret;
-    ret =
-        klangc_pattern_walkvars(closure, bind, pat->kp_appl->kpap_arg, bind_fn);
+    ret = klangc_pattern_foreach_ref(pat->kp_appl->kpap_arg, bind_fn, data);
     if (ret < 0)
       return ret;
     cnt += ret;
   } else if (pat->kp_type == KLANGC_PTYPE_AS) {
-    ret = bind_fn(closure, pat->kp_as->kpas_ref, bind);
+    ret = bind_fn(pat->kp_as->kpas_ref, data);
     if (ret < 0)
       return ret;
     cnt++;
-    ret = klangc_pattern_walkvars(closure, bind, pat->kp_as->kpas_pattern,
-                                  bind_fn);
+    ret = klangc_pattern_foreach_ref(pat->kp_as->kpas_pattern, bind_fn, data);
     if (ret < 0)
       return ret;
     cnt += ret;
@@ -429,7 +424,7 @@ void klangc_pattern_print(klangc_output_t *output, int prec,
     klangc_symbol_print(output, pattern->kp_symbol);
     break;
   case KLANGC_PTYPE_REF:
-    klangc_ref_print(output, pattern->kp_ref);
+    klangc_pattern_ref_print(output, pattern->kp_ref);
     break;
   case KLANGC_PTYPE_APPL:
     if (prec > KLANGC_PREC_APPL)
@@ -443,7 +438,8 @@ void klangc_pattern_print(klangc_output_t *output, int prec,
       klangc_printf(output, ")");
     break;
   case KLANGC_PTYPE_AS:
-    klangc_printf(output, "%s@", klangc_ref_get_name(pattern->kp_as->kpas_ref));
+    klangc_printf(output, "%s@",
+                  klangc_pattern_ref_get_name(pattern->kp_as->kpas_ref));
     klangc_pattern_print(output, KLANGC_PREC_LOWEST,
                          pattern->kp_as->kpas_pattern);
     break;

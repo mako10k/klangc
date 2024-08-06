@@ -2,17 +2,18 @@
 \~args ->
   ~join (~fmap ~printInt (~fib 5));
 
-join = \~m -> ~chain ~m ~id;
-id = \~x -> ~x;
-chain = \~m -> \~f -> ~join (~fmap ~f ~m);
-fmap = \~f -> \~m -> ~chain ~m \~x -> ~return (~f ~x);
+~join = \~m -> ~chain ~m ~id;
+~id = \~x -> ~x;
+~chain = \~m -> \~f -> ~join (~fmap ~f ~m);
+~fmap = \~f -> \~m -> ~chain ~m \~x -> ~return (~f ~x);
 
-pred = \(Cons ~x ~y) -> ~y;
+~pred = \(Cons ~x ~y) -> ~y;
 
-fib = ~fix \~f -> {
+~fib = ~fix \~f -> {
   \0 -> 1 ;
   \1 -> 1 ;
   \Int ~n -> ~add (~f (~pred ~n)) (~f (~pred (~pred ~n)));
 };
 
-f = \~x -> \~x -> ~x;
+~pred = 1;
+~f = \~x -> \~x -> ~x;

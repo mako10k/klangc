@@ -11,6 +11,8 @@ typedef struct klangc_closure_ent klangc_closure_ent_t;
 
 typedef struct klangc_pattern klangc_pattern_t;
 
+typedef struct klangc_pattern_ref klangc_pattern_ref_t;
+
 typedef struct klangc_pattern_appl klangc_pattern_appl_t;
 
 typedef struct klangc_pattern_as klangc_pattern_as_t;
@@ -20,6 +22,8 @@ typedef struct klangc_pattern_int klangc_pattern_int_t;
 typedef struct klangc_pattern_string klangc_pattern_string_t;
 
 typedef struct klangc_expr klangc_expr_t;
+
+typedef struct klangc_expr_ref klangc_expr_ref_t;
 
 typedef struct klangc_expr_appl klangc_expr_appl_t;
 

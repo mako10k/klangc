@@ -2,7 +2,6 @@
 #include "klangc_bare_closure.h"
 #include "klangc_closure.h"
 #include "klangc_closure_ent.h"
-#include "klangc_expr.h"
 #include "klangc_input.h"
 #include "klangc_types.h"
 #include <stdio.h>
@@ -36,7 +35,6 @@ klangc_parse_result_t klangc_bare_closure_parse(klangc_input_t *input,
         closure = klangc_closure_new(ipos_ss, upper);
       klangc_input_restore(input, ipos2);
       *pclosure = closure;
-      klangc_closure_walk_bind(closure, klangc_expr_bind_for_walk, NULL);
       return KLANGC_PARSE_OK;
 
     case KLANGC_PARSE_ERROR:
@@ -46,9 +44,9 @@ klangc_parse_result_t klangc_bare_closure_parse(klangc_input_t *input,
   }
 }
 
-static int klangc_closure_ent_print_for_walk(klangc_closure_t *closure,
-                                             klangc_closure_ent_t *ent,
-                                             void *data) {
+static int klangc_closure_ent_print_forall(klangc_closure_t *closure,
+                                           klangc_closure_ent_t *ent,
+                                           void *data) {
   klangc_output_t *output = (klangc_output_t *)data;
   klangc_closure_ent_print(output, ent);
   return 0;
@@ -56,5 +54,5 @@ static int klangc_closure_ent_print_for_walk(klangc_closure_t *closure,
 
 void klangc_bare_closure_print(klangc_output_t *output,
                                klangc_closure_t *closure) {
-  klangc_closure_walk(closure, klangc_closure_ent_print_for_walk, output);
+  klangc_closure_foreach_ent(closure, klangc_closure_ent_print_forall, output);
 }

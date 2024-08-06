@@ -90,7 +90,7 @@ klangc_parse_result_t klangc_closure_ent_parse(klangc_input_t *input,
   }
   if (ent == NULL) {
     klangc_lambda_t *lambda;
-    switch (klangc_expr_lambda_parse(input, upper, &lambda)) {
+    switch (klangc_lambda_parse(input, upper, &lambda)) {
     case KLANGC_PARSE_OK:
       ent = klangc_closure_ent_new_lambda(lambda);
     case KLANGC_PARSE_NOPARSE:
@@ -126,7 +126,7 @@ void klangc_closure_ent_print(klangc_output_t *output,
     klangc_bind_print(output, ent->kce_bind);
     break;
   case KLANGC_CLOSURE_ENT_LAMBDA:
-    klangc_expr_lambda_print(output, ent->kce_lambda);
+    klangc_lambda_print(output, ent->kce_lambda);
     break;
   }
   klangc_printf(output, ";\n");

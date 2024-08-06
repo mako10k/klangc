@@ -14,6 +14,6 @@ int klangc_hash_put(klangc_hash_t *hash, const char *key, void *value,
 
 int klangc_hash_remove(klangc_hash_t *hash, const char *key, void **value);
 
-void klangc_hash_walk(klangc_hash_t *hash,
-                      void (*callback)(const char *, void *, void *),
-                      void *data);
+void klangc_hash_foreach(klangc_hash_t *hash,
+                         void (*callback)(const char *, void *, void *),
+                         void *data);

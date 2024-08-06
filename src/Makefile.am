@@ -11,6 +11,8 @@ klangc_SOURCES =     \
     klangc_closure_ent.c \
     klangc_closure.h \
     klangc_closure.c \
+    klangc_expr_ref.h \
+    klangc_expr_ref.c \
     klangc_expr.h    \
     klangc_expr.c    \
     klangc_hash.h    \
@@ -25,6 +27,8 @@ klangc_SOURCES =     \
     klangc_output.c  \
     klangc_parse.h   \
     klangc_parse.c   \
+    klangc_pattern_ref.h \
+    klangc_pattern_ref.c \
     klangc_pattern.h \
     klangc_pattern.c \
     klangc_ref.h     \

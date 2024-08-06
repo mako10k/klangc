@@ -1,8 +1,6 @@
 #include "klangc_bare_closure.h"
 #include "klangc_closure.h"
-#include "klangc_expr.h"
 #include "klangc_input.h"
-#include <gc.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -26,8 +24,7 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
     klangc_bare_closure_print(kstdout, closure);
-    klangc_closure_walk_bind(closure, klangc_expr_bind_for_walk, kstdout);
-    klangc_closure_walk_bind(closure, klangc_expr_check_unbound_for_walk,
-                             kstdout);
+    klangc_closure_bind(closure);
+    klangc_closure_check_unbound(kstderr, closure);
   }
 }
