@@ -2,7 +2,7 @@
 #include "klangc_bind.h"
 #include "klangc_closure.h"
 #include "klangc_eclosure.h"
-#include "klangc_elambda.h"
+#include "klangc_lambda.h"
 #include "klangc_input.h"
 #include "klangc_malloc.h"
 #include "klangc_output.h"
@@ -43,7 +43,7 @@ struct klangc_expr {
     int intval;
     char *strval;
     klangc_expr_appl_t *kv_appl;
-    klangc_expr_lambda_t *kv_lambda;
+    klangc_lambda_t *kv_lambda;
     klangc_closure_t *kv_closure;
     klangc_expr_choice_t *kv_choice;
   };
@@ -104,7 +104,7 @@ klangc_expr_t *klangc_expr_new_string(const char *strval, klangc_ipos_t ipos) {
   return expr;
 }
 
-klangc_expr_t *klangc_expr_new_lambda(klangc_expr_lambda_t *lambda,
+klangc_expr_t *klangc_expr_new_lambda(klangc_lambda_t *lambda,
                                       klangc_ipos_t ipos) {
   assert(lambda != NULL);
   klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
@@ -135,7 +135,7 @@ klangc_expr_t *klangc_expr_new_closure(klangc_closure_t *closure,
 
 klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
                                                klangc_closure_t *upper,
-                                               klangc_expr_lambda_t **plambda) {
+                                               klangc_lambda_t **plambda) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   int c;
@@ -289,7 +289,7 @@ klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
     return KLANGC_PARSE_ERROR;
   }
 
-  klangc_expr_lambda_t *lambda;
+  klangc_lambda_t *lambda;
   switch (klangc_expr_lambda_parse(input, enclosed_by, &lambda)) {
   case KLANGC_PARSE_OK:
     *pexpr = klangc_expr_new_lambda(lambda, ipos_ss);

@@ -6,7 +6,7 @@
 klangc_closure_ent_t *klangc_closure_ent_new_bind(klangc_bind_t *bind);
 
 klangc_closure_ent_t *
-klangc_closure_ent_new_lambda(klangc_expr_lambda_t *lambda);
+klangc_closure_ent_new_lambda(klangc_lambda_t *lambda);
 
 int klangc_closure_ent_isbind(klangc_closure_ent_t *ent);
 
@@ -14,7 +14,7 @@ int klangc_closure_ent_islambda(klangc_closure_ent_t *ent);
 
 klangc_bind_t *klangc_closure_ent_get_bind(klangc_closure_ent_t *ent);
 
-klangc_expr_lambda_t *klangc_closure_ent_get_lambda(klangc_closure_ent_t *ent);
+klangc_lambda_t *klangc_closure_ent_get_lambda(klangc_closure_ent_t *ent);
 
 klangc_closure_ent_t *klangc_closure_ent_get_next(klangc_closure_ent_t *ent);
 

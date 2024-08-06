@@ -1,5 +1,5 @@
 #include "klangc_bind.h"
-#include "klangc_elambda.h"
+#include "klangc_lambda.h"
 #include "klangc_input.h"
 #include "klangc_malloc.h"
 #include "klangc_parse.h"
@@ -15,7 +15,7 @@ struct klangc_closure_ent {
   klangc_closure_ent_type_t kce_type;
   union {
     klangc_bind_t *kce_bind;
-    klangc_expr_lambda_t *kce_lambda;
+    klangc_lambda_t *kce_lambda;
   };
   klangc_closure_ent_t *kce_next;
 };
@@ -30,7 +30,7 @@ klangc_closure_ent_t *klangc_closure_ent_new_bind(klangc_bind_t *bind) {
 }
 
 klangc_closure_ent_t *
-klangc_closure_ent_new_lambda(klangc_expr_lambda_t *lambda) {
+klangc_closure_ent_new_lambda(klangc_lambda_t *lambda) {
   assert(lambda != NULL);
   klangc_closure_ent_t *ent = klangc_malloc(sizeof(klangc_closure_ent_t));
   ent->kce_type = KLANGC_CLOSURE_ENT_LAMBDA;
@@ -55,7 +55,7 @@ klangc_bind_t *klangc_closure_ent_get_bind(klangc_closure_ent_t *ent) {
   return ent->kce_bind;
 }
 
-klangc_expr_lambda_t *klangc_closure_ent_get_lambda(klangc_closure_ent_t *ent) {
+klangc_lambda_t *klangc_closure_ent_get_lambda(klangc_closure_ent_t *ent) {
   assert(ent != NULL);
   assert(klangc_closure_ent_islambda(ent));
   return ent->kce_lambda;
@@ -90,7 +90,7 @@ klangc_parse_result_t klangc_closure_ent_parse(klangc_input_t *input,
     return KLANGC_PARSE_ERROR;
   }
   if (ent == NULL) {
-    klangc_expr_lambda_t *lambda;
+    klangc_lambda_t *lambda;
     switch (klangc_expr_lambda_parse(input, upper, &lambda)) {
     case KLANGC_PARSE_OK:
       ent = klangc_closure_ent_new_lambda(lambda);

@@ -14,7 +14,7 @@ typedef int (*klangc_closure_walk_bind_func_t)(klangc_closure_t *closure,
                                                klangc_bind_t *bind, void *data);
 
 typedef int (*klangc_closure_walk_lambda_func_t)(klangc_closure_t *closure,
-                                                 klangc_expr_lambda_t *lambda,
+                                                 klangc_lambda_t *lambda,
                                                  void *data);
 
 klangc_closure_t *klangc_closure_new(klangc_ipos_t ipos,
