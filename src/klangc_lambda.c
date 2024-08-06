@@ -1,6 +1,6 @@
 #include "klangc_lambda.h"
-#include "klangc_bare_closure.h"
 #include "klangc_bind.h"
+#include "klangc_closure.h"
 #include "klangc_expr.h"
 #include "klangc_pattern.h"
 
@@ -9,13 +9,13 @@
 struct klangc_lambda {
   klangc_pattern_t *kvl_arg;
   klangc_expr_t *kvl_body;
-  klangc_bare_closure_t *kvl_closure;
+  klangc_closure_t *kvl_closure;
   klangc_ipos_t kvl_ipos;
 };
 
 klangc_lambda_t *klangc_expr_lambda_new(klangc_pattern_t *arg,
                                         klangc_expr_t *body,
-                                        klangc_bare_closure_t *upper,
+                                        klangc_closure_t *upper,
                                         klangc_ipos_t ipos) {
   assert(arg != NULL);
   assert(body != NULL);
@@ -46,7 +46,7 @@ klangc_expr_t *klangc_expr_lambda_get_body(klangc_lambda_t *lambda) {
   return lambda->kvl_body;
 }
 
-klangc_bare_closure_t *klangc_expr_lambda_get_upper(klangc_lambda_t *lambda) {
+klangc_closure_t *klangc_expr_lambda_get_upper(klangc_lambda_t *lambda) {
   return lambda->kvl_closure;
 }
 

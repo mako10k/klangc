@@ -72,7 +72,7 @@ void klangc_closure_ent_set_next(klangc_closure_ent_t *ent,
 }
 
 klangc_parse_result_t klangc_closure_ent_parse(klangc_input_t *input,
-                                               klangc_bare_closure_t *upper,
+                                               klangc_closure_t *upper,
                                                klangc_closure_ent_t **pent) {
   assert(input != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
