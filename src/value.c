@@ -134,8 +134,9 @@ klangc_value_t *klangc_value_from_expr(klangc_expr_t *expr) {
     (void)ebody;
   }
   case KLANGC_ETYPE_CLOSURE: {
-    klangc_closure_t *closure = klangc_expr_get_closure(expr);
-    klangc_expr_closure_entry_t *ent = klangc_closure_get_ent_first(closure);
+    klangc_expr_closure_t *closure = klangc_expr_get_closure(expr);
+    klangc_expr_closure_entry_t *ent =
+        klangc_expr_closure_get_ent_first(closure);
     while (ent != NULL) {
       if (klangc_expr_closure_entry_isbind(ent)) {
         klangc_expr_closure_bind_t *bind =

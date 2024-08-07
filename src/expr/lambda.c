@@ -13,25 +13,25 @@
 struct klangc_lambda {
   klangc_pat_t *kvl_arg;
   klangc_expr_t *kvl_body;
-  klangc_closure_t *kvl_closure;
+  klangc_expr_closure_t *kvl_closure;
   klangc_ipos_t kvl_ipos;
 };
 
 klangc_lambda_t *klangc_lambda_new(klangc_pat_t *arg, klangc_expr_t *body,
-                                   klangc_closure_t *upper,
+                                   klangc_expr_closure_t *upper,
                                    klangc_ipos_t ipos) {
   assert(arg != NULL);
   assert(body != NULL);
   klangc_lambda_t *lambda = klangc_malloc(sizeof(klangc_lambda_t));
   lambda->kvl_arg = arg;
   lambda->kvl_body = body;
-  lambda->kvl_closure = klangc_closure_new(ipos, upper);
+  lambda->kvl_closure = klangc_expr_closure_new(ipos, upper);
   lambda->kvl_ipos = ipos;
   return lambda;
 }
 
 klangc_parse_result_t klangc_lambda_parse(klangc_input_t *input,
-                                          klangc_closure_t *upper,
+                                          klangc_expr_closure_t *upper,
                                           klangc_lambda_t **plambda) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
@@ -103,7 +103,7 @@ klangc_expr_t *klangc_lambda_get_body(klangc_lambda_t *lambda) {
   return lambda->kvl_body;
 }
 
-klangc_closure_t *klangc_lambda_get_upper(klangc_lambda_t *lambda) {
+klangc_expr_closure_t *klangc_lambda_get_upper(klangc_lambda_t *lambda) {
   return lambda->kvl_closure;
 }
 
@@ -112,24 +112,25 @@ klangc_ipos_t klangc_lambda_get_ipos(klangc_lambda_t *lambda) {
 }
 
 typedef struct klangc_lambda_put_arg_foreach_data {
-  klangc_closure_t *closure;
+  klangc_expr_closure_t *closure;
   klangc_expr_closure_bind_t *bind;
 } klangc_lambda_put_arg_foreach_data_t;
 
 int klangc_lambda_put_arg_foreach(klangc_ref_t *ref, void *data) {
   klangc_lambda_put_arg_foreach_data_t *fdata = data;
-  klangc_closure_put_bind(fdata->closure, ref, fdata->bind);
+  klangc_expr_closure_put_bind(fdata->closure, ref, fdata->bind);
   return 1;
 }
 
-int klangc_lambda_bind(klangc_closure_t *closure, klangc_lambda_t *lambda) {
+int klangc_lambda_bind(klangc_expr_closure_t *closure,
+                       klangc_lambda_t *lambda) {
   klangc_pat_t *arg = lambda->kvl_arg;
   klangc_expr_t *body = lambda->kvl_body;
   klangc_expr_closure_bind_t *bind =
       klangc_expr_closure_bind_new(arg, body, lambda->kvl_ipos);
   klangc_expr_closure_entry_t *ent = klangc_expr_closure_entry_new_bind(bind);
-  klangc_closure_set_ent_first(closure, ent);
-  klangc_closure_bind(closure);
+  klangc_expr_closure_set_ent_first(closure, ent);
+  klangc_expr_closure_bind(closure);
   klangc_expr_bind(closure, body);
   return 1;
 }

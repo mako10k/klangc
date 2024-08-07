@@ -13,16 +13,16 @@
 #include "closure/entry.h"
 #include "lambda.h"
 
-struct klangc_closure {
+struct klangc_expr_closure {
   klangc_hash_t *kc_bind_ref;
   klangc_expr_closure_entry_t *kc_ent;
-  klangc_closure_t *kc_upper;
+  klangc_expr_closure_t *kc_upper;
   klangc_ipos_t kc_ipos;
 };
 
-klangc_closure_t *klangc_closure_new(klangc_ipos_t ipos,
-                                     klangc_closure_t *upper) {
-  klangc_closure_t *closure = klangc_malloc(sizeof(klangc_closure_t));
+klangc_expr_closure_t *klangc_expr_closure_new(klangc_ipos_t ipos,
+                                               klangc_expr_closure_t *upper) {
+  klangc_expr_closure_t *closure = klangc_malloc(sizeof(klangc_expr_closure_t));
   closure->kc_bind_ref = klangc_hash_new(16);
   closure->kc_ent = NULL;
   closure->kc_ipos = ipos;
@@ -30,9 +30,9 @@ klangc_closure_t *klangc_closure_new(klangc_ipos_t ipos,
   return closure;
 }
 
-klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
-                                           klangc_closure_t *upper,
-                                           klangc_closure_t **pclosure) {
+klangc_parse_result_t
+klangc_expr_closure_parse(klangc_input_t *input, klangc_expr_closure_t *upper,
+                          klangc_expr_closure_t **pclosure) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   int c;
@@ -41,7 +41,7 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
     return KLANGC_PARSE_NOPARSE;
   }
   ipos_ss = klangc_skipspaces(input);
-  klangc_closure_t *closure;
+  klangc_expr_closure_t *closure;
   switch (klangc_expr_closure_bare_parse(input, upper, &closure)) {
   case KLANGC_PARSE_OK:
     break;
@@ -64,7 +64,8 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
   return KLANGC_PARSE_ERROR;
 }
 
-void klangc_closure_print(klangc_output_t *output, klangc_closure_t *closure) {
+void klangc_expr_closure_print(klangc_output_t *output,
+                               klangc_expr_closure_t *closure) {
   klangc_printf(output, "{\n");
   klangc_indent(output, 2);
   klangc_expr_closure_bare_print(output, closure);
@@ -72,14 +73,15 @@ void klangc_closure_print(klangc_output_t *output, klangc_closure_t *closure) {
   klangc_printf(output, "}");
 }
 
-void klangc_closure_set_ent_first(klangc_closure_t *closure,
-                                  klangc_expr_closure_entry_t *ent) {
+void klangc_expr_closure_set_ent_first(klangc_expr_closure_t *closure,
+                                       klangc_expr_closure_entry_t *ent) {
   closure->kc_ent = ent;
 }
 
-int klangc_closure_get_bind(klangc_closure_t *closure, klangc_ref_t *ref,
-                            klangc_expr_closure_bind_t **pbind,
-                            klangc_closure_t **pclosure) {
+int klangc_expr_closure_get_bind(klangc_expr_closure_t *closure,
+                                 klangc_ref_t *ref,
+                                 klangc_expr_closure_bind_t **pbind,
+                                 klangc_expr_closure_t **pclosure) {
   while (closure != NULL) {
     if (klangc_hash_get(closure->kc_bind_ref, klangc_ref_get_name(ref),
                         (void **)pbind) != 0) {
@@ -92,11 +94,12 @@ int klangc_closure_get_bind(klangc_closure_t *closure, klangc_ref_t *ref,
   return 0;
 }
 
-int klangc_closure_put_bind(klangc_closure_t *closure, klangc_ref_t *ref,
-                            klangc_expr_closure_bind_t *bind) {
+int klangc_expr_closure_put_bind(klangc_expr_closure_t *closure,
+                                 klangc_ref_t *ref,
+                                 klangc_expr_closure_bind_t *bind) {
   const char *name = klangc_ref_get_name(ref);
   klangc_expr_closure_bind_t *bind_ref;
-  if (klangc_closure_get_bind(closure, ref, &bind_ref, NULL) != 0) {
+  if (klangc_expr_closure_get_bind(closure, ref, &bind_ref, NULL) != 0) {
     klangc_ipos_print(kstderr, klangc_ref_get_ipos(ref));
     klangc_printf(kstderr, "Duplicate definition: %s\n", name);
     klangc_ipos_print(kstderr, klangc_expr_closure_bind_get_ipos(bind_ref));
@@ -107,9 +110,9 @@ int klangc_closure_put_bind(klangc_closure_t *closure, klangc_ref_t *ref,
   return 0;
 }
 
-int klangc_closure_foreach_ent(klangc_closure_t *closure,
-                               klangc_closure_each_ent_func_t func,
-                               void *data) {
+int klangc_expr_closure_foreach_ent(klangc_expr_closure_t *closure,
+                                    klangc_expr_closure_each_ent_func_t func,
+                                    void *data) {
   klangc_expr_closure_entry_t *ent = closure->kc_ent;
   int cnt = 0, ret;
   while (ent != NULL) {
@@ -122,88 +125,89 @@ int klangc_closure_foreach_ent(klangc_closure_t *closure,
   return cnt;
 }
 
-typedef struct klangc_closure_foreach_bind_data {
-  klangc_closure_each_bind_func_t kcwbd_func;
+typedef struct klangc_expr_closure_foreach_bind_data {
+  klangc_expr_closure_each_bind_func_t kcwbd_func;
   void *kcwbd_data;
-} klangc_closure_walk_bind_data_t;
+} klangc_expr_closure_walk_bind_data_t;
 
-int klangc_expr_closure_entry_foreach_bind(klangc_closure_t *closure,
+int klangc_expr_closure_entry_foreach_bind(klangc_expr_closure_t *closure,
                                            klangc_expr_closure_entry_t *ent,
                                            void *data) {
 
-  klangc_closure_walk_bind_data_t *fdata =
-      (klangc_closure_walk_bind_data_t *)data;
+  klangc_expr_closure_walk_bind_data_t *fdata =
+      (klangc_expr_closure_walk_bind_data_t *)data;
   if (!klangc_expr_closure_entry_isbind(ent))
     return 0;
   return fdata->kcwbd_func(closure, klangc_expr_closure_entry_get_bind(ent),
                            fdata->kcwbd_data);
 }
 
-int klangc_closure_foreach_bind(klangc_closure_t *closure,
-                                klangc_closure_each_bind_func_t func,
-                                void *data) {
-  struct klangc_closure_foreach_bind_data fdata = {func, data};
-  return klangc_closure_foreach_ent(
+int klangc_expr_closure_foreach_bind(klangc_expr_closure_t *closure,
+                                     klangc_expr_closure_each_bind_func_t func,
+                                     void *data) {
+  struct klangc_expr_closure_foreach_bind_data fdata = {func, data};
+  return klangc_expr_closure_foreach_ent(
       closure, klangc_expr_closure_entry_foreach_bind, &fdata);
 }
 
-typedef struct klangc_closure_foreach_lambda_data {
-  klangc_closure_each_lambda_func_t kcwld_func;
+typedef struct klangc_expr_closure_foreach_lambda_data {
+  klangc_expr_closure_each_lambda_func_t kcwld_func;
   void *kcwld_data;
-} klangc_closure_foreach_lambda_data_t;
+} klangc_expr_closure_foreach_lambda_data_t;
 
-int klangc_expr_closure_entry_forach_lambda(klangc_closure_t *closure,
+int klangc_expr_closure_entry_forach_lambda(klangc_expr_closure_t *closure,
                                             klangc_expr_closure_entry_t *ent,
                                             void *data) {
-  klangc_closure_foreach_lambda_data_t *fdata =
-      (klangc_closure_foreach_lambda_data_t *)data;
+  klangc_expr_closure_foreach_lambda_data_t *fdata =
+      (klangc_expr_closure_foreach_lambda_data_t *)data;
   if (!klangc_expr_closure_entry_islambda(ent))
     return 0;
   return fdata->kcwld_func(closure, klangc_expr_closure_entry_get_lambda(ent),
                            fdata->kcwld_data);
 }
 
-int klangc_closure_foreach_lambda(klangc_closure_t *closure,
-                                  klangc_closure_each_lambda_func_t func,
-                                  void *data) {
-  struct klangc_closure_foreach_lambda_data fdata = {func, data};
-  return klangc_closure_foreach_ent(
+int klangc_expr_closure_foreach_lambda(
+    klangc_expr_closure_t *closure, klangc_expr_closure_each_lambda_func_t func,
+    void *data) {
+  struct klangc_expr_closure_foreach_lambda_data fdata = {func, data};
+  return klangc_expr_closure_foreach_ent(
       closure, klangc_expr_closure_entry_forach_lambda, &fdata);
 }
 
-typedef struct klangc_closure_foreach_bind_local_data {
-  klangc_closure_t *closure;
+typedef struct klangc_expr_closure_foreach_bind_local_data {
+  klangc_expr_closure_t *closure;
   klangc_expr_closure_bind_t *bind;
-} klangc_closure_foreach_bind_local_data_t;
+} klangc_expr_closure_foreach_bind_local_data_t;
 
-int klangc_closure_put_bind_foreach(klangc_pat_ref_t *ref, void *data) {
-  klangc_closure_foreach_bind_local_data_t *fdata =
-      (klangc_closure_foreach_bind_local_data_t *)data;
+int klangc_expr_closure_put_bind_foreach(klangc_pat_ref_t *ref, void *data) {
+  klangc_expr_closure_foreach_bind_local_data_t *fdata =
+      (klangc_expr_closure_foreach_bind_local_data_t *)data;
   if (klangc_pat_ref_is_used(ref))
     return 0;
-  int ret = klangc_closure_put_bind(fdata->closure, klangc_pat_ref_get_ref(ref),
-                                    fdata->bind);
+  int ret = klangc_expr_closure_put_bind(
+      fdata->closure, klangc_pat_ref_get_ref(ref), fdata->bind);
   klangc_pat_ref_set_used(ref);
   return ret;
 }
 
-int klangc_closure_bind_locals_foreach(klangc_closure_t *closure,
-                                       klangc_expr_closure_bind_t *bind,
-                                       void *data) {
+int klangc_expr_closure_bind_locals_foreach(klangc_expr_closure_t *closure,
+                                            klangc_expr_closure_bind_t *bind,
+                                            void *data) {
   klangc_pat_t *pat = klangc_expr_closure_bind_get_pat(bind);
-  klangc_closure_foreach_bind_local_data_t fdata = {closure, bind};
-  return klangc_pat_foreach_ref(pat, klangc_closure_put_bind_foreach, &fdata);
+  klangc_expr_closure_foreach_bind_local_data_t fdata = {closure, bind};
+  return klangc_pat_foreach_ref(pat, klangc_expr_closure_put_bind_foreach,
+                                &fdata);
 }
 
-int klangc_closure_bind_locals(klangc_closure_t *closure) {
-  klangc_closure_foreach_bind(closure, klangc_closure_bind_locals_foreach,
-                              NULL);
+int klangc_expr_closure_bind_locals(klangc_expr_closure_t *closure) {
+  klangc_expr_closure_foreach_bind(
+      closure, klangc_expr_closure_bind_locals_foreach, NULL);
   return 0;
 }
 
-int klangc_closure_bind_inners_foreach(klangc_closure_t *closure,
-                                       klangc_expr_closure_entry_t *ent,
-                                       void *data) {
+int klangc_expr_closure_bind_inners_foreach(klangc_expr_closure_t *closure,
+                                            klangc_expr_closure_entry_t *ent,
+                                            void *data) {
   if (klangc_expr_closure_entry_islambda(ent))
     return klangc_lambda_bind(closure,
                               klangc_expr_closure_entry_get_lambda(ent));
@@ -214,20 +218,21 @@ int klangc_closure_bind_inners_foreach(klangc_closure_t *closure,
   return -1;
 }
 
-int klangc_closure_bind_inners(klangc_closure_t *closure) {
-  klangc_closure_foreach_ent(closure, klangc_closure_bind_inners_foreach, NULL);
+int klangc_expr_closure_bind_inners(klangc_expr_closure_t *closure) {
+  klangc_expr_closure_foreach_ent(
+      closure, klangc_expr_closure_bind_inners_foreach, NULL);
   return 0;
 }
 
-int klangc_closure_bind(klangc_closure_t *closure) {
-  klangc_closure_bind_locals(closure);
-  klangc_closure_bind_inners(closure);
+int klangc_expr_closure_bind(klangc_expr_closure_t *closure) {
+  klangc_expr_closure_bind_locals(closure);
+  klangc_expr_closure_bind_inners(closure);
   return 0;
 }
 
-int klangc_closure_check_unbound_foreach(klangc_closure_t *closure,
-                                         klangc_expr_closure_entry_t *ent,
-                                         void *data) {
+int klangc_expr_closure_check_unbound_foreach(klangc_expr_closure_t *closure,
+                                              klangc_expr_closure_entry_t *ent,
+                                              void *data) {
   klangc_output_t *output = data;
   if (klangc_expr_closure_entry_islambda(ent)) {
     klangc_lambda_t *lambda = klangc_expr_closure_entry_get_lambda(ent);
@@ -244,15 +249,15 @@ int klangc_closure_check_unbound_foreach(klangc_closure_t *closure,
   return 0;
 }
 
-int klangc_closure_check_unbound(klangc_output_t *output,
-                                 klangc_closure_t *closure) {
-  klangc_closure_foreach_ent(closure, klangc_closure_check_unbound_foreach,
-                             output);
+int klangc_expr_closure_check_unbound(klangc_output_t *output,
+                                      klangc_expr_closure_t *closure) {
+  klangc_expr_closure_foreach_ent(
+      closure, klangc_expr_closure_check_unbound_foreach, output);
   return 0;
 }
 
 klangc_expr_closure_entry_t *
-klangc_closure_get_ent_first(klangc_closure_t *closure) {
+klangc_expr_closure_get_ent_first(klangc_expr_closure_t *closure) {
   assert(closure != NULL);
   return closure->kc_ent;
 }
