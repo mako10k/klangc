@@ -17,33 +17,11 @@ struct klangc_pat {
     klangc_pat_ref_t *kp_ref;
     klangc_pat_appl_t *kp_appl;
     klangc_pat_as_t *kp_as;
-    klangc_pat_int_t *kp_int;
-    klangc_pat_string_t *kp_string;
+    int kp_intval;
+    const char *kp_strval;
   };
   klangc_ipos_t ipos;
 };
-
-struct klangc_pat_int {
-  int kpi_value;
-};
-
-struct klangc_pat_string {
-  char *kps_value;
-};
-
-static klangc_pat_int_t *klangc_pat_int_new(int value) {
-  klangc_pat_int_t *integer = klangc_malloc(sizeof(klangc_pat_int_t));
-  integer->kpi_value = value;
-  return integer;
-}
-
-static klangc_pat_string_t *klangc_pat_string_new(const char *value) {
-  assert(value != NULL);
-
-  klangc_pat_string_t *string = klangc_malloc(sizeof(klangc_pat_string_t));
-  string->kps_value = klangc_strdup(value);
-  return string;
-}
 
 /**
  * Creates a new pattern object with the given symbol name.
@@ -113,13 +91,13 @@ klangc_pat_t *klangc_pat_new_as(klangc_pat_ref_t *var, klangc_pat_t *pat,
 /**
  * Creates a new klangc_pat_t object with an integer value.
  *
- * @param value The integer value for the pattern
+ * @param intval The integer value for the pattern
  * @return A pointer to the newly created klangc_pat_t object.
  */
-klangc_pat_t *klangc_pat_new_int(int value, klangc_ipos_t ipos) {
+klangc_pat_t *klangc_pat_new_int(int intval, klangc_ipos_t ipos) {
   klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
   pat->kp_type = KLANGC_PTYPE_INT;
-  pat->kp_int = klangc_pat_int_new(value);
+  pat->kp_intval = intval;
   pat->ipos = ipos;
   return pat;
 }
@@ -127,15 +105,14 @@ klangc_pat_t *klangc_pat_new_int(int value, klangc_ipos_t ipos) {
 /**
  * Creates a new klangc_pat_t object from a string value.
  *
- * @param value The string value to create the pattern from.
+ * @param strval The string value to create the pattern from.
  * @return A pointer to the newly created klangc_pat_t object.
  */
-klangc_pat_t *klangc_pat_new_string(const char *value, klangc_ipos_t ipos) {
-  assert(value != NULL);
-
+klangc_pat_t *klangc_pat_new_string(const char *strval, klangc_ipos_t ipos) {
+  assert(strval != NULL);
   klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
   pat->kp_type = KLANGC_PTYPE_STRING;
-  pat->kp_string = klangc_pat_string_new(value);
+  pat->kp_strval = klangc_strdup(strval);
   pat->ipos = ipos;
   return pat;
 }
@@ -385,10 +362,10 @@ void klangc_pat_print(klangc_output_t *output, int prec, klangc_pat_t *pat) {
                      klangc_pat_as_get_pat(pat->kp_as));
     break;
   case KLANGC_PTYPE_INT:
-    klangc_printf(output, "%d", pat->kp_int->kpi_value);
+    klangc_printf(output, "%d", pat->kp_intval);
     break;
   case KLANGC_PTYPE_STRING:
-    klangc_printf(output, "\"%s\"", pat->kp_string->kps_value);
+    klangc_printf(output, "\"%s\"", pat->kp_strval);
     break;
   }
 }

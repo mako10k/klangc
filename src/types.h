@@ -17,10 +17,6 @@ typedef struct klangc_pat_appl klangc_pat_appl_t;
 
 typedef struct klangc_pat_as klangc_pat_as_t;
 
-typedef struct klangc_pat_int klangc_pat_int_t;
-
-typedef struct klangc_pat_string klangc_pat_string_t;
-
 typedef struct klangc_expr klangc_expr_t;
 
 typedef struct klangc_expr_ref klangc_expr_ref_t;
