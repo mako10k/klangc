@@ -24,7 +24,7 @@ struct klangc_expr {
     int ke_intval;
     char *ke_strval;
     klangc_expr_appl_t *ke_appl;
-    klangc_lambda_t *ke_lambda;
+    klangc_expr_lambda_t *ke_lambda;
     klangc_expr_closure_t *ke_closure;
   };
   klangc_ipos_t ke_ipos;
@@ -76,7 +76,7 @@ klangc_expr_t *klangc_expr_new_string(const char *strval, klangc_ipos_t ipos) {
   return expr;
 }
 
-klangc_expr_t *klangc_expr_new_lambda(klangc_lambda_t *lambda,
+klangc_expr_t *klangc_expr_new_lambda(klangc_expr_lambda_t *lambda,
                                       klangc_ipos_t ipos) {
   assert(lambda != NULL);
   klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
@@ -203,8 +203,8 @@ klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
     return KLANGC_PARSE_ERROR;
   }
 
-  klangc_lambda_t *lambda;
-  switch (klangc_lambda_parse(input, upper, &lambda)) {
+  klangc_expr_lambda_t *lambda;
+  switch (klangc_expr_lambda_parse(input, upper, &lambda)) {
   case KLANGC_PARSE_OK:
     *pexpr = klangc_expr_new_lambda(lambda, ipos_ss);
     return KLANGC_PARSE_OK;
@@ -279,7 +279,7 @@ void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {
       klangc_printf(output, ")");
     break;
   case KLANGC_ETYPE_LAMBDA:
-    klangc_lambda_print(output, expr->ke_lambda);
+    klangc_expr_lambda_print(output, expr->ke_lambda);
     break;
   case KLANGC_ETYPE_CLOSURE:
     klangc_expr_closure_print(output, expr->ke_closure);
@@ -288,9 +288,9 @@ void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {
 }
 
 int klangc_expr_bind_lambda(klangc_expr_closure_t *closure,
-                            klangc_lambda_t *lambda) {
-  klangc_expr_t *body = klangc_lambda_get_body(lambda);
-  klangc_expr_closure_t *inner = klangc_lambda_get_upper(lambda);
+                            klangc_expr_lambda_t *lambda) {
+  klangc_expr_t *body = klangc_expr_lambda_get_body(lambda);
+  klangc_expr_closure_t *inner = klangc_expr_lambda_get_upper(lambda);
   int ret = klangc_expr_bind(inner, body);
   if (ret < 0)
     return -1;
@@ -345,9 +345,9 @@ int klangc_expr_bind(klangc_expr_closure_t *closure, klangc_expr_t *expr) {
 int klangc_expr_bind_ent(klangc_expr_closure_t *closure,
                          klangc_expr_closure_entry_t *ent, void *data) {
   if (klangc_expr_closure_entry_islambda(ent)) {
-    klangc_lambda_t *lambda = klangc_expr_closure_entry_get_lambda(ent);
-    klangc_expr_t *body = klangc_lambda_get_body(lambda);
-    klangc_expr_closure_t *inner = klangc_lambda_get_upper(lambda);
+    klangc_expr_lambda_t *lambda = klangc_expr_closure_entry_get_lambda(ent);
+    klangc_expr_t *body = klangc_expr_lambda_get_body(lambda);
+    klangc_expr_closure_t *inner = klangc_expr_lambda_get_upper(lambda);
     int ret = klangc_expr_bind(inner, body);
     if (ret < 0)
       return -1;
@@ -393,7 +393,7 @@ int klangc_expr_check_unbound(klangc_output_t *output,
     return cnt_unbound;
 
   case KLANGC_ETYPE_LAMBDA:
-    ret = klangc_lambda_check_unbound(output, expr->ke_lambda);
+    ret = klangc_expr_lambda_check_unbound(output, expr->ke_lambda);
     if (ret < 0)
       return -1;
     cnt_unbound = ret;
@@ -467,7 +467,7 @@ const char *klangc_expr_get_string(klangc_expr_t *expr) {
   return expr->ke_strval;
 }
 
-klangc_lambda_t *klangc_expr_get_lambda(klangc_expr_t *expr) {
+klangc_expr_lambda_t *klangc_expr_get_lambda(klangc_expr_t *expr) {
   assert(expr != NULL);
   assert(expr->ke_type == KLANGC_ETYPE_LAMBDA);
   return expr->ke_lambda;

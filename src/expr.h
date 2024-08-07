@@ -45,6 +45,6 @@ int klangc_expr_get_int(klangc_expr_t *expr);
 
 const char *klangc_expr_get_string(klangc_expr_t *expr);
 
-klangc_lambda_t *klangc_expr_get_lambda(klangc_expr_t *expr);
+klangc_expr_lambda_t *klangc_expr_get_lambda(klangc_expr_t *expr);
 
 klangc_expr_closure_t *klangc_expr_get_closure(klangc_expr_t *expr);

@@ -209,7 +209,7 @@ int klangc_expr_closure_bind_inners_foreach(klangc_expr_closure_t *closure,
                                             klangc_expr_closure_entry_t *ent,
                                             void *data) {
   if (klangc_expr_closure_entry_islambda(ent))
-    return klangc_lambda_bind(closure,
+    return klangc_expr_lambda_bind(closure,
                               klangc_expr_closure_entry_get_lambda(ent));
   if (klangc_expr_closure_entry_isbind(ent))
     return klangc_expr_bind(closure,
@@ -235,8 +235,8 @@ int klangc_expr_closure_check_unbound_foreach(klangc_expr_closure_t *closure,
                                               void *data) {
   klangc_output_t *output = data;
   if (klangc_expr_closure_entry_islambda(ent)) {
-    klangc_lambda_t *lambda = klangc_expr_closure_entry_get_lambda(ent);
-    klangc_expr_t *body = klangc_lambda_get_body(lambda);
+    klangc_expr_lambda_t *lambda = klangc_expr_closure_entry_get_lambda(ent);
+    klangc_expr_t *body = klangc_expr_lambda_get_body(lambda);
     if (klangc_expr_check_unbound(output, closure, body) != 0)
       return 1;
   }
