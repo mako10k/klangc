@@ -7,4 +7,4 @@
 #define _GNU_SOURCE 1
 #endif
 
-#include "klangc_types.h"
+#include "types.h"

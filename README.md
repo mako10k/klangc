@@ -7,23 +7,23 @@
 
 <bare_closure> = <closure_entry>*;
 
-<closure_entry> ::= <lambda> | <bind>;
+<closure_entry> ::= ( <lambda> | <bind> ) ";";
 
 <lambda> ::= "\" <pat> "->" <expr>;
 
 <bind> ::= <pat> "=" <expr>;
 
-<pat> ::= <pat_noapp> <pat>*
-        | <pat_data>;
+<pat> ::= <pat_noapp> <pat_noapp>*;
 
 <pat_noapp> ::= "(" <pat> ")"
-              | <symbol> "@" <pat>
+              | <symbol>
+              | <ref>
+              | <pat_at>
               | <int>
               | <str>
               ;
 
-<pat_data> ::= ":" <pat>*;
-
+<expr>
 
 TOKENS
 

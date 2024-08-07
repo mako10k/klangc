@@ -1,6 +1,7 @@
-#include "klangc_bare_closure.h"
-#include "klangc_closure.h"
-#include "klangc_input.h"
+#include "expr/closure.h"
+#include "expr/closure/bare.h"
+#include "input.h"
+#include "output.h"
 #include <stdio.h>
 #include <stdlib.h>
 
