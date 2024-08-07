@@ -1,5 +1,4 @@
 #include "expr/closure.h"
-#include "expr/closure/bare.h"
 #include "input.h"
 #include "output.h"
 #include <stdio.h>

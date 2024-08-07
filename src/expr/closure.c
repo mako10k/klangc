@@ -8,7 +8,6 @@
 #include "../pat.h"
 #include "../pat/ref.h"
 #include "../ref.h"
-#include "closure/bare.h"
 #include "closure/bind.h"
 #include "closure/entry.h"
 #include "lambda.h"
@@ -28,6 +27,44 @@ klangc_expr_closure_t *klangc_expr_closure_new(klangc_ipos_t ipos,
   closure->kc_ipos = ipos;
   closure->kc_upper = upper;
   return closure;
+}
+
+klangc_parse_result_t
+klangc_expr_closure_bare_parse(klangc_input_t *input,
+                               klangc_expr_closure_t *upper,
+                               klangc_expr_closure_t **pclosure) {
+  assert(input != NULL);
+  assert(pclosure != NULL);
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_expr_closure_t *closure = NULL;
+  klangc_expr_closure_entry_t *ent_prev = NULL;
+  while (1) {
+    klangc_expr_closure_entry_t *ent;
+    klangc_ipos_t ipos2 = klangc_input_save(input);
+    klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+    switch (klangc_expr_closure_entry_parse(input, upper, &ent)) {
+    case KLANGC_PARSE_OK:
+      if (closure == NULL)
+        closure = klangc_expr_closure_new(ipos_ss, upper);
+      if (ent_prev != NULL)
+        klangc_expr_closure_entry_set_next(ent, ent_prev);
+      else
+        closure->kc_ent = ent;
+      ent_prev = ent;
+      break;
+
+    case KLANGC_PARSE_NOPARSE:
+      if (closure == NULL)
+        closure = klangc_expr_closure_new(ipos_ss, upper);
+      klangc_input_restore(input, ipos2);
+      *pclosure = closure;
+      return KLANGC_PARSE_OK;
+
+    case KLANGC_PARSE_ERROR:
+      klangc_input_restore(input, ipos);
+      return KLANGC_PARSE_ERROR;
+    }
+  }
 }
 
 klangc_parse_result_t
@@ -62,6 +99,21 @@ klangc_expr_closure_parse(klangc_input_t *input, klangc_expr_closure_t *upper,
   klangc_printf(kstderr, "expect '}' but get '%c': ['{' <closure> ^'}']\n", c);
   klangc_input_restore(input, ipos);
   return KLANGC_PARSE_ERROR;
+}
+
+static int
+klangc_expr_closure_entry_print_forall(klangc_expr_closure_t *closure,
+                                       klangc_expr_closure_entry_t *ent,
+                                       void *data) {
+  klangc_output_t *output = (klangc_output_t *)data;
+  klangc_expr_closure_entry_print(output, ent);
+  return 0;
+}
+
+void klangc_expr_closure_bare_print(klangc_output_t *output,
+                                    klangc_expr_closure_t *closure) {
+  klangc_expr_closure_foreach_ent(
+      closure, klangc_expr_closure_entry_print_forall, output);
 }
 
 void klangc_expr_closure_print(klangc_output_t *output,
@@ -210,7 +262,7 @@ int klangc_expr_closure_bind_inners_foreach(klangc_expr_closure_t *closure,
                                             void *data) {
   if (klangc_expr_closure_entry_islambda(ent))
     return klangc_expr_lambda_bind(closure,
-                              klangc_expr_closure_entry_get_lambda(ent));
+                                   klangc_expr_closure_entry_get_lambda(ent));
   if (klangc_expr_closure_entry_isbind(ent))
     return klangc_expr_bind(closure,
                             klangc_expr_closure_bind_get_expr(

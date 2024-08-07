@@ -34,8 +34,8 @@ expr/klangc-closure.o: expr/closure.c /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h \
  /usr/include/x86_64-linux-gnu/bits/stat.h /usr/include/string.h \
  /usr/include/strings.h expr/../malloc.h expr/../output.h expr/../parse.h \
- expr/../pat.h expr/../pat/ref.h expr/../ref.h expr/closure/bare.h \
- expr/closure/bind.h expr/closure/entry.h expr/lambda.h
+ expr/../pat.h expr/../pat/ref.h expr/../ref.h expr/closure/bind.h \
+ expr/closure/entry.h expr/lambda.h
 
 /usr/include/stdc-predef.h:
 
@@ -140,8 +140,6 @@ expr/../pat.h:
 expr/../pat/ref.h:
 
 expr/../ref.h:
-
-expr/closure/bare.h:
 
 expr/closure/bind.h:
 
