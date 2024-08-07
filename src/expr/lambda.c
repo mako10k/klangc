@@ -127,7 +127,7 @@ int klangc_lambda_bind(klangc_closure_t *closure, klangc_lambda_t *lambda) {
   klangc_expr_t *body = lambda->kvl_body;
   klangc_expr_closure_bind_t *bind =
       klangc_expr_closure_bind_new(arg, body, lambda->kvl_ipos);
-  klangc_closure_ent_t *ent = klangc_closure_ent_new_bind(bind);
+  klangc_expr_closure_entry_t *ent = klangc_expr_closure_entry_new_bind(bind);
   klangc_closure_set_ent_first(closure, ent);
   klangc_closure_bind(closure);
   klangc_expr_bind(closure, body);

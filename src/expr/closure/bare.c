@@ -12,17 +12,17 @@ klangc_expr_closure_bare_parse(klangc_input_t *input, klangc_closure_t *upper,
   assert(pclosure != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_closure_t *closure = NULL;
-  klangc_closure_ent_t *ent_prev = NULL;
+  klangc_expr_closure_entry_t *ent_prev = NULL;
   while (1) {
-    klangc_closure_ent_t *ent;
+    klangc_expr_closure_entry_t *ent;
     klangc_ipos_t ipos2 = klangc_input_save(input);
     klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-    switch (klangc_closure_ent_parse(input, upper, &ent)) {
+    switch (klangc_expr_closure_entry_parse(input, upper, &ent)) {
     case KLANGC_PARSE_OK:
       if (closure == NULL)
         closure = klangc_closure_new(ipos_ss, upper);
       if (ent_prev != NULL)
-        klangc_closure_ent_set_next(ent, ent_prev);
+        klangc_expr_closure_entry_set_next(ent, ent_prev);
       else
         klangc_closure_set_ent_first(closure, ent);
       ent_prev = ent;
@@ -42,15 +42,15 @@ klangc_expr_closure_bare_parse(klangc_input_t *input, klangc_closure_t *upper,
   }
 }
 
-static int klangc_closure_ent_print_forall(klangc_closure_t *closure,
-                                           klangc_closure_ent_t *ent,
-                                           void *data) {
+static int klangc_expr_closure_entry_print_forall(
+    klangc_closure_t *closure, klangc_expr_closure_entry_t *ent, void *data) {
   klangc_output_t *output = (klangc_output_t *)data;
-  klangc_closure_ent_print(output, ent);
+  klangc_expr_closure_entry_print(output, ent);
   return 0;
 }
 
 void klangc_expr_closure_bare_print(klangc_output_t *output,
                                     klangc_closure_t *closure) {
-  klangc_closure_foreach_ent(closure, klangc_closure_ent_print_forall, output);
+  klangc_closure_foreach_ent(closure, klangc_expr_closure_entry_print_forall,
+                             output);
 }

@@ -3,7 +3,7 @@
 #include "../klangc.h"
 
 typedef int (*klangc_closure_each_ent_func_t)(klangc_closure_t *closure,
-                                              klangc_closure_ent_t *ent,
+                                              klangc_expr_closure_entry_t *ent,
                                               void *data);
 
 typedef int (*klangc_closure_each_bind_func_t)(klangc_closure_t *closure,
@@ -41,10 +41,11 @@ int klangc_closure_foreach_lambda(klangc_closure_t *closure,
                                   klangc_closure_each_lambda_func_t func,
                                   void *data);
 
-klangc_closure_ent_t *klangc_closure_get_ent_first(klangc_closure_t *closure);
+klangc_expr_closure_entry_t *
+klangc_closure_get_ent_first(klangc_closure_t *closure);
 
 void klangc_closure_set_ent_first(klangc_closure_t *closure,
-                                  klangc_closure_ent_t *ent);
+                                  klangc_expr_closure_entry_t *ent);
 
 int klangc_closure_bind(klangc_closure_t *closure);
 

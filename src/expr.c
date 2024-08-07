@@ -342,10 +342,10 @@ int klangc_expr_bind(klangc_closure_t *closure, klangc_expr_t *expr) {
   return 0;
 }
 
-int klangc_expr_bind_ent(klangc_closure_t *closure, klangc_closure_ent_t *ent,
-                         void *data) {
-  if (klangc_closure_ent_islambda(ent)) {
-    klangc_lambda_t *lambda = klangc_closure_ent_get_lambda(ent);
+int klangc_expr_bind_ent(klangc_closure_t *closure,
+                         klangc_expr_closure_entry_t *ent, void *data) {
+  if (klangc_expr_closure_entry_islambda(ent)) {
+    klangc_lambda_t *lambda = klangc_expr_closure_entry_get_lambda(ent);
     klangc_expr_t *body = klangc_lambda_get_body(lambda);
     klangc_closure_t *inner = klangc_lambda_get_upper(lambda);
     int ret = klangc_expr_bind(inner, body);
@@ -353,8 +353,8 @@ int klangc_expr_bind_ent(klangc_closure_t *closure, klangc_closure_ent_t *ent,
       return -1;
     return klangc_expr_bind(closure, body);
   }
-  if (klangc_closure_ent_isbind(ent)) {
-    klangc_expr_closure_bind_t *bind = klangc_closure_ent_get_bind(ent);
+  if (klangc_expr_closure_entry_isbind(ent)) {
+    klangc_expr_closure_bind_t *bind = klangc_expr_closure_entry_get_bind(ent);
     klangc_expr_t *expr = klangc_expr_closure_bind_get_expr(bind);
     return klangc_expr_bind(closure, expr);
   }

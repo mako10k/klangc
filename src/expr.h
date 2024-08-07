@@ -20,8 +20,8 @@ void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr);
 
 int klangc_expr_bind(klangc_closure_t *closure, klangc_expr_t *expr);
 
-int klangc_expr_bind_ent(klangc_closure_t *closure, klangc_closure_ent_t *ent,
-                         void *data);
+int klangc_expr_bind_ent(klangc_closure_t *closure,
+                         klangc_expr_closure_entry_t *ent, void *data);
 
 int klangc_expr_check_unbound(klangc_output_t *output,
                               klangc_closure_t *closure, klangc_expr_t *expr);

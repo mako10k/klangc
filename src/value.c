@@ -135,22 +135,23 @@ klangc_value_t *klangc_value_from_expr(klangc_expr_t *expr) {
   }
   case KLANGC_ETYPE_CLOSURE: {
     klangc_closure_t *closure = klangc_expr_get_closure(expr);
-    klangc_closure_ent_t *ent = klangc_closure_get_ent_first(closure);
+    klangc_expr_closure_entry_t *ent = klangc_closure_get_ent_first(closure);
     while (ent != NULL) {
-      if (klangc_closure_ent_isbind(ent)) {
-        klangc_expr_closure_bind_t *bind = klangc_closure_ent_get_bind(ent);
+      if (klangc_expr_closure_entry_isbind(ent)) {
+        klangc_expr_closure_bind_t *bind =
+            klangc_expr_closure_entry_get_bind(ent);
         klangc_pat_t *pat = klangc_expr_closure_bind_get_pat(bind);
         klangc_expr_t *expr = klangc_expr_closure_bind_get_expr(bind);
         (void)pat;
         (void)expr;
-      } else if (klangc_closure_ent_islambda(ent)) {
-        klangc_lambda_t *lambda = klangc_closure_ent_get_lambda(ent);
+      } else if (klangc_expr_closure_entry_islambda(ent)) {
+        klangc_lambda_t *lambda = klangc_expr_closure_entry_get_lambda(ent);
         klangc_pat_t *arg = klangc_lambda_get_arg(lambda);
         klangc_expr_t *body = klangc_lambda_get_body(lambda);
         (void)arg;
         (void)body;
       }
-      ent = klangc_closure_ent_get_next(ent);
+      ent = klangc_expr_closure_entry_get_next(ent);
     }
   }
   }
