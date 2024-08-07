@@ -24,7 +24,7 @@ klangc_symbol_t *klangc_expr_ref_get_symbol(klangc_expr_ref_t *expr) {
   return klangc_ref_get_symbol(expr->ker_ref);
 }
 
-char *klangc_expr_ref_get_name(klangc_expr_ref_t *expr) {
+const char *klangc_expr_ref_get_name(klangc_expr_ref_t *expr) {
   return klangc_ref_get_name(expr->ker_ref);
 }
 

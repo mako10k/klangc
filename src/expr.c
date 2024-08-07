@@ -18,7 +18,7 @@ struct klangc_expr {
     klangc_symbol_t *ke_symbol;
     klangc_expr_ref_t *ke_ref;
     int ke_intval;
-    char *ke_strval;
+    const char *ke_strval;
     klangc_expr_appl_t *ke_appl;
     klangc_expr_lambda_t *ke_lambda;
     klangc_expr_closure_t *ke_closure;
@@ -177,7 +177,7 @@ klangc_parse_result_t klangc_expr_parse_no_appl(klangc_input_t *input,
     return KLANGC_PARSE_ERROR;
   }
 
-  char *strval;
+  const char *strval;
   switch (klangc_string_parse(input, &strval)) {
   case KLANGC_PARSE_OK:
     *pexpr = klangc_expr_new_string(strval, ipos_ss);

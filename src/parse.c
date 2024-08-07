@@ -22,7 +22,7 @@ klangc_parse_result_t klangc_int_parse(klangc_input_t *input, int *pintval) {
 }
 
 klangc_parse_result_t klangc_string_parse(klangc_input_t *input,
-                                          char **pstrval) {
+                                          const char **pstrval) {
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_skipspaces(input);
   int c = klangc_getc(input);
@@ -44,12 +44,12 @@ klangc_parse_result_t klangc_string_parse(klangc_input_t *input,
       break;
     if (cap <= len + 1) {
       cap *= 2;
-      strval = (char *)klangc_realloc(strval, cap);
+      strval = klangc_realloc(strval, cap);
     }
     strval[len++] = c;
   }
   strval[len] = '\0';
-  strval = (char *)klangc_realloc(strval, len + 1);
+  strval = klangc_realloc(strval, len + 1);
   *pstrval = strval;
   return KLANGC_PARSE_OK;
 }

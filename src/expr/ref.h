@@ -8,7 +8,7 @@ klangc_ref_t *klangc_expr_ref_get_ref(klangc_expr_ref_t *expr);
 
 klangc_symbol_t *klangc_expr_ref_get_symbol(klangc_expr_ref_t *expr);
 
-char *klangc_expr_ref_get_name(klangc_expr_ref_t *expr);
+const char *klangc_expr_ref_get_name(klangc_expr_ref_t *expr);
 
 klangc_ipos_t klangc_expr_ref_get_ipos(klangc_expr_ref_t *expr);
 

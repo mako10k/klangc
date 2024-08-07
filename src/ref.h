@@ -9,7 +9,7 @@ void klangc_ref_free(klangc_ref_t *ref);
 
 klangc_symbol_t *klangc_ref_get_symbol(klangc_ref_t *ref);
 
-char *klangc_ref_get_name(klangc_ref_t *ref);
+const char *klangc_ref_get_name(klangc_ref_t *ref);
 
 klangc_ipos_t klangc_ref_get_ipos(klangc_ref_t *ref);
 

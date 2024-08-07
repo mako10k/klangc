@@ -5,7 +5,7 @@
 #include <assert.h>
 
 struct klangc_symbol {
-  char *ks_name;
+  const char *ks_name;
 };
 
 klangc_symbol_t *klangc_symbol_new(const char *name) {
@@ -14,12 +14,6 @@ klangc_symbol_t *klangc_symbol_new(const char *name) {
       (klangc_symbol_t *)klangc_malloc(sizeof(klangc_symbol_t));
   symbol->ks_name = klangc_strdup(name);
   return symbol;
-}
-
-void klangc_symbol_free(klangc_symbol_t *symbol) {
-  assert(symbol != NULL);
-  klangc_free(symbol->ks_name);
-  klangc_free(symbol);
 }
 
 klangc_parse_result_t klangc_symbol_parse(klangc_input_t *input,
@@ -56,7 +50,7 @@ klangc_parse_result_t klangc_symbol_parse(klangc_input_t *input,
   return KLANGC_PARSE_OK;
 }
 
-char *klangc_symbol_get_name(klangc_symbol_t *symbol) {
+const char *klangc_symbol_get_name(klangc_symbol_t *symbol) {
   assert(symbol != NULL);
   return symbol->ks_name;
 }

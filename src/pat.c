@@ -243,7 +243,7 @@ klangc_parse_result_t klangc_pat_parse_no_appl(klangc_input_t *input,
     return KLANGC_PARSE_ERROR;
   }
 
-  char *strval;
+  const char *strval;
   switch (klangc_string_parse(input, &strval)) {
   case KLANGC_PARSE_OK:
     *ppat = klangc_pat_new_string(strval, ipos_ss);

@@ -31,7 +31,7 @@ static ssize_t klangc_cookie_write(void *cookie, const char *buf, size_t size) {
       for (int i = 0; i < output->indent; i++)
         fputc(' ', output->fp);
 
-    char *bufnl = (char *)memchr(buf, '\n', size);
+    char *bufnl = memchr(buf, '\n', size);
     if (bufnl == NULL) {
       fwrite(buf, size, 1, output->fp);
       output->onhead = 0;

@@ -4,7 +4,7 @@
 #include <string.h>
 
 struct klangc_hash_entry {
-  char *khe_key;
+  const char *khe_key;
   void *khe_value;
   klangc_hash_entry_t *khe_next;
 };
@@ -86,7 +86,7 @@ int klangc_hash_get(klangc_hash_t *hash, const char *key, void **value) {
  * @return 1 if the entry was successfully inserted, 0 otherwise.
  */
 static int klangc_hash_put_raw(klangc_hash_entry_t **pentry, int capacity,
-                               int *size, char *key, void *value,
+                               int *size, const char *key, void *value,
                                void **old_value) {
   assert(pentry != NULL);
   assert(size != NULL);
@@ -198,7 +198,7 @@ int klangc_hash_remove(klangc_hash_t *hash, const char *key, void **value) {
         *value = (*pentry)->khe_value;
       klangc_hash_entry_t *entry = *pentry;
       *pentry = entry->khe_next;
-      klangc_free(entry->khe_key);
+      klangc_free((void *)entry->khe_key);
       klangc_free(entry);
       hash->kh_size--;
       return 1;
