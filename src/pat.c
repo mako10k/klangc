@@ -8,70 +8,69 @@
 #include <assert.h>
 #include <stdio.h>
 
-struct klangc_pattern {
-  klangc_pattern_type_t kp_type;
+struct klangc_pat {
+  klangc_pat_type_t kp_type;
   union {
     klangc_symbol_t *kp_symbol;
-    klangc_pattern_ref_t *kp_ref;
-    klangc_pattern_appl_t *kp_appl;
-    klangc_pattern_as_t *kp_as;
-    klangc_pattern_int_t *kp_int;
-    klangc_pattern_string_t *kp_string;
+    klangc_pat_ref_t *kp_ref;
+    klangc_pat_appl_t *kp_appl;
+    klangc_pat_as_t *kp_as;
+    klangc_pat_int_t *kp_int;
+    klangc_pat_string_t *kp_string;
   };
   klangc_ipos_t ipos;
 };
 
-struct klangc_pattern_appl {
-  klangc_pattern_t *kpap_constr;
-  klangc_pattern_t *kpap_arg;
+struct klangc_pat_appl {
+  klangc_pat_t *kpap_constr;
+  klangc_pat_t *kpap_arg;
 };
 
-struct klangc_pattern_as {
-  klangc_pattern_ref_t *kpas_ref;
-  klangc_pattern_t *kpas_pattern;
+struct klangc_pat_as {
+  klangc_pat_ref_t *kpas_ref;
+  klangc_pat_t *kpas_pat;
 };
 
-struct klangc_pattern_int {
+struct klangc_pat_int {
   int kpi_value;
 };
 
-struct klangc_pattern_string {
+struct klangc_pat_string {
   char *kps_value;
 };
 
-static klangc_pattern_appl_t *klangc_pattern_appl_new(klangc_pattern_t *constr,
-                                                      klangc_pattern_t *arg) {
+static klangc_pat_appl_t *klangc_pat_appl_new(klangc_pat_t *constr,
+                                              klangc_pat_t *arg) {
   assert(constr != NULL);
   assert(arg != NULL);
 
-  klangc_pattern_appl_t *appl = klangc_malloc(sizeof(klangc_pattern_appl_t));
+  klangc_pat_appl_t *appl = klangc_malloc(sizeof(klangc_pat_appl_t));
   appl->kpap_constr = constr;
   appl->kpap_arg = arg;
   return appl;
 }
 
-static klangc_pattern_as_t *klangc_pattern_as_new(klangc_pattern_ref_t *var,
-                                                  klangc_pattern_t *pattern) {
+static klangc_pat_as_t *klangc_pat_as_new(klangc_pat_ref_t *var,
+                                          klangc_pat_t *pat) {
   assert(var != NULL);
-  assert(pattern != NULL);
+  assert(pat != NULL);
 
-  klangc_pattern_as_t *as = klangc_malloc(sizeof(klangc_pattern_as_t));
+  klangc_pat_as_t *as = klangc_malloc(sizeof(klangc_pat_as_t));
   as->kpas_ref = var;
-  as->kpas_pattern = pattern;
+  as->kpas_pat = pat;
   return as;
 }
 
-static klangc_pattern_int_t *klangc_pattern_int_new(int value) {
-  klangc_pattern_int_t *integer = klangc_malloc(sizeof(klangc_pattern_int_t));
+static klangc_pat_int_t *klangc_pat_int_new(int value) {
+  klangc_pat_int_t *integer = klangc_malloc(sizeof(klangc_pat_int_t));
   integer->kpi_value = value;
   return integer;
 }
 
-static klangc_pattern_string_t *klangc_pattern_string_new(const char *value) {
+static klangc_pat_string_t *klangc_pat_string_new(const char *value) {
   assert(value != NULL);
 
-  klangc_pattern_string_t *string =
-      klangc_malloc(sizeof(klangc_pattern_string_t));
+  klangc_pat_string_t *string = klangc_malloc(sizeof(klangc_pat_string_t));
   string->kps_value = klangc_strdup(value);
   return string;
 }
@@ -82,26 +81,25 @@ static klangc_pattern_string_t *klangc_pattern_string_new(const char *value) {
  * @param name The symbol name for the pattern.
  * @return A pointer to the newly created pattern object.
  */
-klangc_pattern_t *klangc_pattern_new_symbol(klangc_symbol_t *symbol,
-                                            klangc_ipos_t ipos) {
+klangc_pat_t *klangc_pat_new_symbol(klangc_symbol_t *symbol,
+                                    klangc_ipos_t ipos) {
   assert(symbol != NULL);
 
-  klangc_pattern_t *pattern = klangc_malloc(sizeof(klangc_pattern_t));
-  pattern->kp_type = KLANGC_PTYPE_SYMBOL;
-  pattern->kp_symbol = symbol;
-  pattern->ipos = ipos;
-  return pattern;
+  klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
+  pat->kp_type = KLANGC_PTYPE_SYMBOL;
+  pat->kp_symbol = symbol;
+  pat->ipos = ipos;
+  return pat;
 }
 
-klangc_pattern_t *klangc_pattern_new_ref(klangc_pattern_ref_t *ref,
-                                         klangc_ipos_t ipos) {
+klangc_pat_t *klangc_pat_new_ref(klangc_pat_ref_t *ref, klangc_ipos_t ipos) {
   assert(ref != NULL);
 
-  klangc_pattern_t *pattern = klangc_malloc(sizeof(klangc_pattern_t));
-  pattern->kp_type = KLANGC_PTYPE_REF;
-  pattern->kp_ref = ref;
-  pattern->ipos = ipos;
-  return pattern;
+  klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
+  pat->kp_type = KLANGC_PTYPE_REF;
+  pat->kp_ref = ref;
+  pat->ipos = ipos;
+  return pat;
 }
 
 /**
@@ -111,132 +109,128 @@ klangc_pattern_t *klangc_pattern_new_ref(klangc_pattern_ref_t *ref,
  * @param arg    Additional arguments for the constructor pattern.
  * @return       A pointer to the newly created pattern.
  */
-klangc_pattern_t *klangc_pattern_new_appl(klangc_pattern_t *constr,
-                                          klangc_pattern_t *arg,
-                                          klangc_ipos_t ipos) {
+klangc_pat_t *klangc_pat_new_appl(klangc_pat_t *constr, klangc_pat_t *arg,
+                                  klangc_ipos_t ipos) {
   assert(constr != NULL);
   assert(arg != NULL);
 
-  klangc_pattern_t *pattern = klangc_malloc(sizeof(klangc_pattern_t));
-  pattern->kp_type = KLANGC_PTYPE_APPL;
-  pattern->kp_appl = klangc_pattern_appl_new(constr, arg);
-  pattern->ipos = ipos;
-  return pattern;
+  klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
+  pat->kp_type = KLANGC_PTYPE_APPL;
+  pat->kp_appl = klangc_pat_appl_new(constr, arg);
+  pat->ipos = ipos;
+  return pat;
 }
 
 /**
- * Creates a new klangc_pattern_t object with the specified symbol.
+ * Creates a new klangc_pat_t object with the specified symbol.
  *
  * @param var The symbol for the pattern.
- * @param pattern The pattern to apply the symbol to.
+ * @param pat The pattern to apply the symbol to.
  * @return A pointer to the newly created klangc_pattern_t object.
  */
-klangc_pattern_t *klangc_pattern_new_as(klangc_pattern_ref_t *var,
-                                        klangc_pattern_t *pattern,
-                                        klangc_ipos_t ipos) {
+klangc_pat_t *klangc_pat_new_as(klangc_pat_ref_t *var, klangc_pat_t *pat,
+                                klangc_ipos_t ipos) {
   assert(var != NULL);
-  assert(pattern != NULL);
+  assert(pat != NULL);
 
-  klangc_pattern_t *as = klangc_malloc(sizeof(klangc_pattern_t));
+  klangc_pat_t *as = klangc_malloc(sizeof(klangc_pat_t));
   as->kp_type = KLANGC_PTYPE_AS;
-  as->kp_as = klangc_pattern_as_new(var, pattern);
+  as->kp_as = klangc_pat_as_new(var, pat);
   as->ipos = ipos;
   return as;
 }
 
 /**
- * Creates a new klangc_pattern_t object with an integer value.
+ * Creates a new klangc_pat_t object with an integer value.
  *
- * @param value The integer value for the pattern.
- * @return A pointer to the newly created klangc_pattern_t object.
+ * @param value The integer value for the pattern
+ * @return A pointer to the newly created klangc_pat_t object.
  */
-klangc_pattern_t *klangc_pattern_new_int(int value, klangc_ipos_t ipos) {
-  klangc_pattern_t *pattern = klangc_malloc(sizeof(klangc_pattern_t));
-  pattern->kp_type = KLANGC_PTYPE_INT;
-  pattern->kp_int = klangc_pattern_int_new(value);
-  pattern->ipos = ipos;
-  return pattern;
+klangc_pat_t *klangc_pat_new_int(int value, klangc_ipos_t ipos) {
+  klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
+  pat->kp_type = KLANGC_PTYPE_INT;
+  pat->kp_int = klangc_pat_int_new(value);
+  pat->ipos = ipos;
+  return pat;
 }
 
 /**
- * Creates a new klangc_pattern_t object from a string value.
+ * Creates a new klangc_pat_t object from a string value.
  *
  * @param value The string value to create the pattern from.
- * @return A pointer to the newly created klangc_pattern_t object.
+ * @return A pointer to the newly created klangc_pat_t object.
  */
-klangc_pattern_t *klangc_pattern_new_string(const char *value,
-                                            klangc_ipos_t ipos) {
+klangc_pat_t *klangc_pat_new_string(const char *value, klangc_ipos_t ipos) {
   assert(value != NULL);
 
-  klangc_pattern_t *pattern = klangc_malloc(sizeof(klangc_pattern_t));
-  pattern->kp_type = KLANGC_PTYPE_STRING;
-  pattern->kp_string = klangc_pattern_string_new(value);
-  pattern->ipos = ipos;
-  return pattern;
+  klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
+  pat->kp_type = KLANGC_PTYPE_STRING;
+  pat->kp_string = klangc_pat_string_new(value);
+  pat->ipos = ipos;
+  return pat;
 }
 
-klangc_parse_result_t klangc_pattern_parse(klangc_input_t *input,
-                                           klangc_pattern_t **ppattern);
+klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
+                                       klangc_pat_t **ppat);
 
-int klangc_pattern_issymbol(klangc_pattern_t *pattern) {
-  assert(pattern != NULL);
-  return pattern->kp_type == KLANGC_PTYPE_SYMBOL;
+int klangc_pat_issymbol(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  return pat->kp_type == KLANGC_PTYPE_SYMBOL;
 }
 
-klangc_symbol_t *klangc_pattern_get_symbol(klangc_pattern_t *pattern) {
-  assert(pattern != NULL);
-  assert(klangc_pattern_issymbol(pattern));
-  return pattern->kp_symbol;
+klangc_symbol_t *klangc_pat_get_symbol(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  assert(klangc_pat_issymbol(pat));
+  return pat->kp_symbol;
 }
 
-int klangc_pattern_isref(klangc_pattern_t *pattern) {
-  assert(pattern != NULL);
-  return pattern->kp_type == KLANGC_PTYPE_REF;
+int klangc_pat_isref(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  return pat->kp_type == KLANGC_PTYPE_REF;
 }
 
-klangc_ref_t *klangc_pattern_get_ref(klangc_pattern_t *pattern) {
-  assert(pattern != NULL);
-  assert(klangc_pattern_isref(pattern));
-  return klangc_pattern_ref_get_ref(pattern->kp_ref);
+klangc_ref_t *klangc_pat_get_ref(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  assert(klangc_pat_isref(pat));
+  return klangc_pat_ref_get_ref(pat->kp_ref);
 }
 
-int klangc_pattern_isappl(klangc_pattern_t *pattern) {
-  assert(pattern != NULL);
-  return pattern->kp_type == KLANGC_PTYPE_APPL;
+int klangc_pat_isappl(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  return pat->kp_type == KLANGC_PTYPE_APPL;
 }
 
-klangc_pattern_t *klangc_pattern_appl_get_constr(klangc_pattern_t *pattern) {
-  assert(pattern != NULL);
-  assert(klangc_pattern_isappl(pattern));
+klangc_pat_t *klangc_pat_appl_get_constr(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  assert(klangc_pat_isappl(pat));
 
-  return pattern->kp_appl->kpap_constr;
+  return pat->kp_appl->kpap_constr;
 }
 
-klangc_pattern_t *klangc_pattern_appl_get_arg(klangc_pattern_t *pattern) {
-  assert(pattern != NULL);
-  assert(klangc_pattern_isappl(pattern));
+klangc_pat_t *klangc_pat_appl_get_arg(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  assert(klangc_pat_isappl(pat));
 
-  return pattern->kp_appl->kpap_arg;
+  return pat->kp_appl->kpap_arg;
 }
 
-klangc_parse_result_t
-klangc_pattern_parse_no_appl(klangc_input_t *input,
-                             klangc_pattern_t **ppattern) {
+klangc_parse_result_t klangc_pat_parse_no_appl(klangc_input_t *input,
+                                               klangc_pat_t **ppat) {
   assert(input != NULL);
-  assert(ppattern != NULL);
+  assert(ppat != NULL);
 
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   int c = klangc_getc(input);
   if (c == '(') {
     klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
-    klangc_pattern_t *pat;
-    switch (klangc_pattern_parse(input, &pat)) {
+    klangc_pat_t *pat;
+    switch (klangc_pat_parse(input, &pat)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
       klangc_ipos_print(kstderr, ipos_ss2);
-      klangc_printf(kstderr, "expect <pattern>: ['(' ^<pattern> ')']\n");
+      klangc_printf(kstderr, "expect <pat>: ['(' ^<pat> ')']\n");
     case KLANGC_PARSE_ERROR:
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
@@ -246,12 +240,11 @@ klangc_pattern_parse_no_appl(klangc_input_t *input,
     c = klangc_getc(input);
     if (c != ')') {
       klangc_ipos_print(kstderr, ipos_ss2);
-      klangc_printf(kstderr, "expect ')' but get '%c': ['(' <pattern> ^')']\n",
-                    c);
+      klangc_printf(kstderr, "expect ')' but get '%c': ['(' <pat> ^')']\n", c);
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
     }
-    *ppattern = pat;
+    *ppat = pat;
     return KLANGC_PARSE_OK;
   }
   klangc_input_restore(input, ipos_ss);
@@ -259,7 +252,7 @@ klangc_pattern_parse_no_appl(klangc_input_t *input,
   klangc_symbol_t *sym;
   switch (klangc_symbol_parse(input, &sym)) {
   case KLANGC_PARSE_OK:
-    *ppattern = klangc_pattern_new_symbol(sym, ipos_ss);
+    *ppat = klangc_pat_new_symbol(sym, ipos_ss);
     return KLANGC_PARSE_OK;
   case KLANGC_PARSE_NOPARSE:
     break;
@@ -270,31 +263,31 @@ klangc_pattern_parse_no_appl(klangc_input_t *input,
 
   klangc_input_restore(input, ipos_ss);
 
-  klangc_pattern_ref_t *ref;
-  switch (klangc_pattern_ref_parse(input, &ref)) {
+  klangc_pat_ref_t *ref;
+  switch (klangc_pat_ref_parse(input, &ref)) {
   case KLANGC_PARSE_OK: {
-    klangc_pattern_t *reference = klangc_pattern_new_ref(ref, ipos_ss);
+    klangc_pat_t *reference = klangc_pat_new_ref(ref, ipos_ss);
     klangc_ipos_t ipos_refend = klangc_input_save(input);
     klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
     c = klangc_getc(input);
     if (c != '@') {
       klangc_input_restore(input, ipos_refend);
-      *ppattern = reference;
+      *ppat = reference;
       return KLANGC_PARSE_OK;
     }
-    klangc_pattern_t *pat;
+    klangc_pat_t *pat;
     ipos_ss2 = klangc_skipspaces(input);
-    switch (klangc_pattern_parse(input, &pat)) {
+    switch (klangc_pat_parse(input, &pat)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
       klangc_ipos_print(kstderr, ipos_ss2);
-      klangc_printf(kstderr, "expect <pattern>: [<ref> '@' ^<pattern>]\n");
+      klangc_printf(kstderr, "expect <pat>: [<ref> '@' ^<pat>]\n");
     case KLANGC_PARSE_ERROR:
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
     }
-    *ppattern = klangc_pattern_new_as(ref, pat, ipos_ss);
+    *ppat = klangc_pat_new_as(ref, pat, ipos_ss);
     return KLANGC_PARSE_OK;
   }
   case KLANGC_PARSE_NOPARSE:
@@ -307,7 +300,7 @@ klangc_pattern_parse_no_appl(klangc_input_t *input,
   int intval;
   switch (klangc_int_parse(input, &intval)) {
   case KLANGC_PARSE_OK:
-    *ppattern = klangc_pattern_new_int(intval, ipos_ss);
+    *ppat = klangc_pat_new_int(intval, ipos_ss);
     return KLANGC_PARSE_OK;
   case KLANGC_PARSE_NOPARSE:
     break;
@@ -319,7 +312,7 @@ klangc_pattern_parse_no_appl(klangc_input_t *input,
   char *strval;
   switch (klangc_string_parse(input, &strval)) {
   case KLANGC_PARSE_OK:
-    *ppattern = klangc_pattern_new_string(strval, ipos_ss);
+    *ppat = klangc_pat_new_string(strval, ipos_ss);
     return KLANGC_PARSE_OK;
   case KLANGC_PARSE_NOPARSE:
     break;
@@ -332,15 +325,15 @@ klangc_pattern_parse_no_appl(klangc_input_t *input,
   return KLANGC_PARSE_NOPARSE;
 }
 
-klangc_parse_result_t klangc_pattern_parse(klangc_input_t *input,
-                                           klangc_pattern_t **ppattern) {
+klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
+                                       klangc_pat_t **ppat) {
   assert(input != NULL);
-  assert(ppattern != NULL);
+  assert(ppat != NULL);
 
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  klangc_pattern_t *pat;
-  switch (klangc_pattern_parse_no_appl(input, &pat)) {
+  klangc_pat_t *pat;
+  switch (klangc_pat_parse_no_appl(input, &pat)) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
@@ -350,26 +343,25 @@ klangc_parse_result_t klangc_pattern_parse(klangc_input_t *input,
   }
 
   while (1) {
-    klangc_pattern_t *arg;
+    klangc_pat_t *arg;
     klangc_ipos_t ipos2 = klangc_input_save(input);
-    switch (klangc_pattern_parse_no_appl(input, &arg)) {
+    switch (klangc_pat_parse_no_appl(input, &arg)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
       klangc_input_restore(input, ipos2);
-      *ppattern = pat;
+      *ppat = pat;
       return KLANGC_PARSE_OK;
     case KLANGC_PARSE_ERROR:
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
     }
-    pat = klangc_pattern_new_appl(pat, arg, ipos_ss);
+    pat = klangc_pat_new_appl(pat, arg, ipos_ss);
   }
 }
 
-int klangc_pattern_foreach_ref(klangc_pattern_t *pat,
-                               klangc_pattern_foreach_ref_func_t bind_fn,
-                               void *data) {
+int klangc_pat_foreach_ref(klangc_pat_t *pat,
+                           klangc_pat_foreach_ref_func_t bind_fn, void *data) {
   assert(pat != NULL);
   assert(bind_fn != NULL);
 
@@ -381,11 +373,11 @@ int klangc_pattern_foreach_ref(klangc_pattern_t *pat,
       return ret;
     cnt++;
   } else if (pat->kp_type == KLANGC_PTYPE_APPL) {
-    ret = klangc_pattern_foreach_ref(pat->kp_appl->kpap_constr, bind_fn, data);
+    ret = klangc_pat_foreach_ref(pat->kp_appl->kpap_constr, bind_fn, data);
     if (ret < 0)
       return ret;
     cnt += ret;
-    ret = klangc_pattern_foreach_ref(pat->kp_appl->kpap_arg, bind_fn, data);
+    ret = klangc_pat_foreach_ref(pat->kp_appl->kpap_arg, bind_fn, data);
     if (ret < 0)
       return ret;
     cnt += ret;
@@ -394,7 +386,7 @@ int klangc_pattern_foreach_ref(klangc_pattern_t *pat,
     if (ret < 0)
       return ret;
     cnt++;
-    ret = klangc_pattern_foreach_ref(pat->kp_as->kpas_pattern, bind_fn, data);
+    ret = klangc_pat_foreach_ref(pat->kp_as->kpas_pat, bind_fn, data);
     if (ret < 0)
       return ret;
     cnt += ret;
@@ -402,47 +394,42 @@ int klangc_pattern_foreach_ref(klangc_pattern_t *pat,
   return cnt;
 }
 
-void klangc_pattern_print(klangc_output_t *output, int prec,
-                          klangc_pattern_t *pattern) {
+void klangc_pat_print(klangc_output_t *output, int prec, klangc_pat_t *pat) {
   assert(output != NULL);
   assert(KLANGC_PREC_LOWEST <= prec);
   assert(prec <= KLANGC_PREC_HIGHEST);
-  assert(pattern != NULL);
+  assert(pat != NULL);
 
-  switch (pattern->kp_type) {
+  switch (pat->kp_type) {
   case KLANGC_PTYPE_SYMBOL:
-    klangc_symbol_print(output, pattern->kp_symbol);
+    klangc_symbol_print(output, pat->kp_symbol);
     break;
   case KLANGC_PTYPE_REF:
-    klangc_pattern_ref_print(output, pattern->kp_ref);
+    klangc_pat_ref_print(output, pat->kp_ref);
     break;
   case KLANGC_PTYPE_APPL:
     if (prec > KLANGC_PREC_APPL)
       klangc_printf(output, "(");
-    klangc_pattern_print(output, KLANGC_PREC_APPL,
-                         pattern->kp_appl->kpap_constr);
+    klangc_pat_print(output, KLANGC_PREC_APPL, pat->kp_appl->kpap_constr);
     klangc_printf(output, " ");
-    klangc_pattern_print(output, KLANGC_PREC_APPL + 1,
-                         pattern->kp_appl->kpap_arg);
+    klangc_pat_print(output, KLANGC_PREC_APPL + 1, pat->kp_appl->kpap_arg);
     if (prec > KLANGC_PREC_APPL)
       klangc_printf(output, ")");
     break;
   case KLANGC_PTYPE_AS:
-    klangc_printf(output, "%s@",
-                  klangc_pattern_ref_get_name(pattern->kp_as->kpas_ref));
-    klangc_pattern_print(output, KLANGC_PREC_LOWEST,
-                         pattern->kp_as->kpas_pattern);
+    klangc_printf(output, "%s@", klangc_pat_ref_get_name(pat->kp_as->kpas_ref));
+    klangc_pat_print(output, KLANGC_PREC_LOWEST, pat->kp_as->kpas_pat);
     break;
   case KLANGC_PTYPE_INT:
-    klangc_printf(output, "%d", pattern->kp_int->kpi_value);
+    klangc_printf(output, "%d", pat->kp_int->kpi_value);
     break;
   case KLANGC_PTYPE_STRING:
-    klangc_printf(output, "\"%s\"", pattern->kp_string->kps_value);
+    klangc_printf(output, "\"%s\"", pat->kp_string->kps_value);
     break;
   }
 }
 
-klangc_pattern_type_t klangc_pattern_get_type(klangc_pattern_t *pattern) {
-  assert(pattern != NULL);
-  return pattern->kp_type;
+klangc_pat_type_t klangc_pat_get_type(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  return pat->kp_type;
 }

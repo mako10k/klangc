@@ -174,24 +174,23 @@ typedef struct klangc_closure_foreach_bind_local_data {
   klangc_expr_closure_bind_t *bind;
 } klangc_closure_foreach_bind_local_data_t;
 
-int klangc_closure_put_bind_foreach(klangc_pattern_ref_t *ref, void *data) {
+int klangc_closure_put_bind_foreach(klangc_pat_ref_t *ref, void *data) {
   klangc_closure_foreach_bind_local_data_t *fdata =
       (klangc_closure_foreach_bind_local_data_t *)data;
-  if (klangc_pattern_ref_is_used(ref))
+  if (klangc_pat_ref_is_used(ref))
     return 0;
-  int ret = klangc_closure_put_bind(
-      fdata->closure, klangc_pattern_ref_get_ref(ref), fdata->bind);
-  klangc_pattern_ref_set_used(ref);
+  int ret = klangc_closure_put_bind(fdata->closure, klangc_pat_ref_get_ref(ref),
+                                    fdata->bind);
+  klangc_pat_ref_set_used(ref);
   return ret;
 }
 
 int klangc_closure_bind_locals_foreach(klangc_closure_t *closure,
                                        klangc_expr_closure_bind_t *bind,
                                        void *data) {
-  klangc_pattern_t *pat = klangc_expr_closure_bind_get_pat(bind);
+  klangc_pat_t *pat = klangc_expr_closure_bind_get_pat(bind);
   klangc_closure_foreach_bind_local_data_t fdata = {closure, bind};
-  return klangc_pattern_foreach_ref(pat, klangc_closure_put_bind_foreach,
-                                    &fdata);
+  return klangc_pat_foreach_ref(pat, klangc_closure_put_bind_foreach, &fdata);
 }
 
 int klangc_closure_bind_locals(klangc_closure_t *closure) {

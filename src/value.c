@@ -128,7 +128,7 @@ klangc_value_t *klangc_value_from_expr(klangc_expr_t *expr) {
   }
   case KLANGC_ETYPE_LAMBDA: {
     klangc_lambda_t *lambda = klangc_expr_get_lambda(expr);
-    klangc_pattern_t *arg = klangc_lambda_get_arg(lambda);
+    klangc_pat_t *arg = klangc_lambda_get_arg(lambda);
     klangc_expr_t *ebody = klangc_lambda_get_body(lambda);
     (void)arg;
     (void)ebody;
@@ -139,13 +139,13 @@ klangc_value_t *klangc_value_from_expr(klangc_expr_t *expr) {
     while (ent != NULL) {
       if (klangc_closure_ent_isbind(ent)) {
         klangc_expr_closure_bind_t *bind = klangc_closure_ent_get_bind(ent);
-        klangc_pattern_t *pat = klangc_expr_closure_bind_get_pat(bind);
+        klangc_pat_t *pat = klangc_expr_closure_bind_get_pat(bind);
         klangc_expr_t *expr = klangc_expr_closure_bind_get_expr(bind);
         (void)pat;
         (void)expr;
       } else if (klangc_closure_ent_islambda(ent)) {
         klangc_lambda_t *lambda = klangc_closure_ent_get_lambda(ent);
-        klangc_pattern_t *arg = klangc_lambda_get_arg(lambda);
+        klangc_pat_t *arg = klangc_lambda_get_arg(lambda);
         klangc_expr_t *body = klangc_lambda_get_body(lambda);
         (void)arg;
         (void)body;

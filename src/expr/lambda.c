@@ -11,13 +11,13 @@
 #include <assert.h>
 
 struct klangc_lambda {
-  klangc_pattern_t *kvl_arg;
+  klangc_pat_t *kvl_arg;
   klangc_expr_t *kvl_body;
   klangc_closure_t *kvl_closure;
   klangc_ipos_t kvl_ipos;
 };
 
-klangc_lambda_t *klangc_lambda_new(klangc_pattern_t *arg, klangc_expr_t *body,
+klangc_lambda_t *klangc_lambda_new(klangc_pat_t *arg, klangc_expr_t *body,
                                    klangc_closure_t *upper,
                                    klangc_ipos_t ipos) {
   assert(arg != NULL);
@@ -41,13 +41,13 @@ klangc_parse_result_t klangc_lambda_parse(klangc_input_t *input,
     return KLANGC_PARSE_NOPARSE;
   }
   ipos_ss = klangc_skipspaces(input);
-  klangc_pattern_t *arg;
-  switch (klangc_pattern_parse(input, &arg)) {
+  klangc_pat_t *arg;
+  switch (klangc_pat_parse(input, &arg)) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
     klangc_ipos_print(kstderr, ipos_ss);
-    klangc_printf(kstderr, "expect <pattern>: ['\\' ^<pattern> '->' <expr>]\n");
+    klangc_printf(kstderr, "expect <pat>: ['\\' ^<pat> '->' <expr>]\n");
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
@@ -56,15 +56,15 @@ klangc_parse_result_t klangc_lambda_parse(klangc_input_t *input,
   ipos_ss = klangc_skipspaces(input);
   if (!klangc_expect(input, '-', &c)) {
     klangc_ipos_print(kstderr, ipos_ss);
-    klangc_printf(
-        kstderr, "expect '-' but get '%c': ['\\' <pattern> ^'->' <expr>]\n", c);
+    klangc_printf(kstderr,
+                  "expect '-' but get '%c': ['\\' <pat> ^'->' <expr>]\n", c);
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
   if (!klangc_expect(input, '>', &c)) {
     klangc_ipos_print(kstderr, ipos_ss);
     klangc_printf(kstderr,
-                  "expect '->' but get '-%c': ['\\' <pattern> ^'->' "
+                  "expect '->' but get '-%c': ['\\' <pat> ^'->' "
                   "<expr>]\n",
                   c);
     klangc_input_restore(input, ipos);
@@ -78,7 +78,7 @@ klangc_parse_result_t klangc_lambda_parse(klangc_input_t *input,
     break;
   case KLANGC_PARSE_NOPARSE:
     klangc_ipos_print(kstderr, ipos_ss);
-    klangc_printf(kstderr, "expect <expr>: ['\\' <pattern> '->' ^<expr>]\n");
+    klangc_printf(kstderr, "expect <expr>: ['\\' <pat> '->' ^<expr>]\n");
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
@@ -90,12 +90,12 @@ klangc_parse_result_t klangc_lambda_parse(klangc_input_t *input,
 
 void klangc_lambda_print(klangc_output_t *output, klangc_lambda_t *lambda) {
   klangc_printf(output, "\\");
-  klangc_pattern_print(output, KLANGC_PREC_LOWEST, lambda->kvl_arg);
+  klangc_pat_print(output, KLANGC_PREC_LOWEST, lambda->kvl_arg);
   klangc_printf(output, " -> ");
   klangc_expr_print(output, KLANGC_PREC_LOWEST, lambda->kvl_body);
 }
 
-klangc_pattern_t *klangc_lambda_get_arg(klangc_lambda_t *lambda) {
+klangc_pat_t *klangc_lambda_get_arg(klangc_lambda_t *lambda) {
   return lambda->kvl_arg;
 }
 
@@ -123,7 +123,7 @@ int klangc_lambda_put_arg_foreach(klangc_ref_t *ref, void *data) {
 }
 
 int klangc_lambda_bind(klangc_closure_t *closure, klangc_lambda_t *lambda) {
-  klangc_pattern_t *arg = lambda->kvl_arg;
+  klangc_pat_t *arg = lambda->kvl_arg;
   klangc_expr_t *body = lambda->kvl_body;
   klangc_expr_closure_bind_t *bind =
       klangc_expr_closure_bind_new(arg, body, lambda->kvl_ipos);

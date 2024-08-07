@@ -3,42 +3,36 @@
 #include "../ref.h"
 #include <assert.h>
 
-struct klangc_pattern_ref {
+struct klangc_pat_ref {
   klangc_ref_t *ref;
   int used;
 };
 
-klangc_pattern_ref_t *klangc_pattern_ref_new(klangc_ref_t *ref) {
-  klangc_pattern_ref_t *pattern_ref =
-      klangc_malloc(sizeof(klangc_pattern_ref_t));
-  pattern_ref->ref = ref;
-  pattern_ref->used = 0;
-  return pattern_ref;
+klangc_pat_ref_t *klangc_pat_ref_new(klangc_ref_t *ref) {
+  klangc_pat_ref_t *pat_ref = klangc_malloc(sizeof(klangc_pat_ref_t));
+  pat_ref->ref = ref;
+  pat_ref->used = 0;
+  return pat_ref;
 }
 
-klangc_ref_t *klangc_pattern_ref_get_ref(klangc_pattern_ref_t *pattern_ref) {
-  return pattern_ref->ref;
+klangc_ref_t *klangc_pat_ref_get_ref(klangc_pat_ref_t *pat_ref) {
+  return pat_ref->ref;
 }
 
-const char *klangc_pattern_ref_get_name(klangc_pattern_ref_t *pattern_ref) {
-  return klangc_ref_get_name(pattern_ref->ref);
+const char *klangc_pat_ref_get_name(klangc_pat_ref_t *pat_ref) {
+  return klangc_ref_get_name(pat_ref->ref);
 }
 
-klangc_ipos_t klangc_pattern_ref_get_ipos(klangc_pattern_ref_t *pattern_ref) {
-  return klangc_ref_get_ipos(pattern_ref->ref);
+klangc_ipos_t klangc_pat_ref_get_ipos(klangc_pat_ref_t *pat_ref) {
+  return klangc_ref_get_ipos(pat_ref->ref);
 }
 
-int klangc_pattern_ref_is_used(klangc_pattern_ref_t *pattern_ref) {
-  return pattern_ref->used;
-}
+int klangc_pat_ref_is_used(klangc_pat_ref_t *pat_ref) { return pat_ref->used; }
 
-void klangc_pattern_ref_set_used(klangc_pattern_ref_t *pattern_ref) {
-  pattern_ref->used = 1;
-}
+void klangc_pat_ref_set_used(klangc_pat_ref_t *pat_ref) { pat_ref->used = 1; }
 
-klangc_parse_result_t
-klangc_pattern_ref_parse(klangc_input_t *input,
-                         klangc_pattern_ref_t **ppattern_ref) {
+klangc_parse_result_t klangc_pat_ref_parse(klangc_input_t *input,
+                                           klangc_pat_ref_t **ppat_ref) {
   klangc_ref_t *ref;
   switch (klangc_ref_parse(input, &ref)) {
   case KLANGC_PARSE_OK:
@@ -48,12 +42,11 @@ klangc_pattern_ref_parse(klangc_input_t *input,
   case KLANGC_PARSE_ERROR:
     return KLANGC_PARSE_ERROR;
   }
-  klangc_pattern_ref_t *pattern_ref = klangc_pattern_ref_new(ref);
-  *ppattern_ref = pattern_ref;
+  klangc_pat_ref_t *pat_ref = klangc_pat_ref_new(ref);
+  *ppat_ref = pat_ref;
   return KLANGC_PARSE_OK;
 }
 
-void klangc_pattern_ref_print(klangc_output_t *output,
-                              klangc_pattern_ref_t *pattern_ref) {
-  klangc_ref_print(output, pattern_ref->ref);
+void klangc_pat_ref_print(klangc_output_t *output, klangc_pat_ref_t *pat_ref) {
+  klangc_ref_print(output, pat_ref->ref);
 }
