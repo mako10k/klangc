@@ -15,6 +15,10 @@ klangc_SOURCES =         \
     expr/lambda.c        \
     expr/ref.h           \
     expr/ref.c           \
+    pat/appl.h           \
+    pat/appl.c           \
+    pat/as.h             \
+    pat/as.c             \
     pat/ref.h            \
     pat/ref.c            \
     expr.h               \

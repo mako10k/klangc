@@ -23,4 +23,6 @@ int klangc_pat_foreach_ref(klangc_pat_t *pat,
 
 klangc_pat_type_t klangc_pat_get_type(klangc_pat_t *pat);
 
+klangc_pat_appl_t *klangc_pat_get_appl(klangc_pat_t *pat);
+
 klangc_symbol_t *klangc_pat_get_symbol(klangc_pat_t *pat);

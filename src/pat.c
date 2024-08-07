@@ -3,6 +3,8 @@
 #include "input.h"
 #include "output.h"
 #include "parse.h"
+#include "pat/appl.h"
+#include "pat/as.h"
 #include "pat/ref.h"
 #include "symbol.h"
 #include <assert.h>
@@ -21,16 +23,6 @@ struct klangc_pat {
   klangc_ipos_t ipos;
 };
 
-struct klangc_pat_appl {
-  klangc_pat_t *kpap_constr;
-  klangc_pat_t *kpap_arg;
-};
-
-struct klangc_pat_as {
-  klangc_pat_ref_t *kpas_ref;
-  klangc_pat_t *kpas_pat;
-};
-
 struct klangc_pat_int {
   int kpi_value;
 };
@@ -38,28 +30,6 @@ struct klangc_pat_int {
 struct klangc_pat_string {
   char *kps_value;
 };
-
-static klangc_pat_appl_t *klangc_pat_appl_new(klangc_pat_t *constr,
-                                              klangc_pat_t *arg) {
-  assert(constr != NULL);
-  assert(arg != NULL);
-
-  klangc_pat_appl_t *appl = klangc_malloc(sizeof(klangc_pat_appl_t));
-  appl->kpap_constr = constr;
-  appl->kpap_arg = arg;
-  return appl;
-}
-
-static klangc_pat_as_t *klangc_pat_as_new(klangc_pat_ref_t *var,
-                                          klangc_pat_t *pat) {
-  assert(var != NULL);
-  assert(pat != NULL);
-
-  klangc_pat_as_t *as = klangc_malloc(sizeof(klangc_pat_as_t));
-  as->kpas_ref = var;
-  as->kpas_pat = pat;
-  return as;
-}
 
 static klangc_pat_int_t *klangc_pat_int_new(int value) {
   klangc_pat_int_t *integer = klangc_malloc(sizeof(klangc_pat_int_t));
@@ -195,23 +165,10 @@ klangc_ref_t *klangc_pat_get_ref(klangc_pat_t *pat) {
   return klangc_pat_ref_get_ref(pat->kp_ref);
 }
 
-int klangc_pat_isappl(klangc_pat_t *pat) {
+klangc_pat_appl_t *klangc_pat_get_appl(klangc_pat_t *pat) {
   assert(pat != NULL);
-  return pat->kp_type == KLANGC_PTYPE_APPL;
-}
-
-klangc_pat_t *klangc_pat_appl_get_constr(klangc_pat_t *pat) {
-  assert(pat != NULL);
-  assert(klangc_pat_isappl(pat));
-
-  return pat->kp_appl->kpap_constr;
-}
-
-klangc_pat_t *klangc_pat_appl_get_arg(klangc_pat_t *pat) {
-  assert(pat != NULL);
-  assert(klangc_pat_isappl(pat));
-
-  return pat->kp_appl->kpap_arg;
+  assert(pat->kp_type == KLANGC_PTYPE_APPL);
+  return pat->kp_appl;
 }
 
 klangc_parse_result_t klangc_pat_parse_no_appl(klangc_input_t *input,
@@ -373,20 +330,23 @@ int klangc_pat_foreach_ref(klangc_pat_t *pat,
       return ret;
     cnt++;
   } else if (pat->kp_type == KLANGC_PTYPE_APPL) {
-    ret = klangc_pat_foreach_ref(pat->kp_appl->kpap_constr, bind_fn, data);
+    klangc_pat_t *constr = klangc_pat_appl_get_constr(pat->kp_appl);
+    ret = klangc_pat_foreach_ref(constr, bind_fn, data);
     if (ret < 0)
       return ret;
     cnt += ret;
-    ret = klangc_pat_foreach_ref(pat->kp_appl->kpap_arg, bind_fn, data);
+    klangc_pat_t *arg = klangc_pat_appl_get_arg(pat->kp_appl);
+    ret = klangc_pat_foreach_ref(arg, bind_fn, data);
     if (ret < 0)
       return ret;
     cnt += ret;
   } else if (pat->kp_type == KLANGC_PTYPE_AS) {
-    ret = bind_fn(pat->kp_as->kpas_ref, data);
+    ret = bind_fn(klangc_pat_as_get_ref(pat->kp_as), data);
     if (ret < 0)
       return ret;
     cnt++;
-    ret = klangc_pat_foreach_ref(pat->kp_as->kpas_pat, bind_fn, data);
+    ret = klangc_pat_foreach_ref(klangc_pat_as_get_pat(pat->kp_as), bind_fn,
+                                 data);
     if (ret < 0)
       return ret;
     cnt += ret;
@@ -410,15 +370,19 @@ void klangc_pat_print(klangc_output_t *output, int prec, klangc_pat_t *pat) {
   case KLANGC_PTYPE_APPL:
     if (prec > KLANGC_PREC_APPL)
       klangc_printf(output, "(");
-    klangc_pat_print(output, KLANGC_PREC_APPL, pat->kp_appl->kpap_constr);
+    klangc_pat_print(output, KLANGC_PREC_APPL,
+                     klangc_pat_appl_get_constr(pat->kp_appl));
     klangc_printf(output, " ");
-    klangc_pat_print(output, KLANGC_PREC_APPL + 1, pat->kp_appl->kpap_arg);
+    klangc_pat_print(output, KLANGC_PREC_APPL + 1,
+                     klangc_pat_appl_get_arg(pat->kp_appl));
     if (prec > KLANGC_PREC_APPL)
       klangc_printf(output, ")");
     break;
   case KLANGC_PTYPE_AS:
-    klangc_printf(output, "%s@", klangc_pat_ref_get_name(pat->kp_as->kpas_ref));
-    klangc_pat_print(output, KLANGC_PREC_LOWEST, pat->kp_as->kpas_pat);
+    klangc_printf(output, "%s@",
+                  klangc_pat_ref_get_name(klangc_pat_as_get_ref(pat->kp_as)));
+    klangc_pat_print(output, KLANGC_PREC_LOWEST,
+                     klangc_pat_as_get_pat(pat->kp_as));
     break;
   case KLANGC_PTYPE_INT:
     klangc_printf(output, "%d", pat->kp_int->kpi_value);
