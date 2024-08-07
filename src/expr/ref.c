@@ -5,7 +5,7 @@
 
 struct klangc_expr_ref {
   klangc_ref_t *ker_ref;
-  klangc_bind_t *ker_bind;
+  klangc_expr_closure_bind_t *ker_bind;
 };
 
 klangc_expr_ref_t *klangc_expr_ref_new(klangc_ref_t *ref) {
@@ -28,7 +28,7 @@ char *klangc_expr_ref_get_name(klangc_expr_ref_t *expr) {
   return klangc_ref_get_name(expr->ker_ref);
 }
 
-klangc_bind_t *klangc_expr_ref_get_bind(klangc_expr_ref_t *expr) {
+klangc_expr_closure_bind_t *klangc_expr_ref_get_bind(klangc_expr_ref_t *expr) {
   return expr->ker_bind;
 }
 
@@ -36,7 +36,8 @@ klangc_ipos_t klangc_expr_ref_get_ipos(klangc_expr_ref_t *expr) {
   return klangc_ref_get_ipos(expr->ker_ref);
 }
 
-void klangc_expr_ref_set_bind(klangc_expr_ref_t *expr, klangc_bind_t *bind) {
+void klangc_expr_ref_set_bind(klangc_expr_ref_t *expr,
+                              klangc_expr_closure_bind_t *bind) {
   expr->ker_bind = bind;
 }
 

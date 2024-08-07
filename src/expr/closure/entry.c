@@ -14,13 +14,14 @@ typedef enum klangc_closure_ent_type {
 struct klangc_closure_ent {
   klangc_closure_ent_type_t kce_type;
   union {
-    klangc_bind_t *kce_bind;
+    klangc_expr_closure_bind_t *kce_bind;
     klangc_lambda_t *kce_lambda;
   };
   klangc_closure_ent_t *kce_next;
 };
 
-klangc_closure_ent_t *klangc_closure_ent_new_bind(klangc_bind_t *bind) {
+klangc_closure_ent_t *
+klangc_closure_ent_new_bind(klangc_expr_closure_bind_t *bind) {
   assert(bind != NULL);
   klangc_closure_ent_t *ent = klangc_malloc(sizeof(klangc_closure_ent_t));
   ent->kce_type = KLANGC_CLOSURE_ENT_BIND;
@@ -48,7 +49,8 @@ int klangc_closure_ent_islambda(klangc_closure_ent_t *ent) {
   return ent->kce_type == KLANGC_CLOSURE_ENT_LAMBDA;
 }
 
-klangc_bind_t *klangc_closure_ent_get_bind(klangc_closure_ent_t *ent) {
+klangc_expr_closure_bind_t *
+klangc_closure_ent_get_bind(klangc_closure_ent_t *ent) {
   assert(ent != NULL);
   assert(klangc_closure_ent_isbind(ent));
   return ent->kce_bind;
@@ -78,8 +80,8 @@ klangc_parse_result_t klangc_closure_ent_parse(klangc_input_t *input,
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_skipspaces(input);
   klangc_closure_ent_t *ent = NULL;
-  klangc_bind_t *bind;
-  switch (klangc_bind_parse(input, &bind)) {
+  klangc_expr_closure_bind_t *bind;
+  switch (klangc_expr_closure_bind_parse(input, &bind)) {
   case KLANGC_PARSE_OK:
     ent = klangc_closure_ent_new_bind(bind);
   case KLANGC_PARSE_NOPARSE:
@@ -123,7 +125,7 @@ void klangc_closure_ent_print(klangc_output_t *output,
                               klangc_closure_ent_t *ent) {
   switch (ent->kce_type) {
   case KLANGC_CLOSURE_ENT_BIND:
-    klangc_bind_print(output, ent->kce_bind);
+    klangc_expr_closure_bind_print(output, ent->kce_bind);
     break;
   case KLANGC_CLOSURE_ENT_LAMBDA:
     klangc_lambda_print(output, ent->kce_lambda);

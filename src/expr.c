@@ -309,7 +309,7 @@ int klangc_expr_bind(klangc_closure_t *closure, klangc_expr_t *expr) {
   case KLANGC_ETYPE_SYMBOL:
     return 0;
   case KLANGC_ETYPE_REF: {
-    klangc_bind_t *bind = klangc_expr_ref_get_bind(expr->ke_ref);
+    klangc_expr_closure_bind_t *bind = klangc_expr_ref_get_bind(expr->ke_ref);
     if (bind == NULL) {
       if (klangc_closure_get_bind(
               closure, klangc_expr_ref_get_ref(expr->ke_ref), &bind, &upper)) {
@@ -354,8 +354,8 @@ int klangc_expr_bind_ent(klangc_closure_t *closure, klangc_closure_ent_t *ent,
     return klangc_expr_bind(closure, body);
   }
   if (klangc_closure_ent_isbind(ent)) {
-    klangc_bind_t *bind = klangc_closure_ent_get_bind(ent);
-    klangc_expr_t *expr = klangc_bind_get_expr(bind);
+    klangc_expr_closure_bind_t *bind = klangc_closure_ent_get_bind(ent);
+    klangc_expr_t *expr = klangc_expr_closure_bind_get_expr(bind);
     return klangc_expr_bind(closure, expr);
   }
   return -1;
@@ -409,9 +409,11 @@ int klangc_expr_check_unbound(klangc_output_t *output,
 }
 
 int klangc_expr_check_unbound_for_walk(klangc_closure_t *closure,
-                                       klangc_bind_t *bind, void *data) {
+                                       klangc_expr_closure_bind_t *bind,
+                                       void *data) {
   klangc_output_t *output = (klangc_output_t *)data;
-  return klangc_expr_check_unbound(output, closure, klangc_bind_get_expr(bind));
+  return klangc_expr_check_unbound(output, closure,
+                                   klangc_expr_closure_bind_get_expr(bind));
 }
 
 klangc_ipos_t klangc_expr_get_ipos(klangc_expr_t *expr) {

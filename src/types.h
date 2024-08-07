@@ -3,7 +3,7 @@
 #include "klangc.h"
 #include <stdio.h>
 
-typedef struct klangc_bind klangc_bind_t;
+typedef struct klangc_expr_closure_bind klangc_expr_closure_bind_t;
 
 typedef struct klangc_closure klangc_closure_t;
 

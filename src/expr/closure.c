@@ -78,7 +78,7 @@ void klangc_closure_set_ent_first(klangc_closure_t *closure,
 }
 
 int klangc_closure_get_bind(klangc_closure_t *closure, klangc_ref_t *ref,
-                            klangc_bind_t **pbind,
+                            klangc_expr_closure_bind_t **pbind,
                             klangc_closure_t **pclosure) {
   while (closure != NULL) {
     if (klangc_hash_get(closure->kc_bind_ref, klangc_ref_get_name(ref),
@@ -93,13 +93,13 @@ int klangc_closure_get_bind(klangc_closure_t *closure, klangc_ref_t *ref,
 }
 
 int klangc_closure_put_bind(klangc_closure_t *closure, klangc_ref_t *ref,
-                            klangc_bind_t *bind) {
+                            klangc_expr_closure_bind_t *bind) {
   const char *name = klangc_ref_get_name(ref);
-  klangc_bind_t *bind_ref;
+  klangc_expr_closure_bind_t *bind_ref;
   if (klangc_closure_get_bind(closure, ref, &bind_ref, NULL) != 0) {
     klangc_ipos_print(kstderr, klangc_ref_get_ipos(ref));
     klangc_printf(kstderr, "Duplicate definition: %s\n", name);
-    klangc_ipos_print(kstderr, klangc_bind_get_ipos(bind_ref));
+    klangc_ipos_print(kstderr, klangc_expr_closure_bind_get_ipos(bind_ref));
     klangc_printf(kstderr, "  previous definition: %s\n", name);
     return -1;
   }
@@ -171,7 +171,7 @@ int klangc_closure_foreach_lambda(klangc_closure_t *closure,
 
 typedef struct klangc_closure_foreach_bind_local_data {
   klangc_closure_t *closure;
-  klangc_bind_t *bind;
+  klangc_expr_closure_bind_t *bind;
 } klangc_closure_foreach_bind_local_data_t;
 
 int klangc_closure_put_bind_foreach(klangc_pattern_ref_t *ref, void *data) {
@@ -186,8 +186,9 @@ int klangc_closure_put_bind_foreach(klangc_pattern_ref_t *ref, void *data) {
 }
 
 int klangc_closure_bind_locals_foreach(klangc_closure_t *closure,
-                                       klangc_bind_t *bind, void *data) {
-  klangc_pattern_t *pat = klangc_bind_get_pat(bind);
+                                       klangc_expr_closure_bind_t *bind,
+                                       void *data) {
+  klangc_pattern_t *pat = klangc_expr_closure_bind_get_pat(bind);
   klangc_closure_foreach_bind_local_data_t fdata = {closure, bind};
   return klangc_pattern_foreach_ref(pat, klangc_closure_put_bind_foreach,
                                     &fdata);
@@ -204,8 +205,8 @@ int klangc_closure_bind_inners_foreach(klangc_closure_t *closure,
   if (klangc_closure_ent_islambda(ent))
     return klangc_lambda_bind(closure, klangc_closure_ent_get_lambda(ent));
   if (klangc_closure_ent_isbind(ent))
-    return klangc_expr_bind(
-        closure, klangc_bind_get_expr(klangc_closure_ent_get_bind(ent)));
+    return klangc_expr_bind(closure, klangc_expr_closure_bind_get_expr(
+                                         klangc_closure_ent_get_bind(ent)));
   return -1;
 }
 
@@ -231,8 +232,8 @@ int klangc_closure_check_unbound_foreach(klangc_closure_t *closure,
       return 1;
   }
   if (klangc_closure_ent_isbind(ent)) {
-    klangc_bind_t *bind = klangc_closure_ent_get_bind(ent);
-    klangc_expr_t *expr = klangc_bind_get_expr(bind);
+    klangc_expr_closure_bind_t *bind = klangc_closure_ent_get_bind(ent);
+    klangc_expr_t *expr = klangc_expr_closure_bind_get_expr(bind);
     if (klangc_expr_check_unbound(output, closure, expr) != 0)
       return 1;
   }

@@ -113,7 +113,7 @@ klangc_ipos_t klangc_lambda_get_ipos(klangc_lambda_t *lambda) {
 
 typedef struct klangc_lambda_put_arg_foreach_data {
   klangc_closure_t *closure;
-  klangc_bind_t *bind;
+  klangc_expr_closure_bind_t *bind;
 } klangc_lambda_put_arg_foreach_data_t;
 
 int klangc_lambda_put_arg_foreach(klangc_ref_t *ref, void *data) {
@@ -125,7 +125,8 @@ int klangc_lambda_put_arg_foreach(klangc_ref_t *ref, void *data) {
 int klangc_lambda_bind(klangc_closure_t *closure, klangc_lambda_t *lambda) {
   klangc_pattern_t *arg = lambda->kvl_arg;
   klangc_expr_t *body = lambda->kvl_body;
-  klangc_bind_t *bind = klangc_bind_new(arg, body, lambda->kvl_ipos);
+  klangc_expr_closure_bind_t *bind =
+      klangc_expr_closure_bind_new(arg, body, lambda->kvl_ipos);
   klangc_closure_ent_t *ent = klangc_closure_ent_new_bind(bind);
   klangc_closure_set_ent_first(closure, ent);
   klangc_closure_bind(closure);

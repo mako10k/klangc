@@ -12,9 +12,10 @@ char *klangc_expr_ref_get_name(klangc_expr_ref_t *expr);
 
 klangc_ipos_t klangc_expr_ref_get_ipos(klangc_expr_ref_t *expr);
 
-klangc_bind_t *klangc_expr_ref_get_bind(klangc_expr_ref_t *expr);
+klangc_expr_closure_bind_t *klangc_expr_ref_get_bind(klangc_expr_ref_t *expr);
 
-void klangc_expr_ref_set_bind(klangc_expr_ref_t *expr, klangc_bind_t *bind);
+void klangc_expr_ref_set_bind(klangc_expr_ref_t *expr,
+                              klangc_expr_closure_bind_t *bind);
 
 klangc_parse_result_t klangc_expr_ref_parse(klangc_input_t *input,
                                             klangc_expr_ref_t **pexpr_ref);

@@ -138,9 +138,9 @@ klangc_value_t *klangc_value_from_expr(klangc_expr_t *expr) {
     klangc_closure_ent_t *ent = klangc_closure_get_ent_first(closure);
     while (ent != NULL) {
       if (klangc_closure_ent_isbind(ent)) {
-        klangc_bind_t *bind = klangc_closure_ent_get_bind(ent);
-        klangc_pattern_t *pat = klangc_bind_get_pat(bind);
-        klangc_expr_t *expr = klangc_bind_get_expr(bind);
+        klangc_expr_closure_bind_t *bind = klangc_closure_ent_get_bind(ent);
+        klangc_pattern_t *pat = klangc_expr_closure_bind_get_pat(bind);
+        klangc_expr_t *expr = klangc_expr_closure_bind_get_expr(bind);
         (void)pat;
         (void)expr;
       } else if (klangc_closure_ent_islambda(ent)) {
