@@ -5,9 +5,9 @@
 #include "entry.h"
 #include <assert.h>
 
-klangc_parse_result_t klangc_bare_closure_parse(klangc_input_t *input,
-                                                klangc_closure_t *upper,
-                                                klangc_closure_t **pclosure) {
+klangc_parse_result_t
+klangc_expr_closure_bare_parse(klangc_input_t *input, klangc_closure_t *upper,
+                               klangc_closure_t **pclosure) {
   assert(input != NULL);
   assert(pclosure != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
@@ -50,7 +50,7 @@ static int klangc_closure_ent_print_forall(klangc_closure_t *closure,
   return 0;
 }
 
-void klangc_bare_closure_print(klangc_output_t *output,
-                               klangc_closure_t *closure) {
+void klangc_expr_closure_bare_print(klangc_output_t *output,
+                                    klangc_closure_t *closure) {
   klangc_closure_foreach_ent(closure, klangc_closure_ent_print_forall, output);
 }

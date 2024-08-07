@@ -42,7 +42,7 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
   }
   ipos_ss = klangc_skipspaces(input);
   klangc_closure_t *closure;
-  switch (klangc_bare_closure_parse(input, upper, &closure)) {
+  switch (klangc_expr_closure_bare_parse(input, upper, &closure)) {
   case KLANGC_PARSE_OK:
     break;
 
@@ -67,7 +67,7 @@ klangc_parse_result_t klangc_closure_parse(klangc_input_t *input,
 void klangc_closure_print(klangc_output_t *output, klangc_closure_t *closure) {
   klangc_printf(output, "{\n");
   klangc_indent(output, 2);
-  klangc_bare_closure_print(output, closure);
+  klangc_expr_closure_bare_print(output, closure);
   klangc_indent(output, -2);
   klangc_printf(output, "}");
 }
