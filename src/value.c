@@ -1,5 +1,6 @@
 #include "value.h"
 #include "expr.h"
+#include "expr/appl.h"
 #include "expr/closure.h"
 #include "expr/closure/bind.h"
 #include "expr/closure/entry.h"

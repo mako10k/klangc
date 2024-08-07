@@ -1,4 +1,5 @@
 #include "expr.h"
+#include "expr/appl.h"
 #include "expr/closure.h"
 #include "expr/closure/bind.h"
 #include "expr/closure/entry.h"
@@ -10,11 +11,6 @@
 #include "parse.h"
 #include "symbol.h"
 #include <assert.h>
-
-struct klangc_expr_appl {
-  klangc_expr_t *kva_func;
-  klangc_expr_t *kva_arg;
-};
 
 struct klangc_expr {
   klangc_expr_type_t ke_type;
@@ -29,16 +25,6 @@ struct klangc_expr {
   };
   klangc_ipos_t ke_ipos;
 };
-
-klangc_expr_appl_t *klangc_expr_appl_new(klangc_expr_t *func,
-                                         klangc_expr_t *arg) {
-  assert(func != NULL);
-  assert(arg != NULL);
-  klangc_expr_appl_t *ret = klangc_malloc(sizeof(klangc_expr_appl_t));
-  ret->kva_func = func;
-  ret->kva_arg = arg;
-  return ret;
-}
 
 klangc_expr_t *klangc_expr_new_symbol(klangc_symbol_t *symbol,
                                       klangc_ipos_t ipos) {
@@ -272,9 +258,11 @@ void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {
   case KLANGC_ETYPE_APPL:
     if (prec > KLANGC_PREC_APPL)
       klangc_printf(output, "(");
-    klangc_expr_print(output, KLANGC_PREC_APPL, expr->ke_appl->kva_func);
+    klangc_expr_print(output, KLANGC_PREC_APPL,
+                      klangc_expr_appl_get_func(expr->ke_appl));
     klangc_printf(output, " ");
-    klangc_expr_print(output, KLANGC_PREC_APPL + 1, expr->ke_appl->kva_arg);
+    klangc_expr_print(output, KLANGC_PREC_APPL + 1,
+                      klangc_expr_appl_get_arg(expr->ke_appl));
     if (prec > KLANGC_PREC_APPL)
       klangc_printf(output, ")");
     break;
@@ -324,11 +312,11 @@ int klangc_expr_bind(klangc_expr_closure_t *closure, klangc_expr_t *expr) {
     return 0;
 
   case KLANGC_ETYPE_APPL:
-    ret = klangc_expr_bind(closure, expr->ke_appl->kva_func);
+    ret = klangc_expr_bind(closure, klangc_expr_appl_get_func(expr->ke_appl));
     if (ret < 0)
       return -1;
     cnt_bound = ret;
-    ret = klangc_expr_bind(closure, expr->ke_appl->kva_arg);
+    ret = klangc_expr_bind(closure, klangc_expr_appl_get_arg(expr->ke_appl));
     if (ret < 0)
       return -1;
     return cnt_bound + ret;
@@ -382,11 +370,13 @@ int klangc_expr_check_unbound(klangc_output_t *output,
     return 0;
 
   case KLANGC_ETYPE_APPL:
-    ret = klangc_expr_check_unbound(output, closure, expr->ke_appl->kva_func);
+    ret = klangc_expr_check_unbound(output, closure,
+                                    klangc_expr_appl_get_func(expr->ke_appl));
     if (ret < 0)
       return -1;
     cnt_unbound = ret;
-    ret = klangc_expr_check_unbound(output, closure, expr->ke_appl->kva_arg);
+    ret = klangc_expr_check_unbound(output, closure,
+                                    klangc_expr_appl_get_arg(expr->ke_appl));
     if (ret < 0)
       return -1;
     cnt_unbound += ret;
@@ -443,16 +433,6 @@ klangc_expr_appl_t *klangc_expr_get_appl(klangc_expr_t *expr) {
   assert(expr != NULL);
   assert(expr->ke_type == KLANGC_ETYPE_APPL);
   return expr->ke_appl;
-}
-
-klangc_expr_t *klangc_expr_appl_get_func(klangc_expr_appl_t *expr) {
-  assert(expr != NULL);
-  return expr->kva_func;
-}
-
-klangc_expr_t *klangc_expr_appl_get_arg(klangc_expr_appl_t *expr) {
-  assert(expr != NULL);
-  return expr->kva_arg;
 }
 
 int klangc_expr_get_int(klangc_expr_t *expr) {

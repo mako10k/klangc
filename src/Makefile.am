@@ -9,6 +9,8 @@ klangc_SOURCES =         \
     expr/closure/bind.c  \
     expr/closure/entry.h \
     expr/closure/entry.c \
+    expr/appl.h          \
+    expr/appl.c          \
     expr/closure.h       \
     expr/closure.c       \
     expr/lambda.h        \

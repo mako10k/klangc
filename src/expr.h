@@ -37,10 +37,6 @@ klangc_expr_ref_t *klangc_expr_get_ref(klangc_expr_t *expr);
 
 klangc_expr_appl_t *klangc_expr_get_appl(klangc_expr_t *expr);
 
-klangc_expr_t *klangc_expr_appl_get_func(klangc_expr_appl_t *expr);
-
-klangc_expr_t *klangc_expr_appl_get_arg(klangc_expr_appl_t *expr);
-
 int klangc_expr_get_int(klangc_expr_t *expr);
 
 const char *klangc_expr_get_string(klangc_expr_t *expr);
