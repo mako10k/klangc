@@ -21,6 +21,12 @@ klangc_SOURCES =         \
     pat/as.c             \
     pat/ref.h            \
     pat/ref.c            \
+    value/appl.h         \
+    value/appl.c         \
+    value/ref.h          \
+    value/ref.c          \
+    env.h                \
+    env.c                \
     expr.h               \
     expr.c               \
     hash.h               \

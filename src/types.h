@@ -29,6 +29,10 @@ typedef struct klangc_hash klangc_hash_t;
 
 typedef struct klangc_value klangc_value_t;
 
+typedef struct klangc_value_ref klangc_value_ref_t;
+
+typedef struct klangc_value_appl klangc_value_appl_t;
+
 typedef struct klangc_symbol klangc_symbol_t;
 
 typedef struct klangc_ref klangc_ref_t;
@@ -36,6 +40,8 @@ typedef struct klangc_ref klangc_ref_t;
 typedef struct klangc_input klangc_input_t;
 
 typedef struct klangc_output klangc_output_t;
+
+typedef struct klangc_env klangc_env_t;
 
 typedef struct klangc_ipos {
   klangc_input_t *kip_input;
