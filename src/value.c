@@ -32,10 +32,6 @@ struct klangc_value {
   };
 };
 
-struct klangc_value_ref {
-  klangc_ref_t *ref;
-};
-
 struct klangc_value_appl {
   klangc_value_t *func;
   klangc_value_t *arg;
@@ -47,13 +43,6 @@ klangc_value_t *klangc_value_new_symbol(klangc_symbol_t *symbol) {
   value->kv_type = KLANGC_VTYPE_SYMBOL;
   value->kv_symbol = symbol;
   return value;
-}
-
-klangc_value_ref_t *klangc_value_ref_from_expr_ref(klangc_ref_t *ref) {
-  assert(ref != NULL);
-  klangc_value_ref_t *value_ref = klangc_malloc(sizeof(klangc_value_ref_t));
-  value_ref->ref = ref;
-  return value_ref;
 }
 
 klangc_value_t *klangc_value_new_ref(klangc_ref_t *ref) {
