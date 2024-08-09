@@ -3,6 +3,8 @@
 /src/klangc
 
 *.o
+*.Po
+*.Tpo
 *~
 
 Makefile

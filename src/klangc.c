@@ -1,11 +1,11 @@
-#include "expr/closure.h"
+#include "bind.h"
 #include "input.h"
 #include "output.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, const char *argv[]) {
-  klangc_expr_closure_t *prelude = NULL;
+  klangc_expr_env_t *prelude = NULL;
   for (int i = 1; i < argc; i++) {
     FILE *fp = fopen(argv[i], "r");
     if (fp == NULL) {
@@ -13,8 +13,8 @@ int main(int argc, const char *argv[]) {
       return EXIT_FAILURE;
     }
     klangc_input_t *input = klangc_input_new(fp, argv[i]);
-    klangc_expr_closure_t *closure;
-    switch (klangc_expr_closure_bare_parse(input, prelude, &closure)) {
+    klangc_bind_t *bind;
+    switch (klangc_bind_parse(input, &bind)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
@@ -23,8 +23,8 @@ int main(int argc, const char *argv[]) {
     case KLANGC_PARSE_ERROR:
       return EXIT_FAILURE;
     }
-    klangc_expr_closure_bare_print(kstdout, closure);
-    klangc_expr_closure_bind(closure);
-    klangc_expr_closure_check_unbound(kstderr, closure);
+    klangc_bind_print(kstdout, bind);
+    klangc_bind_bind(prelude, bind);
+    klangc_bind_check_unbound(bind);
   }
 }

@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <string.h>
 
+typedef struct klangc_hash_entry klangc_hash_entry_t;
+
 struct klangc_hash_entry {
   const char *khe_key;
   void *khe_value;
@@ -14,13 +16,6 @@ struct klangc_hash {
   int kh_size;
   int kh_capacity;
 };
-
-/**
- * Creates a new hash table with the specified capacity.
- *
- * @param capacity The initial capacity of the hash table.
- * @return A pointer to the newly created hash table.
- */
 
 klangc_hash_t *klangc_hash_new(int capacity) {
   assert(capacity > 0);
@@ -35,10 +30,9 @@ klangc_hash_t *klangc_hash_new(int capacity) {
 }
 
 /**
- * Calculates the hash value for the given key.
- *
- * @param key The key for which the hash value needs to be calculated.
- * @return The calculated hash value.
+ * ハッシュ値を計算する
+ * @param key キー
+ * @return ハッシュ値
  */
 static int klangc_calc_hash(const char *key) {
   assert(key != NULL);
@@ -48,16 +42,6 @@ static int klangc_calc_hash(const char *key) {
   return hash;
 }
 
-/**
- * Retrieves the value associated with the specified key in the given hash
- * table.
- *
- * @param hash The hash table to search in.
- * @param key The key to search for.
- * @param value A pointer to store the retrieved value.
- * @return 1 if the key was found and the value was retrieved successfully, 0
- * otherwise.
- */
 int klangc_hash_get(klangc_hash_t *hash, const char *key, void **value) {
   assert(hash != NULL);
   assert(key != NULL);
@@ -109,17 +93,9 @@ static int klangc_hash_put_raw(klangc_hash_entry_t **pentry, int capacity,
   return 0;
 }
 
-/**
- * Walks through the elements of a hash table and performs an operation on each
- * element.
- *
- * @param hash The hash table to walk through.
- * @param callback The callback function to be called on each element.
- * @param data Additional data to be passed to the callback function.
- */
-void klangc_hash_walk(klangc_hash_t *hash,
-                      void (*callback)(const char *, void *, void *),
-                      void *data) {
+void klangc_hash_foreach(klangc_hash_t *hash,
+                         void (*callback)(const char *, void *, void *),
+                         void *data) {
   assert(hash != NULL);
   assert(callback != NULL);
   for (int i = 0; i < hash->kh_capacity; i++) {
@@ -159,15 +135,6 @@ static void klangc_hash_rehash(klangc_hash_t *hash, int new_capacity) {
   hash->kh_capacity = new_capacity;
 }
 
-/**
- * Inserts a key-value pair into the specified hash table.
- *
- * @param hash The hash table to insert the key-value pair into.
- * @param key The key to insert.
- * @param value The value to insert.
- * @param old_value A pointer to store the old value if the key already exists.
- * @return 1 if the key-value pair was successfully inserted, 0 otherwise.
- */
 int klangc_hash_put(klangc_hash_t *hash, const char *key, void *value,
                     void **old_value) {
   assert(hash != NULL);
@@ -179,14 +146,6 @@ int klangc_hash_put(klangc_hash_t *hash, const char *key, void *value,
       hash->kh_capacity, &hash->kh_size, klangc_strdup(key), value, old_value);
 }
 
-/**
- * Removes an entry from the specified hash table based on the given key.
- *
- * @param hash The hash table from which to remove the entry.
- * @param key The key of the entry to be removed.
- * @param value A pointer to store the value associated with the removed entry.
- * @return 1 if the entry was successfully removed, 0 otherwise.
- */
 int klangc_hash_remove(klangc_hash_t *hash, const char *key, void **value) {
   assert(hash != NULL);
   assert(key != NULL);

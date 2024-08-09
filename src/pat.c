@@ -3,10 +3,11 @@
 #include "input.h"
 #include "output.h"
 #include "parse.h"
-#include "pat/appl.h"
-#include "pat/as.h"
-#include "pat/ref.h"
+#include "pat_appl.h"
+#include "pat_as.h"
+#include "pat_ref.h"
 #include "symbol.h"
+#include "types.h"
 #include <assert.h>
 #include <stdio.h>
 
@@ -373,4 +374,26 @@ void klangc_pat_print(klangc_output_t *output, int prec, klangc_pat_t *pat) {
 klangc_pat_type_t klangc_pat_get_type(klangc_pat_t *pat) {
   assert(pat != NULL);
   return pat->kp_type;
+}
+
+klangc_bind_result_t klangc_pat_bind(klangc_expr_env_t *env, klangc_pat_t *pat,
+                                     klangc_expr_ref_target_t *target) {
+  assert(env != NULL);
+  assert(pat != NULL);
+  assert(target != NULL);
+  switch (pat->kp_type) {
+  case KLANGC_PTYPE_SYMBOL:
+    return KLANGC_BIND_OK;
+  case KLANGC_PTYPE_REF:
+    return klangc_pat_ref_bind(env, pat->kp_ref, target);
+  case KLANGC_PTYPE_APPL:
+    return klangc_pat_appl_bind(env, pat->kp_appl, target);
+  case KLANGC_PTYPE_AS:
+    return klangc_pat_as_bind(env, pat->kp_as, target);
+  case KLANGC_PTYPE_INT:
+  case KLANGC_PTYPE_STRING:
+    return KLANGC_BIND_OK;
+  }
+  klangc_printf(kstderr, "UNKOWN ERROR at %s:%d\n", __FILE__, __LINE__);
+  return KLANGC_BIND_ERROR;
 }

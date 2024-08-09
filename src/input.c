@@ -46,7 +46,7 @@ void klangc_input_restore(klangc_input_t *input, klangc_ipos_t ipos) {
   input->kip_col = ipos.kip_col;
 }
 
-int klangc_procc(klangc_input_t *input, int c) {
+static int klangc_procc(klangc_input_t *input, int c) {
   if (c == EOF)
     return EOF;
   input->kip_offset++;

@@ -26,3 +26,13 @@ klangc_pat_type_t klangc_pat_get_type(klangc_pat_t *pat);
 klangc_pat_appl_t *klangc_pat_get_appl(klangc_pat_t *pat);
 
 klangc_symbol_t *klangc_pat_get_symbol(klangc_pat_t *pat);
+
+/**
+ * パターンに含まれる参照を抽出して env に登録する
+ * @param env 環境
+ * @param pat パターン
+ * @param target 参照先
+ * @return 結果 KLANGC_BIND_OK: 成功, KLANGC_BIND_ERROR: 失敗
+ */
+klangc_bind_result_t klangc_pat_bind(klangc_expr_env_t *env, klangc_pat_t *pat,
+                                     klangc_expr_ref_target_t *target);
