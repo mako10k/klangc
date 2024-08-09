@@ -1,4 +1,5 @@
 #include "output.h"
+#include "input.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -63,11 +64,53 @@ void klangc_output_free(klangc_output_t *output) {
   klangc_free(output);
 }
 
+static void klangc_vfprintf(klangc_output_t *output, const char *fmt,
+                            va_list ap) {
+  vfprintf(output->fp_cookie, fmt, ap);
+}
+
+static void klangc_vfprintf_expects(klangc_output_t *output, const char *expect,
+                                    int actual, const char *fmt, va_list ap) {
+  fprintf(output->fp_cookie, "expect %s", expect);
+  if (actual == EOF)
+    fprintf(output->fp_cookie, " but get EOF: ");
+  else
+    fprintf(output->fp_cookie, " but get '%c': ", actual);
+  klangc_vfprintf(output, fmt, ap);
+}
+
 void klangc_printf(klangc_output_t *output, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  vfprintf(output->fp_cookie, fmt, args);
+  klangc_vfprintf(output, fmt, args);
   va_end(args);
+}
+
+void klangc_printf_expects(klangc_output_t *output, const char *expect,
+                           int actual, const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  klangc_vfprintf_expects(output, expect, actual, fmt, ap);
+  va_end(ap);
+}
+
+void klangc_printf_ipos(klangc_output_t *output, klangc_ipos_t ipos,
+                        const char *fmt, ...) {
+  klangc_ipos_print(output, ipos);
+  va_list ap;
+  va_start(ap, fmt);
+  klangc_vfprintf(output, fmt, ap);
+  va_end(ap);
+}
+
+void klangc_printf_ipos_expects(klangc_output_t *output, klangc_ipos_t ipos,
+                                const char *expect, int actual, const char *fmt,
+                                ...) {
+  klangc_ipos_print(output, ipos);
+  va_list ap;
+  va_start(ap, fmt);
+  klangc_vfprintf_expects(output, expect, actual, fmt, ap);
+  va_end(ap);
 }
 
 void klangc_indent(klangc_output_t *output, int incr) {

@@ -84,7 +84,8 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   klangc_ipos_t ipos2 = klangc_input_save(input);
   ipos_ss = klangc_skipspaces(input);
   if (!klangc_expect(input, ';', &c)) {
-    klangc_input_restore(input, ipos);
+    klangc_input_restore(input, ipos2);
+    *plambda = klangc_expr_lambda_new(arg, body, NULL);
     return KLANGC_PARSE_OK;
   }
 
@@ -106,17 +107,32 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   return KLANGC_PARSE_OK;
 }
 
-void klangc_expr_lambda_print(klangc_output_t *output,
+void klangc_expr_lambda_print(klangc_output_t *output, int prec,
                               klangc_expr_lambda_t *lambda) {
-  while (lambda) {
+  assert(lambda != NULL);
+  if (lambda->kvl_next == NULL) {
     klangc_printf(output, "\\");
     klangc_pat_print(output, KLANGC_PREC_LOWEST, lambda->kvl_arg);
     klangc_printf(output, " -> ");
-    klangc_expr_print(output, KLANGC_PREC_LOWEST, lambda->kvl_body);
-    if (lambda->kvl_next)
-      klangc_printf(output, "; ");
-    lambda = lambda->kvl_next;
+    klangc_expr_print(output, KLANGC_PREC_LAMBDA + 1, lambda->kvl_body);
+    return;
   }
+  if (prec > KLANGC_PREC_LAMBDA)
+    klangc_printf(output, "(");
+  klangc_indent(output, 2);
+  while (1) {
+    klangc_printf(output, "\n\\");
+    klangc_pat_print(output, KLANGC_PREC_LOWEST, lambda->kvl_arg);
+    klangc_printf(output, " -> ");
+    klangc_expr_print(output, KLANGC_PREC_LAMBDA + 1, lambda->kvl_body);
+    lambda = lambda->kvl_next;
+    if (lambda == NULL)
+      break;
+    klangc_printf(output, ";");
+  }
+  klangc_indent(output, -2);
+  if (prec > KLANGC_PREC_LAMBDA)
+    klangc_printf(output, "\n)");
 }
 
 klangc_pat_t *klangc_expr_lambda_get_arg(klangc_expr_lambda_t *lambda) {

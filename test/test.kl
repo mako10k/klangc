@@ -1,7 +1,4 @@
 # COMMENT
-\~args ->
-  ~join (~fmap ~printInt (~fib 5));
-
 ~join = \~m -> ~chain ~m ~id;
 ~id = \~x -> ~x;
 ~chain = \~m -> \~f -> ~join (~fmap ~f ~m);
@@ -10,9 +7,10 @@
 ~pred = \(Cons ~x ~y) -> ~y;
 
 ~fib = ~fix \~f -> {
-  \0 -> 1 ;
-  \1 -> 1 ;
-  \Int ~n -> ~add (~f (~pred ~n)) (~f (~pred (~pred ~n)));
+  \0 -> 1;
+  \1 -> 1;
+  \Int ~n -> ~add (~f ~n_1) (~f ~n_2);
+  ~n_1 = ~pred ~n;
+  ~n_2 = ~pred ~n_1;
 };
-
 ~f = \~x -> \~x -> ~x;

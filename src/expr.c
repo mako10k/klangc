@@ -254,9 +254,10 @@ void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {
     klangc_printf(output, "\"%s\"", expr->ke_strval);
     break;
   case KLANGC_ETYPE_APPL:
+    klangc_expr_appl_print(output, prec, expr->ke_appl);
     break;
   case KLANGC_ETYPE_LAMBDA:
-    klangc_expr_lambda_print(output, expr->ke_lambda);
+    klangc_expr_lambda_print(output, prec, expr->ke_lambda);
     break;
   case KLANGC_ETYPE_CLOSURE:
     klangc_expr_closure_print(output, expr->ke_closure);

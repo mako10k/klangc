@@ -10,7 +10,7 @@ klangc_expr_lambda_t *klangc_expr_lambda_new(klangc_pat_t *arg,
 klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
                                                klangc_expr_lambda_t **plambda);
 
-void klangc_expr_lambda_print(klangc_output_t *output,
+void klangc_expr_lambda_print(klangc_output_t *output, int prec,
                               klangc_expr_lambda_t *lambda);
 
 klangc_pat_t *klangc_expr_lambda_get_arg(klangc_expr_lambda_t *lambda);

@@ -64,11 +64,11 @@ klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
   }
 
   klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
-  int c = klangc_getc(input);
-  if (c != '=') {
-    klangc_ipos_print(kstderr, ipos_ss2);
-    klangc_printf(kstderr, "expect '=' but get '%c': [<pat> ^'=' <expr> ';']\n",
-                  c);
+  int c;
+  if (!klangc_expect(input, '=', &c)) {
+    klangc_printf_ipos_expects(
+        kstderr, ipos_ss2, "'='", c,
+        "<bind> ::= <pat> ^'=' <expr> ( ';' <bind> )*;\n");
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
@@ -79,8 +79,9 @@ klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
-    klangc_ipos_print(kstderr, ipos_ss2);
-    klangc_printf(kstderr, "expect <expr>: [<pat> '=' ^<expr> ';']\n");
+    klangc_printf_ipos_expects(
+        kstderr, ipos_ss2, "<expr>", klangc_getc(input),
+        "<bind> ::= <pat> '=' ^<expr> ( ';' <bind> )*;\n");
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
@@ -89,7 +90,9 @@ klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
   klangc_ipos_t ipos3 = klangc_input_save(input);
   klangc_skipspaces(input);
   if (!klangc_expect(input, ';', NULL)) {
+    // ';' の前まで入力を巻き戻す
     klangc_input_restore(input, ipos3);
+    *pbind = klangc_bind_new(pat, expr, NULL, ipos_ss);
     return KLANGC_PARSE_OK;
   }
   klangc_bind_t *next = NULL;
@@ -108,13 +111,16 @@ klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
 }
 
 void klangc_bind_print(klangc_output_t *output, klangc_bind_t *bind) {
-  while (bind != NULL) {
+  assert(output != NULL);
+  assert(bind != NULL);
+  while (1) {
     klangc_pat_print(output, KLANGC_PREC_LOWEST, bind->kb_pat);
     klangc_printf(output, " = ");
     klangc_expr_print(output, KLANGC_PREC_LOWEST, bind->kb_expr);
-    if (bind->kb_next != NULL)
-      klangc_printf(output, ";\n");
     bind = bind->kb_next;
+    if (bind == NULL)
+      break;
+    klangc_printf(output, ";\n");
   }
 }
 

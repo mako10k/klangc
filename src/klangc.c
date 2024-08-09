@@ -1,11 +1,12 @@
 #include "bind.h"
+#include "expr_env.h"
 #include "input.h"
 #include "output.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, const char *argv[]) {
-  klangc_expr_env_t *prelude = NULL;
+  klangc_expr_env_t *prelude = klangc_expr_env_new(NULL);
   for (int i = 1; i < argc; i++) {
     FILE *fp = fopen(argv[i], "r");
     if (fp == NULL) {
@@ -24,6 +25,7 @@ int main(int argc, const char *argv[]) {
       return EXIT_FAILURE;
     }
     klangc_bind_print(kstdout, bind);
+    klangc_printf(kstdout, ";\n");
     klangc_bind_bind(prelude, bind);
     klangc_bind_check_unbound(bind);
   }
