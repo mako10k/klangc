@@ -70,7 +70,7 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
 
   ipos_ss = klangc_skipspaces(input);
   klangc_expr_t *body;
-  switch (klangc_expr_parse(input, &body)) {
+  switch (klangc_expr_parse(input, KLANGC_EXPR_PARSE_NORMAL, &body)) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:

@@ -5,7 +5,7 @@
 
 /** 式タイプ */
 typedef enum klangc_expr_type {
-  KLANGC_ETYPE_SYMBOL,
+  KLANGC_ETYPE_ALGE,
   KLANGC_ETYPE_REF,
   KLANGC_ETYPE_APPL,
   KLANGC_ETYPE_INT,
@@ -14,6 +14,11 @@ typedef enum klangc_expr_type {
   KLANGC_ETYPE_CLOSURE,
 } klangc_expr_type_t;
 
+typedef enum {
+  KLANGC_EXPR_PARSE_NORMAL = 0,
+  KLANGC_EXPR_PARSE_NOARG = 1,
+} klangc_expr_parse_opt_t;
+
 /**
  * 式をパースする
  * @param input 入力
@@ -21,6 +26,7 @@ typedef enum klangc_expr_type {
  * @return パース結果
  */
 klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
+                                        klangc_expr_parse_opt_t epopt,
                                         klangc_expr_t **pexpr);
 
 /**

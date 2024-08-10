@@ -36,6 +36,9 @@ typedef struct klangc_expr_ref klangc_expr_ref_t;
 /** 参照先（式） */
 typedef struct klangc_expr_ref_target klangc_expr_ref_target_t;
 
+/** 代数的式（式） */
+typedef struct klangc_expr_alge klangc_expr_alge_t;
+
 /** 適用（式） */
 typedef struct klangc_expr_appl klangc_expr_appl_t;
 
