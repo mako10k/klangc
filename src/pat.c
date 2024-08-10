@@ -3,7 +3,7 @@
 #include "input.h"
 #include "output.h"
 #include "parse.h"
-#include "pat_appl.h"
+#include "pat_alge.h"
 #include "pat_as.h"
 #include "pat_ref.h"
 #include "symbol.h"
@@ -14,9 +14,8 @@
 struct klangc_pat {
   klangc_pat_type_t kp_type;
   union {
-    klangc_symbol_t *kp_symbol;
     klangc_pat_ref_t *kp_ref;
-    klangc_pat_appl_t *kp_appl;
+    klangc_pat_alge_t *kp_alge;
     klangc_pat_as_t *kp_as;
     int kp_intval;
     const char *kp_strval;
@@ -30,13 +29,12 @@ struct klangc_pat {
  * @param name The symbol name for the pattern.
  * @return A pointer to the newly created pattern object.
  */
-klangc_pat_t *klangc_pat_new_symbol(klangc_symbol_t *symbol,
-                                    klangc_ipos_t ipos) {
-  assert(symbol != NULL);
+klangc_pat_t *klangc_pat_new_alge(klangc_pat_alge_t *alge, klangc_ipos_t ipos) {
+  assert(alge != NULL);
 
   klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
-  pat->kp_type = KLANGC_PTYPE_SYMBOL;
-  pat->kp_symbol = symbol;
+  pat->kp_type = KLANGC_PTYPE_ALGE;
+  pat->kp_alge = alge;
   pat->ipos = ipos;
   return pat;
 }
@@ -47,25 +45,6 @@ klangc_pat_t *klangc_pat_new_ref(klangc_pat_ref_t *ref, klangc_ipos_t ipos) {
   klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
   pat->kp_type = KLANGC_PTYPE_REF;
   pat->kp_ref = ref;
-  pat->ipos = ipos;
-  return pat;
-}
-
-/**
- * Creates a new pattern by applying a constructor pattern to another pattern.
- *
- * @param constr The constructor pattern to apply.
- * @param arg    Additional arguments for the constructor pattern.
- * @return       A pointer to the newly created pattern.
- */
-klangc_pat_t *klangc_pat_new_appl(klangc_pat_t *constr, klangc_pat_t *arg,
-                                  klangc_ipos_t ipos) {
-  assert(constr != NULL);
-  assert(arg != NULL);
-
-  klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
-  pat->kp_type = KLANGC_PTYPE_APPL;
-  pat->kp_appl = klangc_pat_appl_new(constr, arg);
   pat->ipos = ipos;
   return pat;
 }
@@ -118,39 +97,21 @@ klangc_pat_t *klangc_pat_new_string(const char *strval, klangc_ipos_t ipos) {
   return pat;
 }
 
-klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
-                                       klangc_pat_t **ppat);
-
-int klangc_pat_issymbol(klangc_pat_t *pat) {
+klangc_pat_alge_t *klangc_pat_get_alge(klangc_pat_t *pat) {
   assert(pat != NULL);
-  return pat->kp_type == KLANGC_PTYPE_SYMBOL;
-}
-
-klangc_symbol_t *klangc_pat_get_symbol(klangc_pat_t *pat) {
-  assert(pat != NULL);
-  assert(klangc_pat_issymbol(pat));
-  return pat->kp_symbol;
-}
-
-int klangc_pat_isref(klangc_pat_t *pat) {
-  assert(pat != NULL);
-  return pat->kp_type == KLANGC_PTYPE_REF;
+  assert(pat->kp_type == KLANGC_PTYPE_ALGE);
+  return pat->kp_alge;
 }
 
 klangc_ref_t *klangc_pat_get_ref(klangc_pat_t *pat) {
   assert(pat != NULL);
-  assert(klangc_pat_isref(pat));
+  assert(pat->kp_type == KLANGC_PTYPE_REF);
   return klangc_pat_ref_get_ref(pat->kp_ref);
 }
 
-klangc_pat_appl_t *klangc_pat_get_appl(klangc_pat_t *pat) {
-  assert(pat != NULL);
-  assert(pat->kp_type == KLANGC_PTYPE_APPL);
-  return pat->kp_appl;
-}
-
-klangc_parse_result_t klangc_pat_parse_no_appl(klangc_input_t *input,
-                                               klangc_pat_t **ppat) {
+klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
+                                       klangc_pat_parse_opt_t ppopt,
+                                       klangc_pat_t **ppat) {
   assert(input != NULL);
   assert(ppat != NULL);
 
@@ -160,7 +121,7 @@ klangc_parse_result_t klangc_pat_parse_no_appl(klangc_input_t *input,
   if (c == '(') {
     klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
     klangc_pat_t *pat;
-    switch (klangc_pat_parse(input, &pat)) {
+    switch (klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &pat)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
@@ -187,7 +148,7 @@ klangc_parse_result_t klangc_pat_parse_no_appl(klangc_input_t *input,
   klangc_symbol_t *sym;
   switch (klangc_symbol_parse(input, &sym)) {
   case KLANGC_PARSE_OK:
-    *ppat = klangc_pat_new_symbol(sym, ipos_ss);
+    *ppat = klangc_pat_new_alge(klangc_pat_alge_new(sym), ipos_ss);
     return KLANGC_PARSE_OK;
   case KLANGC_PARSE_NOPARSE:
     break;
@@ -212,7 +173,7 @@ klangc_parse_result_t klangc_pat_parse_no_appl(klangc_input_t *input,
     }
     klangc_pat_t *pat;
     ipos_ss2 = klangc_skipspaces(input);
-    switch (klangc_pat_parse(input, &pat)) {
+    switch (klangc_pat_parse(input, KLANGC_PAT_PARSE_NOARG, &pat)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
@@ -260,41 +221,6 @@ klangc_parse_result_t klangc_pat_parse_no_appl(klangc_input_t *input,
   return KLANGC_PARSE_NOPARSE;
 }
 
-klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
-                                       klangc_pat_t **ppat) {
-  assert(input != NULL);
-  assert(ppat != NULL);
-
-  klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  klangc_pat_t *pat;
-  switch (klangc_pat_parse_no_appl(input, &pat)) {
-  case KLANGC_PARSE_OK:
-    break;
-  case KLANGC_PARSE_NOPARSE:
-  case KLANGC_PARSE_ERROR:
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_NOPARSE;
-  }
-
-  while (1) {
-    klangc_pat_t *arg;
-    klangc_ipos_t ipos2 = klangc_input_save(input);
-    switch (klangc_pat_parse_no_appl(input, &arg)) {
-    case KLANGC_PARSE_OK:
-      break;
-    case KLANGC_PARSE_NOPARSE:
-      klangc_input_restore(input, ipos2);
-      *ppat = pat;
-      return KLANGC_PARSE_OK;
-    case KLANGC_PARSE_ERROR:
-      klangc_input_restore(input, ipos);
-      return KLANGC_PARSE_ERROR;
-    }
-    pat = klangc_pat_new_appl(pat, arg, ipos_ss);
-  }
-}
-
 int klangc_pat_foreach_ref(klangc_pat_t *pat,
                            klangc_pat_foreach_ref_func_t bind_fn, void *data) {
   assert(pat != NULL);
@@ -307,17 +233,14 @@ int klangc_pat_foreach_ref(klangc_pat_t *pat,
     if (ret < 0)
       return ret;
     cnt++;
-  } else if (pat->kp_type == KLANGC_PTYPE_APPL) {
-    klangc_pat_t *constr = klangc_pat_appl_get_constr(pat->kp_appl);
-    ret = klangc_pat_foreach_ref(constr, bind_fn, data);
-    if (ret < 0)
-      return ret;
-    cnt += ret;
-    klangc_pat_t *arg = klangc_pat_appl_get_arg(pat->kp_appl);
-    ret = klangc_pat_foreach_ref(arg, bind_fn, data);
-    if (ret < 0)
-      return ret;
-    cnt += ret;
+  } else if (pat->kp_type == KLANGC_PTYPE_ALGE) {
+    for (int i = 0; i < klangc_pat_alge_get_argc(pat->kp_alge); i++) {
+      klangc_pat_t *arg = klangc_pat_alge_get_arg(pat->kp_alge, i);
+      ret = klangc_pat_foreach_ref(arg, bind_fn, data);
+      if (ret < 0)
+        return ret;
+      cnt += ret;
+    }
   } else if (pat->kp_type == KLANGC_PTYPE_AS) {
     ret = bind_fn(klangc_pat_as_get_ref(pat->kp_as), data);
     if (ret < 0)
@@ -339,28 +262,14 @@ void klangc_pat_print(klangc_output_t *output, int prec, klangc_pat_t *pat) {
   assert(pat != NULL);
 
   switch (pat->kp_type) {
-  case KLANGC_PTYPE_SYMBOL:
-    klangc_symbol_print(output, pat->kp_symbol);
-    break;
   case KLANGC_PTYPE_REF:
     klangc_pat_ref_print(output, pat->kp_ref);
     break;
-  case KLANGC_PTYPE_APPL:
-    if (prec > KLANGC_PREC_APPL)
-      klangc_printf(output, "(");
-    klangc_pat_print(output, KLANGC_PREC_APPL,
-                     klangc_pat_appl_get_constr(pat->kp_appl));
-    klangc_printf(output, " ");
-    klangc_pat_print(output, KLANGC_PREC_APPL + 1,
-                     klangc_pat_appl_get_arg(pat->kp_appl));
-    if (prec > KLANGC_PREC_APPL)
-      klangc_printf(output, ")");
+  case KLANGC_PTYPE_ALGE:
+    klangc_pat_alge_print(output, prec, pat->kp_alge);
     break;
   case KLANGC_PTYPE_AS:
-    klangc_printf(output, "%s@",
-                  klangc_pat_ref_get_name(klangc_pat_as_get_ref(pat->kp_as)));
-    klangc_pat_print(output, KLANGC_PREC_LOWEST,
-                     klangc_pat_as_get_pat(pat->kp_as));
+    klangc_pat_as_print(output, pat->kp_as);
     break;
   case KLANGC_PTYPE_INT:
     klangc_printf(output, "%d", pat->kp_intval);
@@ -382,12 +291,10 @@ klangc_bind_result_t klangc_pat_bind(klangc_expr_env_t *env, klangc_pat_t *pat,
   assert(pat != NULL);
   assert(target != NULL);
   switch (pat->kp_type) {
-  case KLANGC_PTYPE_SYMBOL:
-    return KLANGC_BIND_OK;
   case KLANGC_PTYPE_REF:
     return klangc_pat_ref_bind(env, pat->kp_ref, target);
-  case KLANGC_PTYPE_APPL:
-    return klangc_pat_appl_bind(env, pat->kp_appl, target);
+  case KLANGC_PTYPE_ALGE:
+    return klangc_pat_alge_bind(env, pat->kp_alge, target);
   case KLANGC_PTYPE_AS:
     return klangc_pat_as_bind(env, pat->kp_as, target);
   case KLANGC_PTYPE_INT:

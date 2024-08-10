@@ -18,8 +18,8 @@ typedef struct klangc_pat klangc_pat_t;
 /** 参照（パターン） */
 typedef struct klangc_pat_ref klangc_pat_ref_t;
 
-/** 適用（パターン） */
-typedef struct klangc_pat_appl klangc_pat_appl_t;
+/** 代数的データ（パターン） */
+typedef struct klangc_pat_alge klangc_pat_alge_t;
 
 /** ASパターン（パターン） */
 typedef struct klangc_pat_as klangc_pat_as_t;
@@ -87,8 +87,6 @@ typedef enum klangc_parse_result {
 /** バインド結果 */
 typedef enum klangc_bind_result {
   KLANGC_BIND_OK,
-  KLANGC_BIND_NOTFOUND,
-  KLANGC_BIND_ALREADYBOUND,
   KLANGC_BIND_ERROR,
 } klangc_bind_result_t;
 

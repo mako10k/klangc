@@ -1,7 +1,4 @@
-#include "expr.h"
 #include "malloc.h"
-#include "pat.h"
-#include "symbol.h"
 #include <assert.h>
 #include <string.h>
 
@@ -37,16 +34,5 @@ klangc_value_t *klangc_value_new(klangc_expr_t *expr) {
 int klangc_value_bind(klangc_env_t *env, klangc_pat_t *pat,
                       klangc_expr_t *expr) {
   assert(expr != NULL);
-  switch (klangc_pat_get_type(pat)) {
-  case KLANGC_PTYPE_SYMBOL:
-    switch (klangc_expr_get_type(expr)) {
-    case KLANGC_ETYPE_SYMBOL:
-      return strcmp(klangc_symbol_get_name(klangc_pat_get_symbol(pat)),
-                    klangc_symbol_get_name(klangc_expr_get_symbol(expr))) == 0;
-    default:
-      return 0;
-    }
-  default:
-    return 0;
-  }
+  return 0;
 }

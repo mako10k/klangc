@@ -52,7 +52,7 @@ klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   klangc_pat_t *pat;
-  switch (klangc_pat_parse(input, &pat)) {
+  switch (klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &pat)) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:

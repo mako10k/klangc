@@ -9,6 +9,8 @@ klangc_SOURCES =   \
     env.c          \
     expr.h         \
     expr.c         \
+    expr_alge.h.   \
+    expr_alge.c    \
     expr_appl.h    \
     expr_appl.c    \
     expr_env.h     \
@@ -33,8 +35,8 @@ klangc_SOURCES =   \
     parse.c        \
     pat.h          \
     pat.c          \
-    pat_appl.h     \
-    pat_appl.c     \
+    pat_alge.h     \
+    pat_alge.c     \
     pat_as.h       \
     pat_as.c       \
     pat_ref.h      \
@@ -48,6 +50,8 @@ klangc_SOURCES =   \
     types.h        \
     val.h          \
     val.c          \
+    val_alge.h.    \
+    val_alge.c     \
     val_appl.h     \
     val_appl.c     \
     val_ref.h      \
