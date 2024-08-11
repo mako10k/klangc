@@ -1,6 +1,6 @@
 bin_PROGRAMS = klangc
 
-CFLAGS=-g -O0 -Wall -Werror -I$(top_srcdir)/src -I$(top_srcdir)/src/gc
+CFLAGS=-O3 -Wall -Werror -I$(top_srcdir)/src -I$(top_srcdir)/src/gc
 
 klangc_SOURCES =   \
     bind.h         \

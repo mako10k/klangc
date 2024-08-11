@@ -3,6 +3,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef DEBUG
+#include <string.h>
+
+#undef GC_MALLOC
+#undef GC_REALLOC
+#undef GC_FREE
+#undef GC_STRDUP
+#define GC_MALLOC(size) malloc(size)
+#define GC_REALLOC(ptr, size) realloc(ptr, size)
+#define GC_FREE(ptr) free(ptr)
+#define GC_STRDUP(s) strdup(s)
+#endif
+
 void *klangc_malloc(size_t size) {
   void *ptr = GC_MALLOC(size);
   if (ptr == NULL) {
