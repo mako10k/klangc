@@ -278,7 +278,7 @@ klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
   res = klangc_expr_parse_noappl(input, epopt, &expr);
   if (res != KLANGC_PARSE_OK)
     return res;
-  if (epopt & KLANGC_EXPR_PARSE_NOAPPL) {
+  if (!(epopt & KLANGC_EXPR_PARSE_NOAPPL)) {
     klangc_expr_t *func = expr;
     res = klangc_expr_parse_appl(input, epopt, func, &expr);
     if (res == KLANGC_PARSE_ERROR) {

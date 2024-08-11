@@ -145,10 +145,10 @@ klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
   }
   klangc_input_restore(input, ipos_ss);
 
-  klangc_symbol_t *sym;
-  switch (klangc_symbol_parse(input, &sym)) {
+  klangc_pat_alge_t *alge;
+  switch (klangc_pat_alge_parse(input, ppopt, &alge)) {
   case KLANGC_PARSE_OK:
-    *ppat = klangc_pat_new_alge(klangc_pat_alge_new(sym), ipos_ss);
+    *ppat = klangc_pat_new_alge(alge, ipos_ss);
     return KLANGC_PARSE_OK;
   case KLANGC_PARSE_NOPARSE:
     break;
