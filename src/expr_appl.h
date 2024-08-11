@@ -15,6 +15,7 @@ klangc_expr_t *klangc_expr_appl_get_arg(klangc_expr_appl_t *appl, int index);
 
 klangc_parse_result_t klangc_expr_appl_parse(klangc_input_t *input,
                                              klangc_expr_parse_opt_t epopt,
+                                             klangc_expr_t *efunc,
                                              klangc_expr_appl_t **pexpr_appl);
 
 void klangc_expr_appl_print(klangc_output_t *output, int prec,

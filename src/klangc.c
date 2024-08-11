@@ -2,6 +2,7 @@
 #include "expr_env.h"
 #include "input.h"
 #include "output.h"
+#include "parse.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -22,6 +23,18 @@ int main(int argc, const char *argv[]) {
       klangc_printf(kstderr, "No definition found\n");
       return EXIT_FAILURE;
     case KLANGC_PARSE_ERROR:
+      return EXIT_FAILURE;
+    }
+    klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+    int c;
+    if (klangc_expect(input, ';', &c) == 0) {
+      klangc_printf_ipos_expects(kstderr, ipos_ss, "';'", c,
+                                 "<program> ::= <bind> ^';';\n");
+      return EXIT_FAILURE;
+    }
+    if (klangc_expect(input, EOF, &c) == 0) {
+      klangc_printf_ipos_expects(kstderr, ipos_ss, "EOF", c,
+                                 "<program> ::= <bind> ';'^;\n");
       return EXIT_FAILURE;
     }
     klangc_bind_print(kstdout, bind);

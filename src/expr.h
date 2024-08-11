@@ -16,7 +16,7 @@ typedef enum klangc_expr_type {
 
 typedef enum {
   KLANGC_EXPR_PARSE_NORMAL = 0,
-  KLANGC_EXPR_PARSE_NOARG = 1,
+  KLANGC_EXPR_PARSE_NOAPPL = 1,
 } klangc_expr_parse_opt_t;
 
 /**

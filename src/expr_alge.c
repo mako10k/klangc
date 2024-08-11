@@ -57,13 +57,13 @@ klangc_parse_result_t klangc_expr_alge_parse(klangc_input_t *input,
   if (res != KLANGC_PARSE_OK)
     return res;
   klangc_expr_alge_t *alge = klangc_expr_alge_new(constr);
-  if (epopt == KLANGC_EXPR_PARSE_NOARG) {
+  if (epopt & KLANGC_EXPR_PARSE_NOAPPL) {
     *pexpr = alge;
     return KLANGC_PARSE_OK;
   }
   while (1) {
     klangc_expr_t *arg = NULL;
-    res = klangc_expr_parse(input, KLANGC_EXPR_PARSE_NOARG, &arg);
+    res = klangc_expr_parse(input, KLANGC_EXPR_PARSE_NOAPPL, &arg);
     switch (res) {
     case KLANGC_PARSE_OK:
       klangc_expr_alge_add_args(alge, 1, &arg);

@@ -39,12 +39,15 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   }
   ipos_ss = klangc_skipspaces(input);
   klangc_pat_t *arg;
-  switch (klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &arg)) {
+  klangc_parse_result_t res =
+      klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &arg);
+  switch (res) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
-    klangc_ipos_print(kstderr, ipos_ss);
-    klangc_printf(kstderr, "expect <pat>: ['\\' ^<pat> '->' <expr>]\n");
+    klangc_printf_ipos_expects(
+        kstderr, ipos_ss, "<pat>", klangc_getc(input),
+        "<lambda> ::= '\\' ^<pat> '->' <expr> (';' <lambda>)*;\n");
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
@@ -52,18 +55,17 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
 
   ipos_ss = klangc_skipspaces(input);
   if (!klangc_expect(input, '-', &c)) {
-    klangc_ipos_print(kstderr, ipos_ss);
-    klangc_printf(kstderr,
-                  "expect '-' but get '%c': ['\\' <pat> ^'->' <expr>]\n", c);
+    klangc_printf_ipos(kstderr, ipos_ss,
+                       "expect '-' but get '%c': ['\\' <pat> ^'->' <expr>]\n",
+                       c);
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
   if (!klangc_expect(input, '>', &c)) {
-    klangc_ipos_print(kstderr, ipos_ss);
-    klangc_printf(kstderr,
-                  "expect '->' but get '-%c': ['\\' <pat> ^'->' "
-                  "<expr>]\n",
-                  c);
+    klangc_printf_ipos(kstderr, ipos_ss,
+                       "expect '->' but get '-%c': ['\\' <pat> ^'->' "
+                       "<expr>]\n",
+                       c);
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
@@ -74,8 +76,9 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
-    klangc_ipos_print(kstderr, ipos_ss);
-    klangc_printf(kstderr, "expect <expr>: ['\\' <pat> '->' ^<expr>]\n");
+    klangc_printf_ipos_expects(
+        kstderr, ipos_ss, "<expr>", klangc_getc(input),
+        "<lambda> ::= '\\' <pat> '->' ^<expr> (';' <lambda>)*;\n");
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;

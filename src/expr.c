@@ -161,17 +161,14 @@ klangc_parse_result_t klangc_expr_parse_alge(klangc_input_t *input,
 
 klangc_parse_result_t klangc_expr_parse_appl(klangc_input_t *input,
                                              klangc_expr_parse_opt_t epopt,
+                                             klangc_expr_t *efunc,
                                              klangc_expr_t **pexpr) {
-  klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   klangc_expr_appl_t *appl;
   klangc_parse_result_t res;
-  res = klangc_expr_appl_parse(input, epopt, &appl);
-  if (res != KLANGC_PARSE_OK) {
-    klangc_input_restore(input, ipos);
+  res = klangc_expr_appl_parse(input, epopt, efunc, &appl);
+  if (res != KLANGC_PARSE_OK)
     return res;
-  }
-  *pexpr = klangc_expr_new_appl(appl, ipos_ss);
+  *pexpr = klangc_expr_new_appl(appl, klangc_expr_get_ipos(efunc));
   return KLANGC_PARSE_OK;
 }
 
@@ -195,7 +192,8 @@ klangc_parse_result_t klangc_expr_parse_int(klangc_input_t *input,
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   int intval;
-  if (!klangc_int_parse(input, &intval)) {
+  klangc_parse_result_t res = klangc_int_parse(input, &intval);
+  if (res != KLANGC_PARSE_OK) {
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_NOPARSE;
   }
@@ -208,7 +206,8 @@ klangc_parse_result_t klangc_expr_parse_string(klangc_input_t *input,
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   const char *strval;
-  if (!klangc_string_parse(input, &strval)) {
+  klangc_parse_result_t res = klangc_string_parse(input, &strval);
+  if (res != KLANGC_PARSE_OK) {
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_NOPARSE;
   }
@@ -231,9 +230,9 @@ klangc_parse_result_t klangc_expr_parse_lambda(klangc_input_t *input,
   return KLANGC_PARSE_OK;
 }
 
-klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
-                                        klangc_expr_parse_opt_t epopt,
-                                        klangc_expr_t **pexpr) {
+klangc_parse_result_t klangc_expr_parse_noappl(klangc_input_t *input,
+                                               klangc_expr_parse_opt_t epopt,
+                                               klangc_expr_t **pexpr) {
   assert(input != NULL);
   klangc_parse_result_t res;
   klangc_expr_t *expr;
@@ -246,10 +245,6 @@ klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
     return res;
 
   res = klangc_expr_parse_alge(input, epopt, &expr);
-  if (res != KLANGC_PARSE_NOPARSE)
-    return res;
-
-  res = klangc_expr_parse_appl(input, epopt, &expr);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
@@ -270,6 +265,29 @@ klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
     return res;
 
   return KLANGC_PARSE_NOPARSE;
+}
+
+klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
+                                        klangc_expr_parse_opt_t epopt,
+                                        klangc_expr_t **pexpr) {
+  assert(input != NULL);
+  assert(pexpr != NULL);
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_parse_result_t res;
+  klangc_expr_t *expr;
+  res = klangc_expr_parse_noappl(input, epopt, &expr);
+  if (res != KLANGC_PARSE_OK)
+    return res;
+  if (epopt & KLANGC_EXPR_PARSE_NOAPPL) {
+    klangc_expr_t *func = expr;
+    res = klangc_expr_parse_appl(input, epopt, func, &expr);
+    if (res == KLANGC_PARSE_ERROR) {
+      klangc_input_restore(input, ipos);
+      return res;
+    }
+  }
+  *pexpr = expr;
+  return KLANGC_PARSE_OK;
 }
 
 void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {

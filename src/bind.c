@@ -52,16 +52,10 @@ klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   klangc_pat_t *pat;
-  switch (klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &pat)) {
-  case KLANGC_PARSE_OK:
-    break;
-  case KLANGC_PARSE_NOPARSE:
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_NOPARSE;
-  case KLANGC_PARSE_ERROR:
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
-  }
+  klangc_parse_result_t res;
+  res = klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &pat);
+  if (res != KLANGC_PARSE_OK)
+    return res;
 
   klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
   int c;
@@ -75,7 +69,8 @@ klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
 
   ipos_ss2 = klangc_skipspaces(input);
   klangc_expr_t *expr;
-  switch (klangc_expr_parse(input, KLANGC_EXPR_PARSE_NORMAL, &expr)) {
+  res = klangc_expr_parse(input, KLANGC_EXPR_PARSE_NORMAL, &expr);
+  switch (res) {
   case KLANGC_PARSE_OK:
     break;
   case KLANGC_PARSE_NOPARSE:
@@ -89,14 +84,15 @@ klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
 
   klangc_ipos_t ipos3 = klangc_input_save(input);
   klangc_skipspaces(input);
-  if (!klangc_expect(input, ';', NULL)) {
+  if (!klangc_expect(input, ';', &c)) {
     // ';' の前まで入力を巻き戻す
     klangc_input_restore(input, ipos3);
     *pbind = klangc_bind_new(pat, expr, NULL, ipos_ss);
     return KLANGC_PARSE_OK;
   }
   klangc_bind_t *next = NULL;
-  switch (klangc_bind_parse(input, &next)) {
+  res = klangc_bind_parse(input, &next);
+  switch (res) {
   case KLANGC_PARSE_NOPARSE:
     // ';' の前まで入力を巻き戻す
     klangc_input_restore(input, ipos3);
