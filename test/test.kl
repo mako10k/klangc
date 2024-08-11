@@ -9,8 +9,8 @@
 ~fib = ~fix \~f -> {
   \0 -> 1;
   \1 -> 1;
-  \Int ~n -> ~add (~f ~n_1) (~f ~n_2);
+  \Int ~n -> {~add (~f ~n_1) (~f ~n_2);
   ~n_1 = ~pred ~n;
-  ~n_2 = ~pred ~n_1;
+  ~n_2 = ~pred ~n_1;};
 };
 ~f = \~x -> \~x -> ~x;

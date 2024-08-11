@@ -235,32 +235,31 @@ klangc_parse_result_t klangc_expr_parse_noappl(klangc_input_t *input,
                                                klangc_expr_t **pexpr) {
   assert(input != NULL);
   klangc_parse_result_t res;
-  klangc_expr_t *expr;
   res = klangc_expr_parse_paren(input, pexpr);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
-  res = klangc_expr_parse_closure(input, &expr);
+  res = klangc_expr_parse_closure(input, pexpr);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
-  res = klangc_expr_parse_alge(input, epopt, &expr);
+  res = klangc_expr_parse_alge(input, epopt, pexpr);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
-  res = klangc_expr_parse_ref(input, &expr);
+  res = klangc_expr_parse_ref(input, pexpr);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
-  res = klangc_expr_parse_int(input, &expr);
+  res = klangc_expr_parse_int(input, pexpr);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
-  res = klangc_expr_parse_string(input, &expr);
+  res = klangc_expr_parse_string(input, pexpr);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
-  res = klangc_expr_parse_lambda(input, &expr);
+  res = klangc_expr_parse_lambda(input, pexpr);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
@@ -274,7 +273,7 @@ klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
   assert(pexpr != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_parse_result_t res;
-  klangc_expr_t *expr;
+  klangc_expr_t *expr = NULL;
   res = klangc_expr_parse_noappl(input, epopt, &expr);
   if (res != KLANGC_PARSE_OK)
     return res;

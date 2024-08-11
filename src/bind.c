@@ -141,6 +141,5 @@ klangc_bind_result_t klangc_bind_bind(klangc_expr_env_t *env,
       return ret;
     }
   }
-  klangc_printf(kstderr, "UNKOWN ERROR at %s:%d\n", __FILE__, __LINE__);
-  return KLANGC_BIND_ERROR;
+  return KLANGC_BIND_OK;
 }
