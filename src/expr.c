@@ -278,19 +278,28 @@ klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
   res = klangc_expr_parse_noappl(input, epopt, &expr);
   if (res != KLANGC_PARSE_OK)
     return res;
-  if (!(epopt & KLANGC_EXPR_PARSE_NOAPPL)) {
-    klangc_expr_t *func = expr;
-    res = klangc_expr_parse_appl(input, epopt, func, &expr);
-    if (res == KLANGC_PARSE_ERROR) {
-      klangc_input_restore(input, ipos);
-      return res;
-    }
+  if (epopt & KLANGC_EXPR_PARSE_NOAPPL) {
+    *pexpr = expr;
+    return KLANGC_PARSE_OK;
+  }
+  klangc_expr_t *eappl;
+  res = klangc_expr_parse_appl(input, epopt, expr, &eappl);
+  switch (res) {
+  case KLANGC_PARSE_OK:
+    expr = eappl;
+  case KLANGC_PARSE_NOPARSE:
+    break;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return res;
   }
   *pexpr = expr;
   return KLANGC_PARSE_OK;
 }
 
 void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {
+  assert(output != NULL);
+  assert(expr != NULL);
   switch (expr->ke_type) {
   case KLANGC_ETYPE_ALGE:
     klangc_expr_alge_print(output, prec, expr->ke_alge);
@@ -338,31 +347,6 @@ klangc_bind_result_t klangc_expr_bind(klangc_expr_env_t *env,
   }
   klangc_printf(kstderr, "Unknown expression type: %d\n", expr->ke_type);
   return KLANGC_BIND_ERROR;
-}
-
-klangc_unbound_result_t klangc_expr_check_unbound(klangc_expr_t *expr) {
-  switch (expr->ke_type) {
-  case KLANGC_ETYPE_ALGE:
-    return klangc_expr_alge_check_unbound(expr->ke_alge);
-
-  case KLANGC_ETYPE_REF:
-    return klangc_expr_ref_check_unbound(expr->ke_ref);
-
-  case KLANGC_ETYPE_INT:
-  case KLANGC_ETYPE_STRING:
-    return KLANGC_UNBOUND_OK;
-
-  case KLANGC_ETYPE_APPL:
-    return klangc_expr_appl_check_unbound(expr->ke_appl);
-
-  case KLANGC_ETYPE_LAMBDA:
-    return klangc_expr_lambda_check_unbound(expr->ke_lambda);
-
-  case KLANGC_ETYPE_CLOSURE:
-    return klangc_expr_closure_check_unbound(expr->ke_closure);
-  }
-  klangc_printf(kstderr, "Unknown expression type: %d\n", expr->ke_type);
-  return KLANGC_UNBOUND_ERROR;
 }
 
 klangc_ipos_t klangc_expr_get_ipos(klangc_expr_t *expr) {

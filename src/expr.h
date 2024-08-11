@@ -47,13 +47,6 @@ klangc_bind_result_t klangc_expr_bind(klangc_expr_env_t *upper,
                                       klangc_expr_t *expr);
 
 /**
- * 式に含まれる未束縛変数をチェックする
- * @param expr 式
- * @return チェック結果
- */
-klangc_unbound_result_t klangc_expr_check_unbound(klangc_expr_t *expr);
-
-/**
  * 式の位置情報を取得する
  * @param expr 式
  * @return 位置情報

@@ -51,11 +51,3 @@ void klangc_expr_closure_print(klangc_output_t *output,
  */
 klangc_bind_result_t klangc_expr_closure_bind(klangc_expr_env_t *env,
                                               klangc_expr_closure_t *closure);
-
-/**
- * クロージャに含まれる未束縛変数をチェックする
- * @param closure クロージャ
- * @return チェック結果 KLANGC_UNBOUND_OK: 成功, KLANGC_UNBOUND_ERROR: 失敗
- */
-klangc_unbound_result_t
-klangc_expr_closure_check_unbound(klangc_expr_closure_t *closure);

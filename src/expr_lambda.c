@@ -161,8 +161,3 @@ klangc_bind_result_t klangc_expr_lambda_bind(klangc_expr_env_t *env,
     return result;
   return klangc_expr_bind(env_inner, lambda->kvl_body);
 }
-
-klangc_unbound_result_t
-klangc_expr_lambda_check_unbound(klangc_expr_lambda_t *lambda) {
-  return klangc_expr_check_unbound(klangc_expr_lambda_get_body(lambda));
-}

@@ -21,18 +21,13 @@ klangc_expr_appl_t *klangc_expr_appl_new(klangc_expr_t *func) {
   return ret;
 }
 
-void klangc_expr_appl_add_args(klangc_expr_appl_t *appl, int argc,
-                               klangc_expr_t **arg) {
+void klangc_expr_appl_add_arg(klangc_expr_appl_t *appl, klangc_expr_t *arg) {
   assert(appl != NULL);
-  assert(appl->kva_argc + argc >= 0);
   assert(arg != NULL);
-  int new_argc = appl->kva_argc + argc;
-  int old_argc = appl->kva_argc;
-  klangc_expr_t **new_args =
-      klangc_realloc(appl->kva_args, sizeof(klangc_expr_t *) * new_argc);
-  for (int i = 0; i < argc; i++)
-    new_args[old_argc + i] = arg[i];
-  appl->kva_argc = new_argc;
+  klangc_expr_t **new_args = klangc_realloc(
+      appl->kva_args, sizeof(klangc_expr_t *) * (appl->kva_argc + 1));
+  new_args[appl->kva_argc] = arg;
+  appl->kva_argc++;
   appl->kva_args = new_args;
 }
 
@@ -50,25 +45,25 @@ klangc_expr_t *klangc_expr_appl_get_arg(klangc_expr_appl_t *appl, int index) {
 klangc_parse_result_t klangc_expr_appl_parse(klangc_input_t *input,
                                              klangc_expr_parse_opt_t epopt,
                                              klangc_expr_t *efunc,
-                                             klangc_expr_appl_t **pexpr_appl) {
+                                             klangc_expr_appl_t **pappl) {
   assert(input != NULL);
   assert(efunc != NULL);
-  assert(pexpr_appl != NULL);
+  assert(pappl != NULL);
   klangc_expr_appl_t *appl = klangc_expr_appl_new(efunc);
   if (epopt & KLANGC_EXPR_PARSE_NOAPPL) {
-    *pexpr_appl = appl;
+    *pappl = appl;
     return KLANGC_PARSE_OK;
   }
   while (1) {
     klangc_expr_t *arg;
-    klangc_parse_result_t res =
-        klangc_expr_parse(input, KLANGC_EXPR_PARSE_NOAPPL, &arg);
+    klangc_parse_result_t res;
+    res = klangc_expr_parse(input, KLANGC_EXPR_PARSE_NOAPPL, &arg);
     switch (res) {
     case KLANGC_PARSE_OK:
-      klangc_expr_appl_add_args(appl, 1, &arg);
+      klangc_expr_appl_add_arg(appl, arg);
       continue;
     case KLANGC_PARSE_NOPARSE:
-      *pexpr_appl = appl;
+      *pappl = appl;
       return KLANGC_PARSE_OK;
     case KLANGC_PARSE_ERROR:
       return KLANGC_PARSE_ERROR;
@@ -76,11 +71,10 @@ klangc_parse_result_t klangc_expr_appl_parse(klangc_input_t *input,
   }
 }
 
-void klangc_expr_appl_print(klangc_output_t *output, int prec,
-                            klangc_expr_appl_t *appl);
-
 klangc_bind_result_t klangc_expr_appl_bind(klangc_expr_env_t *env,
                                            klangc_expr_appl_t *appl) {
+  assert(env != NULL);
+  assert(appl != NULL);
   klangc_bind_result_t res = klangc_expr_bind(env, appl->kva_func);
   if (res != KLANGC_BIND_OK)
     return res;
@@ -90,20 +84,6 @@ klangc_bind_result_t klangc_expr_appl_bind(klangc_expr_env_t *env,
       return res;
   }
   return KLANGC_BIND_OK;
-}
-
-klangc_unbound_result_t
-klangc_expr_appl_check_unbound(klangc_expr_appl_t *appl) {
-  klangc_unbound_result_t res = klangc_expr_check_unbound(appl->kva_func);
-  if (res != KLANGC_UNBOUND_OK) {
-    return res;
-  }
-  for (int i = 0; i < appl->kva_argc; i++) {
-    res = klangc_expr_check_unbound(appl->kva_args[i]);
-    if (res != KLANGC_UNBOUND_OK)
-      return res;
-  }
-  return KLANGC_UNBOUND_OK;
 }
 
 void klangc_expr_appl_print(klangc_output_t *output, int prec,

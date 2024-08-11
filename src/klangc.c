@@ -40,6 +40,5 @@ int main(int argc, const char *argv[]) {
     klangc_bind_print(kstdout, bind);
     klangc_printf(kstdout, ";\n");
     klangc_bind_bind(prelude, bind);
-    klangc_bind_check_unbound(bind);
   }
 }

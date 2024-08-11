@@ -62,7 +62,7 @@ klangc_bind_result_t klangc_expr_ref_bind(klangc_expr_env_t *env,
   klangc_expr_ref_target_t *target = klangc_expr_env_get_entry(env, ref);
   if (target == NULL) {
     klangc_ipos_t ipos = klangc_ref_get_ipos(ref);
-    klangc_printf_ipos(kstderr, ipos, "N: unbound reference ");
+    klangc_printf_ipos(kstderr, ipos, "W: unbound reference ");
     klangc_ref_print(kstderr, ref);
     klangc_printf(kstderr, "\n");
     return KLANGC_BIND_OK;
@@ -76,16 +76,4 @@ klangc_bind_result_t klangc_expr_ref_bind(klangc_expr_env_t *env,
   }
   eref->ker_target = target;
   return KLANGC_BIND_OK;
-}
-
-klangc_unbound_result_t klangc_expr_ref_check_unbound(klangc_expr_ref_t *eref) {
-  if (eref->ker_target == NULL) {
-    klangc_ref_t *ref = klangc_expr_ref_get_ref(eref);
-    klangc_ipos_t ipos = klangc_ref_get_ipos(ref);
-    klangc_printf_ipos(kstderr, ipos, "E: unbound reference ");
-    klangc_ref_print(kstderr, ref);
-    klangc_printf(kstderr, "\n");
-    return KLANGC_UNBOUND_ERROR;
-  }
-  return KLANGC_UNBOUND_OK;
 }

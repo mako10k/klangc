@@ -5,8 +5,7 @@
 
 klangc_pat_alge_t *klangc_pat_alge_new(klangc_symbol_t *constr);
 
-void klangc_pat_alge_add_arg(klangc_pat_alge_t *base, int argc,
-                             klangc_pat_t **args);
+void klangc_pat_alge_add_arg(klangc_pat_alge_t *base, klangc_pat_t *arg);
 
 klangc_symbol_t *klangc_pat_alge_get_constr(klangc_pat_alge_t *alge);
 

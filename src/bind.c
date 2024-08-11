@@ -144,16 +144,3 @@ klangc_bind_result_t klangc_bind_bind(klangc_expr_env_t *env,
   klangc_printf(kstderr, "UNKOWN ERROR at %s:%d\n", __FILE__, __LINE__);
   return KLANGC_BIND_ERROR;
 }
-
-klangc_unbound_result_t klangc_bind_check_unbound(klangc_bind_t *bind) {
-  for (klangc_bind_t *b = bind; b != NULL; b = b->kb_next) {
-    switch (klangc_expr_check_unbound(b->kb_expr)) {
-    case KLANGC_UNBOUND_OK:
-      break;
-    case KLANGC_UNBOUND_ERROR:
-      return KLANGC_UNBOUND_ERROR;
-    }
-  }
-  klangc_printf(kstderr, "UNKOWN ERROR at %s:%d\n", __FILE__, __LINE__);
-  return KLANGC_UNBOUND_ERROR;
-}

@@ -6,8 +6,7 @@
 
 klangc_expr_appl_t *klangc_expr_appl_new(klangc_expr_t *func);
 
-void klangc_expr_appl_add_args(klangc_expr_appl_t *appl, int argc,
-                               klangc_expr_t **arg);
+void klangc_expr_appl_add_arg(klangc_expr_appl_t *appl, klangc_expr_t *arg);
 
 klangc_expr_t *klangc_expr_appl_get_func(klangc_expr_appl_t *appl);
 
@@ -23,6 +22,3 @@ void klangc_expr_appl_print(klangc_output_t *output, int prec,
 
 klangc_bind_result_t klangc_expr_appl_bind(klangc_expr_env_t *env,
                                            klangc_expr_appl_t *appl);
-
-klangc_unbound_result_t
-klangc_expr_appl_check_unbound(klangc_expr_appl_t *appl);

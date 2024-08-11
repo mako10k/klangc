@@ -120,12 +120,3 @@ klangc_bind_result_t klangc_expr_closure_bind(klangc_expr_env_t *env,
       return -1;
   return klangc_expr_bind(env_inner, closure->kc_expr);
 }
-
-klangc_unbound_result_t
-klangc_expr_closure_check_unbound(klangc_expr_closure_t *closure) {
-  if (closure->kc_bind != NULL) {
-    if (klangc_bind_check_unbound(closure->kc_bind) == -1)
-      return -1;
-  }
-  return klangc_expr_check_unbound(closure->kc_expr);
-}

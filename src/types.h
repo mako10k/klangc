@@ -92,9 +92,3 @@ typedef enum klangc_bind_result {
   KLANGC_BIND_OK,
   KLANGC_BIND_ERROR,
 } klangc_bind_result_t;
-
-/** バインドチェック結果 */
-typedef enum klangc_unbound_result {
-  KLANGC_UNBOUND_OK,
-  KLANGC_UNBOUND_ERROR,
-} klangc_unbound_result_t;

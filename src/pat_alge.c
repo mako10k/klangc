@@ -21,21 +21,14 @@ klangc_pat_alge_t *klangc_pat_alge_new(klangc_symbol_t *constr) {
   return res;
 }
 
-void klangc_pat_alge_add_arg(klangc_pat_alge_t *base, int argc,
-                             klangc_pat_t **args) {
-  assert(base != NULL);
-  assert(base->kpa_argc + argc >= 0);
-  assert(argc <= 0 || args != NULL);
-  if (argc == 0)
-    return;
-  int old_argc = base->kpa_argc;
-  int new_argc = base->kpa_argc + argc;
-  klangc_pat_t **new_args =
-      klangc_realloc(base->kpa_args, new_argc * sizeof(klangc_pat_t *));
-  for (int i = 0; i < argc; i++)
-    new_args[old_argc + i] = args[i];
-  base->kpa_argc = new_argc;
-  base->kpa_args = new_args;
+void klangc_pat_alge_add_arg(klangc_pat_alge_t *alge, klangc_pat_t *arg) {
+  assert(alge != NULL);
+  assert(arg != NULL);
+  klangc_pat_t **new_args = klangc_realloc(
+      alge->kpa_args, sizeof(klangc_pat_t *) * (alge->kpa_argc + 1));
+  new_args[alge->kpa_argc] = arg;
+  alge->kpa_argc++;
+  alge->kpa_args = new_args;
 }
 
 klangc_symbol_t *klangc_pat_alge_get_constr(klangc_pat_alge_t *alge) {
@@ -112,7 +105,7 @@ klangc_parse_result_t klangc_pat_alge_parse(klangc_input_t *input, int noarg,
     res = klangc_pat_parse(input, KLANGC_PAT_PARSE_NOARG, &arg);
     if (res != KLANGC_PARSE_OK)
       break;
-    klangc_pat_alge_add_arg(pat, 1, &arg);
+    klangc_pat_alge_add_arg(pat, arg);
   }
   if (res != KLANGC_PARSE_NOPARSE)
     return res;

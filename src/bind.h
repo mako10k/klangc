@@ -65,10 +65,3 @@ void klangc_bind_print(klangc_output_t *output, klangc_bind_t *bind);
  */
 klangc_bind_result_t klangc_bind_bind(klangc_expr_env_t *env,
                                       klangc_bind_t *bind);
-
-/**
- * 束縛式の未バインドの参照があるかチェックする
- * @param bind 束縛式
- * @return チェック結果 KLANGC_UNBOUND_OK: 成功, KLANGC_UNBOUND_ERROR: 失敗
- */
-klangc_unbound_result_t klangc_bind_check_unbound(klangc_bind_t *bind);

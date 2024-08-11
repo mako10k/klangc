@@ -21,19 +21,14 @@ klangc_expr_alge_t *klangc_expr_alge_new(klangc_symbol_t *constr) {
   return expr;
 }
 
-void klangc_expr_alge_add_args(klangc_expr_alge_t *expr, int argc,
-                               klangc_expr_t **args) {
-  assert(expr != NULL);
-  assert(expr->ker_argc + argc >= 0);
-  assert(args != NULL);
-  int new_argc = expr->ker_argc + argc;
-  int old_argc = expr->ker_argc;
-  klangc_expr_t **new_args =
-      klangc_realloc(expr->ker_args, sizeof(klangc_expr_t *) * new_argc);
-  for (int i = 0; i < new_argc; i++)
-    new_args[old_argc + i] = args[i];
-  expr->ker_argc = new_argc;
-  expr->ker_args = new_args;
+void klangc_expr_alge_add_arg(klangc_expr_alge_t *alge, klangc_expr_t *arg) {
+  assert(alge != NULL);
+  assert(arg != NULL);
+  klangc_expr_t **new_args = klangc_realloc(
+      alge->ker_args, sizeof(klangc_expr_t *) * (alge->ker_argc + 1));
+  new_args[alge->ker_argc] = arg;
+  alge->ker_argc++;
+  alge->ker_args = new_args;
 }
 
 klangc_symbol_t *klangc_expr_alge_get_constr(klangc_expr_alge_t *expr) {
@@ -62,11 +57,11 @@ klangc_parse_result_t klangc_expr_alge_parse(klangc_input_t *input,
     return KLANGC_PARSE_OK;
   }
   while (1) {
-    klangc_expr_t *arg = NULL;
+    klangc_expr_t *arg;
     res = klangc_expr_parse(input, KLANGC_EXPR_PARSE_NOAPPL, &arg);
     switch (res) {
     case KLANGC_PARSE_OK:
-      klangc_expr_alge_add_args(alge, 1, &arg);
+      klangc_expr_alge_add_arg(alge, arg);
       break;
     case KLANGC_PARSE_NOPARSE:
       *pexpr = alge;
@@ -107,16 +102,4 @@ klangc_bind_result_t klangc_expr_alge_bind(klangc_expr_env_t *upper,
       return res;
   }
   return KLANGC_BIND_OK;
-}
-
-klangc_unbound_result_t
-klangc_expr_alge_check_unbound(klangc_expr_alge_t *expr) {
-  assert(expr != NULL);
-  for (int i = 0; i < expr->ker_argc; i++) {
-    klangc_expr_t *arg = klangc_expr_alge_get_arg(expr, i);
-    klangc_unbound_result_t res = klangc_expr_check_unbound(arg);
-    if (res != KLANGC_UNBOUND_OK)
-      return res;
-  }
-  return KLANGC_UNBOUND_OK;
 }
