@@ -3,32 +3,35 @@
 ----
 
 ```
-<prog> ::= <bare_closure>*;
+<program> ::= <closure>*;
+<closure> ::= <lambda> ( ";" <bind> )? ";";
+<lambda> ::= "\" <pat> "->" <expr> ( ";" <lambda> )?;
+<bind> ::= <pat> "=" <expr> ( ";" <bind> )?;
+<pat> ::= <pat_noalge> | <pat_alge>;
+<pat_noalge> ::=
+    "(" <pat> ")";
+  | <ref> ("@" <pat_noalge>)?
+  | <int>
+  | <string>
+  ;
+<pat_alge> ::= <symbol> | <pat|except pat_alge>*; 
+<expr> ::= <expr_noappl> | <expr_appl>;
+<expr_noappl> ::=
+    "(" <expr> ")"
+  | <lambda>
+  | <ref>
+  | <expr_closure>
+  | <int>
+  | <string>
+  ;
+<expr_appl> ::= <expr_alge> | <expr_noappl>+;
+<expr_alge> ::= <symbol> <expr_noappl>*;
+<expr_closure> ::= "{" <closure> "}";
 
-<bare_closure> = <closure_entry>*;
-
-<closure_entry> ::= ( <lambda> | <bind> ) ";";
-
-<lambda> ::= "\" <pat> "->" <expr>;
-
-<bind> ::= <pat> "=" <expr>;
-
-<pat> ::= <pat_noapp> <pat_noapp>*;
-
-<pat_noapp> ::= "(" <pat> ")"
-              | <symbol>
-              | <ref>
-              | <pat_at>
-              | <int>
-              | <str>
-              ;
-
-<expr>
-
-TOKENS
+## TOKENS
 
 <symbol> ::= [A-Za-z_][A-Za-z_0-9]*;
-<reference> ::= "~" <symbol>;
+<ref> ::= "~" <symbol>;
 <int> ::= [0-9]+;
 <str> ::= ["][^"]*["];
 
