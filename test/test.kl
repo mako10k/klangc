@@ -1,6 +1,8 @@
 # COMMENT
+\~args -> ~println "hoge\n";
 ~join = \~m -> ~chain ~m ~id;
 ~id = \~x -> ~x;
+~fix = \~f -> { ~x ; ~x = ~f ~x; };
 ~chain = \~m -> \~f -> ~join (~fmap ~f ~m);
 ~fmap = \~f -> \~m -> ~chain ~m \~x -> ~return (~f ~x);
 

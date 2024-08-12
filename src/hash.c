@@ -23,9 +23,8 @@ klangc_hash_t *klangc_hash_new(int capacity) {
   hash->kh_capacity = capacity;
   hash->kh_size = 0;
   hash->kh_entries = klangc_malloc(capacity * sizeof(klangc_hash_entry_t *));
-  for (int i = 0; i < capacity; i++) {
+  for (int i = 0; i < capacity; i++)
     hash->kh_entries[i] = NULL;
-  }
   return hash;
 }
 
@@ -34,9 +33,9 @@ klangc_hash_t *klangc_hash_new(int capacity) {
  * @param key キー
  * @return ハッシュ値
  */
-static int klangc_calc_hash(const char *key) {
+static unsigned int klangc_calc_hash(const char *key) {
   assert(key != NULL);
-  int hash = 0;
+  unsigned int hash = 0;
   for (int i = 0; key[i] != '\0'; i++)
     hash = hash * 31 + key[i];
   return hash;

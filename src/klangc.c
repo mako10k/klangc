@@ -1,4 +1,4 @@
-#include "bind.h"
+#include "expr_closure.h"
 #include "expr_env.h"
 #include "input.h"
 #include "output.h"
@@ -15,8 +15,8 @@ int main(int argc, const char *argv[]) {
       return EXIT_FAILURE;
     }
     klangc_input_t *input = klangc_input_new(fp, argv[i]);
-    klangc_bind_t *bind;
-    switch (klangc_bind_parse(input, &bind)) {
+    klangc_expr_closure_t *closure;
+    switch (klangc_expr_closure_parse_nobrace(input, &closure)) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
@@ -27,18 +27,13 @@ int main(int argc, const char *argv[]) {
     }
     klangc_ipos_t ipos_ss = klangc_skipspaces(input);
     int c;
-    if (klangc_expect(input, ';', &c) == 0) {
-      klangc_printf_ipos_expects(kstderr, ipos_ss, "';'", c,
-                                 "<program> ::= <bind> ^';';\n");
-      return EXIT_FAILURE;
-    }
     if (klangc_expect(input, EOF, &c) == 0) {
       klangc_printf_ipos_expects(kstderr, ipos_ss, "EOF", c,
-                                 "<program> ::= <bind> ';'^;\n");
+                                 "<program> ::= <closure'> ';'^;\n");
       return EXIT_FAILURE;
     }
-    klangc_bind_print(kstdout, bind);
+    klangc_expr_closure_print(kstdout, closure);
     klangc_printf(kstdout, ";\n");
-    klangc_bind_bind(prelude, bind);
+    klangc_expr_closure_bind(prelude, closure);
   }
 }

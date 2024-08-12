@@ -32,6 +32,16 @@ klangc_bind_t *klangc_expr_closure_get_bind(klangc_expr_closure_t *closure);
  * @return パース結果
  */
 klangc_parse_result_t
+klangc_expr_closure_parse_nobrace(klangc_input_t *input,
+                                  klangc_expr_closure_t **pclosure);
+
+/**
+ * クロージャをパースする
+ * @param input 入力
+ * @param pclosure パースしたクロージャ
+ * @return パース結果
+ */
+klangc_parse_result_t
 klangc_expr_closure_parse(klangc_input_t *input,
                           klangc_expr_closure_t **pclosure);
 
