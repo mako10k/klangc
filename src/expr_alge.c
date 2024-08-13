@@ -6,12 +6,28 @@
 #include "types.h"
 #include <assert.h>
 
+// *******************************
+// Algebraic expression.
+// *******************************
+
+// -------------------------------
+// Structures.
+// -------------------------------
+/**
+ * Algebraic expression.
+ */
 struct klangc_expr_alge {
+  /** Constructor symbol */
   klangc_symbol_t *ker_constr;
+  /** Number of arguments */
   int ker_argc;
+  /** Arguments */
   klangc_expr_t **ker_args;
 };
 
+// -------------------------------
+// Constructors.
+// -------------------------------
 klangc_expr_alge_t *klangc_expr_alge_new(klangc_symbol_t *constr) {
   assert(constr != NULL);
   klangc_expr_alge_t *expr = klangc_malloc(sizeof(klangc_expr_alge_t));
@@ -31,9 +47,17 @@ void klangc_expr_alge_add_arg(klangc_expr_alge_t *alge, klangc_expr_t *arg) {
   alge->ker_args = new_args;
 }
 
+// -------------------------------
+// Accessors.
+// -------------------------------
 klangc_symbol_t *klangc_expr_alge_get_constr(klangc_expr_alge_t *expr) {
   assert(expr != NULL);
   return expr->ker_constr;
+}
+
+int klangc_expr_alge_get_argc(klangc_expr_alge_t *expr) {
+  assert(expr != NULL);
+  return expr->ker_argc;
 }
 
 klangc_expr_t *klangc_expr_alge_get_arg(klangc_expr_alge_t *expr, int index) {
@@ -42,6 +66,9 @@ klangc_expr_t *klangc_expr_alge_get_arg(klangc_expr_alge_t *expr, int index) {
   return expr->ker_args[index];
 }
 
+// -------------------------------
+// Parsers.
+// -------------------------------
 klangc_parse_result_t klangc_expr_alge_parse(klangc_input_t *input,
                                              klangc_expr_parse_opt_t epopt,
                                              klangc_expr_alge_t **pexpr) {
@@ -72,6 +99,9 @@ klangc_parse_result_t klangc_expr_alge_parse(klangc_input_t *input,
   }
 }
 
+// -------------------------------
+// Printers.
+// -------------------------------
 void klangc_expr_alge_print(klangc_output_t *output, int prec,
                             klangc_expr_alge_t *expr) {
   assert(output != NULL);
@@ -91,6 +121,9 @@ void klangc_expr_alge_print(klangc_output_t *output, int prec,
     klangc_printf(output, ")");
 }
 
+// -------------------------------
+// Binders.
+// -------------------------------
 klangc_bind_result_t klangc_expr_alge_bind(klangc_expr_env_t *upper,
                                            klangc_expr_alge_t *expr) {
   assert(upper != NULL);
