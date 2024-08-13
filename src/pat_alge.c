@@ -6,12 +6,27 @@
 #include "types.h"
 #include <assert.h>
 
+// *******************************
+// Pattern Algebra.
+// *******************************
+// -------------------------------
+// Structures.
+// -------------------------------
+/**
+ * Pattern algebra.
+ */
 struct klangc_pat_alge {
+  /** Constructor */
   klangc_symbol_t *kpa_constr;
-  int kpa_argc;
+  /** Number of arguments */
+  unsigned int kpa_argc;
+  /** Arguments */
   klangc_pat_t **kpa_args;
 };
 
+// -------------------------------
+// Constructors.
+// -------------------------------
 klangc_pat_alge_t *klangc_pat_alge_new(klangc_symbol_t *constr) {
   assert(constr != NULL);
   klangc_pat_alge_t *res = klangc_malloc(sizeof(klangc_pat_alge_t));
@@ -21,75 +36,70 @@ klangc_pat_alge_t *klangc_pat_alge_new(klangc_symbol_t *constr) {
   return res;
 }
 
-void klangc_pat_alge_add_arg(klangc_pat_alge_t *alge, klangc_pat_t *arg) {
-  assert(alge != NULL);
+void klangc_pat_alge_add_arg(klangc_pat_alge_t *palge, klangc_pat_t *arg) {
+  assert(palge != NULL);
   assert(arg != NULL);
   klangc_pat_t **new_args = klangc_realloc(
-      alge->kpa_args, sizeof(klangc_pat_t *) * (alge->kpa_argc + 1));
-  new_args[alge->kpa_argc] = arg;
-  alge->kpa_argc++;
-  alge->kpa_args = new_args;
+      palge->kpa_args, sizeof(klangc_pat_t *) * (palge->kpa_argc + 1));
+  new_args[palge->kpa_argc] = arg;
+  palge->kpa_argc++;
+  palge->kpa_args = new_args;
 }
 
-klangc_symbol_t *klangc_pat_alge_get_constr(klangc_pat_alge_t *alge) {
-  assert(alge != NULL);
-  return alge->kpa_constr;
+// -------------------------------
+// Accessors.
+// -------------------------------
+klangc_symbol_t *klangc_pat_alge_get_constr(klangc_pat_alge_t *palge) {
+  assert(palge != NULL);
+  return palge->kpa_constr;
 }
 
-int klangc_pat_alge_get_argc(klangc_pat_alge_t *alge) {
-  assert(alge != NULL);
-  return alge->kpa_argc;
+unsigned int klangc_pat_alge_get_argc(klangc_pat_alge_t *palge) {
+  assert(palge != NULL);
+  return palge->kpa_argc;
 }
 
-klangc_pat_t *klangc_pat_alge_get_arg(klangc_pat_alge_t *alge, int index) {
-  assert(alge != NULL);
+klangc_pat_t *klangc_pat_alge_get_arg(klangc_pat_alge_t *palge, int index) {
+  assert(palge != NULL);
   assert(index >= 0);
-  assert(index < alge->kpa_argc);
-  return alge->kpa_args[index];
+  assert(index < palge->kpa_argc);
+  return palge->kpa_args[index];
 }
 
-klangc_bind_result_t klangc_pat_alge_bind(klangc_expr_env_t *env,
-                                          klangc_pat_alge_t *pat_appl,
-                                          klangc_expr_ref_target_t *target) {
-  assert(env != NULL);
-  assert(pat_appl != NULL);
-  assert(target != NULL);
-  for (int i = 0; i < pat_appl->kpa_argc; i++) {
-    klangc_bind_result_t res =
-        klangc_pat_bind(env, pat_appl->kpa_args[i], target);
-    if (res == KLANGC_BIND_ERROR)
-      return res;
-  }
-  return KLANGC_BIND_OK;
-}
-
+// -------------------------------
+// Printers.
+// -------------------------------
 void klangc_pat_alge_print(klangc_output_t *output, int prec,
-                           klangc_pat_alge_t *pat_alge) {
+                           klangc_pat_alge_t *palge) {
   assert(output != NULL);
   assert(KLANGC_PREC_LOWEST <= prec);
   assert(prec <= KLANGC_PREC_HIGHEST);
-  assert(pat_alge != NULL);
-  if (pat_alge->kpa_argc == 0) {
-    klangc_symbol_print(output, pat_alge->kpa_constr);
+  assert(palge != NULL);
+  if (palge->kpa_argc == 0) {
+    klangc_symbol_print(output, palge->kpa_constr);
     return;
   }
   if (prec > KLANGC_PREC_APPL)
     klangc_printf(output, "(");
-  klangc_symbol_print(output, pat_alge->kpa_constr);
-  if (pat_alge->kpa_argc == 0)
+  klangc_symbol_print(output, palge->kpa_constr);
+  if (palge->kpa_argc == 0)
     return;
-  for (int i = 0; i < pat_alge->kpa_argc; i++) {
+  for (int i = 0; i < palge->kpa_argc; i++) {
     klangc_printf(output, " ");
-    klangc_pat_print(output, KLANGC_PREC_APPL + 1, pat_alge->kpa_args[i]);
+    klangc_pat_print(output, KLANGC_PREC_APPL + 1, palge->kpa_args[i]);
   }
   if (prec > KLANGC_PREC_APPL)
     klangc_printf(output, ")");
 }
 
-klangc_parse_result_t klangc_pat_alge_parse(klangc_input_t *input, int noarg,
-                                            klangc_pat_alge_t **ppat) {
+// -------------------------------
+// Parsers.
+// -------------------------------
+klangc_parse_result_t klangc_pat_alge_parse(klangc_input_t *input,
+                                            klangc_pat_parse_opt_t ppopts,
+                                            klangc_pat_alge_t **palge) {
   assert(input != NULL);
-  assert(ppat != NULL);
+  assert(palge != NULL);
   klangc_parse_result_t res;
   klangc_symbol_t *constr;
   res = klangc_symbol_parse(input, &constr);
@@ -97,8 +107,8 @@ klangc_parse_result_t klangc_pat_alge_parse(klangc_input_t *input, int noarg,
     return res;
   klangc_pat_alge_t *pat = klangc_pat_alge_new(constr);
   klangc_pat_t *arg;
-  if (noarg) {
-    *ppat = pat;
+  if (ppopts & KLANGC_PAT_PARSE_NOARG) {
+    *palge = pat;
     return KLANGC_PARSE_OK;
   }
   while (1) {
@@ -109,6 +119,23 @@ klangc_parse_result_t klangc_pat_alge_parse(klangc_input_t *input, int noarg,
   }
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
-  *ppat = pat;
+  *palge = pat;
   return KLANGC_PARSE_OK;
+}
+
+// -------------------------------
+// Binders.
+// -------------------------------
+klangc_bind_result_t klangc_pat_alge_bind(klangc_expr_env_t *env,
+                                          klangc_pat_alge_t *palge,
+                                          klangc_expr_ref_target_t *target) {
+  assert(env != NULL);
+  assert(palge != NULL);
+  assert(target != NULL);
+  for (int i = 0; i < palge->kpa_argc; i++) {
+    klangc_bind_result_t res = klangc_pat_bind(env, palge->kpa_args[i], target);
+    if (res == KLANGC_BIND_ERROR)
+      return res;
+  }
+  return KLANGC_BIND_OK;
 }
