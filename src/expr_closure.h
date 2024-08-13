@@ -2,62 +2,80 @@
 
 #include "klangc.h"
 
+// *******************************
+// Closure expression.
+// *******************************
+// -------------------------------
+// Constructors.
+// -------------------------------
 /**
- * クロージャを作成
- * @param expr 式
- * @param bind バインド
- * @return 作成したクロージャ
+ * Make a new closure expression.
+ * @param expr Expression.
+ * @param bind Binding.
+ * @return New closure expression.
  */
 klangc_expr_closure_t *klangc_expr_closure_new(klangc_expr_t *expr,
                                                klangc_bind_t *bind);
 
+// -------------------------------
+// Accessors.
+// -------------------------------
 /**
- * クロージャの式を取得する
- * @param closure クロージャ
- * @return 式
+ * Get the expression of a closure.
+ * @param closure Closure.
+ * @return Expression.
  */
 klangc_expr_t *klangc_expr_closure_get_expr(klangc_expr_closure_t *closure);
 
 /**
- * クロージャのバインドを取得する
- * @param closure クロージャ
- * @return バインド
+ * Get the binding of a closure.
+ * @param closure Closure.
+ * @return Binding.
  */
 klangc_bind_t *klangc_expr_closure_get_bind(klangc_expr_closure_t *closure);
 
+// -------------------------------
+// Parsers.
+// -------------------------------
 /**
- * クロージャをパースする
- * @param input 入力
- * @param pclosure パースしたクロージャ
- * @return パース結果
+ * Parse a closure expression without surrounding braces.
+ * @param input Input stream.
+ * @param pclosure Pointer to the result.
+ * @return Parsing result.
  */
 klangc_parse_result_t
 klangc_expr_closure_parse_nobrace(klangc_input_t *input,
                                   klangc_expr_closure_t **pclosure);
 
 /**
- * クロージャをパースする
- * @param input 入力
- * @param pclosure パースしたクロージャ
- * @return パース結果
+ * Parse a closure expression.
+ * @param input Input stream.
+ * @param pclosure Pointer to the result.
+ * @return Parsing result.
  */
 klangc_parse_result_t
 klangc_expr_closure_parse(klangc_input_t *input,
                           klangc_expr_closure_t **pclosure);
 
+// -------------------------------
+// Printers.
+// -------------------------------
 /**
- * クロージャを出力する
- * @param output 出力
- * @param eclosure クロージャ
+ * Print a closure expression.
+ * @param output Output stream.
+ * @param eclosure Closure expression.
  */
 void klangc_expr_closure_print(klangc_output_t *output,
                                klangc_expr_closure_t *eclosure);
 
+// -------------------------------
+// Binders.
+// -------------------------------
 /**
- * クロージャを束縛する
- * @param env 環境
- * @param closure クロージャ
- * @return バインド結果 KLANGC_BIND_OK: 成功, KLANGC_BIND_ERROR: 失敗
+ * Bind a closure expression.
+ * @param env Environment.
+ * @param closure Closure.
+ * @return Binding result.
  */
 klangc_bind_result_t klangc_expr_closure_bind(klangc_expr_env_t *env,
                                               klangc_expr_closure_t *closure);

@@ -10,11 +10,25 @@
 #include "types.h"
 #include <assert.h>
 
+// *******************************
+// Closure expression.
+// *******************************
+// -------------------------------
+// Structures.
+// -------------------------------
+/**
+ * Closure expression.
+ */
 struct klangc_expr_closure {
+  /** Expression */
   klangc_expr_t *kc_expr;
+  /** Binding */
   klangc_bind_t *kc_bind;
 };
 
+// -------------------------------
+// Constructors.
+// -------------------------------
 klangc_expr_closure_t *klangc_expr_closure_new(klangc_expr_t *expr,
                                                klangc_bind_t *bind) {
   klangc_expr_closure_t *closure = klangc_malloc(sizeof(klangc_expr_closure_t));
@@ -23,6 +37,9 @@ klangc_expr_closure_t *klangc_expr_closure_new(klangc_expr_t *expr,
   return closure;
 }
 
+// -------------------------------
+// Accessors.
+// -------------------------------
 klangc_expr_t *klangc_expr_closure_get_expr(klangc_expr_closure_t *closure) {
   return closure->kc_expr;
 }
@@ -31,6 +48,9 @@ klangc_bind_t *klangc_expr_closure_get_bind(klangc_expr_closure_t *closure) {
   return closure->kc_bind;
 }
 
+// -------------------------------
+// Parsers.
+// -------------------------------
 klangc_parse_result_t
 klangc_expr_closure_parse_nobrace(klangc_input_t *input,
                                   klangc_expr_closure_t **pclosure) {
@@ -118,6 +138,9 @@ klangc_expr_closure_parse(klangc_input_t *input,
   return KLANGC_PARSE_OK;
 }
 
+// -------------------------------
+// Printers.
+// -------------------------------
 void klangc_expr_closure_print(klangc_output_t *output,
                                klangc_expr_closure_t *closure) {
   klangc_printf(output, "{");
@@ -132,6 +155,9 @@ void klangc_expr_closure_print(klangc_output_t *output,
   klangc_printf(output, "}");
 }
 
+// -------------------------------
+// Binders.
+// -------------------------------
 klangc_bind_result_t klangc_expr_closure_bind(klangc_expr_env_t *env,
                                               klangc_expr_closure_t *closure) {
   klangc_expr_env_t *env_inner = klangc_expr_env_new(env);
