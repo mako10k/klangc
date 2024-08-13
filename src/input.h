@@ -91,4 +91,4 @@ klangc_ipos_t klangc_skipspaces(klangc_input_t *input);
  * @param output Output.
  * @param ipos Position.
  */
-void klangc_ipos_print(klangc_output_t *output, klangc_ipos_t ipos);
+int klangc_ipos_print(klangc_output_t *output, klangc_ipos_t ipos);
