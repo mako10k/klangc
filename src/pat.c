@@ -1,79 +1,77 @@
 
 #include "pat.h"
 #include "input.h"
+#include "malloc.h"
 #include "output.h"
 #include "parse.h"
 #include "pat_alge.h"
 #include "pat_as.h"
 #include "pat_ref.h"
-#include "symbol.h"
 #include "types.h"
 #include <assert.h>
 #include <stdio.h>
 
+// *******************************
+// Pattern.
+// *******************************
+// -------------------------------
+// Structures.
+// -------------------------------
+/**
+ * Pattern.
+ */
 struct klangc_pat {
+  /** Type */
   klangc_pat_type_t kp_type;
   union {
+    /** Reference */
     klangc_pat_ref_t *kp_ref;
+    /** Algebraic */
     klangc_pat_alge_t *kp_alge;
+    /** As */
     klangc_pat_as_t *kp_as;
+    /** Integer value */
     int kp_intval;
+    /** String value */
     const char *kp_strval;
   };
+  /** Input position */
   klangc_ipos_t ipos;
 };
 
-/**
- * Creates a new pattern object with the given symbol name.
- *
- * @param name The symbol name for the pattern.
- * @return A pointer to the newly created pattern object.
- */
-klangc_pat_t *klangc_pat_new_alge(klangc_pat_alge_t *alge, klangc_ipos_t ipos) {
-  assert(alge != NULL);
-
-  klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
-  pat->kp_type = KLANGC_PTYPE_ALGE;
-  pat->kp_alge = alge;
-  pat->ipos = ipos;
-  return pat;
-}
-
-klangc_pat_t *klangc_pat_new_ref(klangc_pat_ref_t *ref, klangc_ipos_t ipos) {
-  assert(ref != NULL);
-
+// -------------------------------
+// Constructors.
+// -------------------------------
+klangc_pat_t *klangc_pat_new_ref(klangc_pat_ref_t *pref, klangc_ipos_t ipos) {
+  assert(pref != NULL);
   klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
   pat->kp_type = KLANGC_PTYPE_REF;
-  pat->kp_ref = ref;
+  pat->kp_ref = pref;
   pat->ipos = ipos;
   return pat;
 }
 
-/**
- * Creates a new klangc_pat_t object with the specified symbol.
- *
- * @param var The symbol for the pattern.
- * @param pat The pattern to apply the symbol to.
- * @return A pointer to the newly created klangc_pattern_t object.
- */
-klangc_pat_t *klangc_pat_new_as(klangc_pat_ref_t *var, klangc_pat_t *pat,
-                                klangc_ipos_t ipos) {
-  assert(var != NULL);
-  assert(pat != NULL);
-
-  klangc_pat_t *as = klangc_malloc(sizeof(klangc_pat_t));
-  as->kp_type = KLANGC_PTYPE_AS;
-  as->kp_as = klangc_pat_as_new(var, pat);
-  as->ipos = ipos;
-  return as;
+klangc_pat_t *klangc_pat_new_alge(klangc_pat_alge_t *palge,
+                                  klangc_ipos_t ipos) {
+  assert(palge != NULL);
+  klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
+  pat->kp_type = KLANGC_PTYPE_ALGE;
+  pat->kp_alge = palge;
+  pat->ipos = ipos;
+  return pat;
 }
 
-/**
- * Creates a new klangc_pat_t object with an integer value.
- *
- * @param intval The integer value for the pattern
- * @return A pointer to the newly created klangc_pat_t object.
- */
+klangc_pat_t *klangc_pat_new_as(klangc_pat_ref_t *pref, klangc_pat_t *pat_as,
+                                klangc_ipos_t ipos) {
+  assert(pref != NULL);
+  assert(pat_as != NULL);
+  klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
+  pat->kp_type = KLANGC_PTYPE_AS;
+  pat->kp_as = klangc_pat_as_new(pref, pat_as);
+  pat->ipos = ipos;
+  return pat;
+}
+
 klangc_pat_t *klangc_pat_new_int(int intval, klangc_ipos_t ipos) {
   klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
   pat->kp_type = KLANGC_PTYPE_INT;
@@ -82,12 +80,6 @@ klangc_pat_t *klangc_pat_new_int(int intval, klangc_ipos_t ipos) {
   return pat;
 }
 
-/**
- * Creates a new klangc_pat_t object from a string value.
- *
- * @param strval The string value to create the pattern from.
- * @return A pointer to the newly created klangc_pat_t object.
- */
 klangc_pat_t *klangc_pat_new_string(const char *strval, klangc_ipos_t ipos) {
   assert(strval != NULL);
   klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
@@ -97,18 +89,52 @@ klangc_pat_t *klangc_pat_new_string(const char *strval, klangc_ipos_t ipos) {
   return pat;
 }
 
+// -------------------------------
+// Accessors.
+// -------------------------------
+klangc_pat_type_t klangc_pat_get_type(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  return pat->kp_type;
+}
+
+klangc_pat_ref_t *klangc_pat_get_ref(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  assert(pat->kp_type == KLANGC_PTYPE_REF);
+  return pat->kp_ref;
+}
+
 klangc_pat_alge_t *klangc_pat_get_alge(klangc_pat_t *pat) {
   assert(pat != NULL);
   assert(pat->kp_type == KLANGC_PTYPE_ALGE);
   return pat->kp_alge;
 }
 
-klangc_ref_t *klangc_pat_get_ref(klangc_pat_t *pat) {
+klangc_pat_as_t *klangc_pat_get_as(klangc_pat_t *pat) {
   assert(pat != NULL);
-  assert(pat->kp_type == KLANGC_PTYPE_REF);
-  return klangc_pat_ref_get_ref(pat->kp_ref);
+  assert(pat->kp_type == KLANGC_PTYPE_AS);
+  return pat->kp_as;
 }
 
+int klangc_pat_get_intval(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  assert(pat->kp_type == KLANGC_PTYPE_INT);
+  return pat->kp_intval;
+}
+
+const char *klangc_pat_get_strval(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  assert(pat->kp_type == KLANGC_PTYPE_STRING);
+  return pat->kp_strval;
+}
+
+klangc_ipos_t klangc_pat_get_ipos(klangc_pat_t *pat) {
+  assert(pat != NULL);
+  return pat->ipos;
+}
+
+// -------------------------------
+// Parsers.
+// -------------------------------
 klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
                                        klangc_pat_parse_opt_t ppopt,
                                        klangc_pat_t **ppat) {
@@ -221,40 +247,9 @@ klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
   return KLANGC_PARSE_NOPARSE;
 }
 
-int klangc_pat_foreach_ref(klangc_pat_t *pat,
-                           klangc_pat_foreach_ref_func_t bind_fn, void *data) {
-  assert(pat != NULL);
-  assert(bind_fn != NULL);
-
-  int ret = 0;
-  int cnt = 0;
-  if (pat->kp_type == KLANGC_PTYPE_REF) {
-    ret = bind_fn(pat->kp_ref, data);
-    if (ret < 0)
-      return ret;
-    cnt++;
-  } else if (pat->kp_type == KLANGC_PTYPE_ALGE) {
-    for (int i = 0; i < klangc_pat_alge_get_argc(pat->kp_alge); i++) {
-      klangc_pat_t *arg = klangc_pat_alge_get_arg(pat->kp_alge, i);
-      ret = klangc_pat_foreach_ref(arg, bind_fn, data);
-      if (ret < 0)
-        return ret;
-      cnt += ret;
-    }
-  } else if (pat->kp_type == KLANGC_PTYPE_AS) {
-    ret = bind_fn(klangc_pat_as_get_ref(pat->kp_as), data);
-    if (ret < 0)
-      return ret;
-    cnt++;
-    ret = klangc_pat_foreach_ref(klangc_pat_as_get_pat(pat->kp_as), bind_fn,
-                                 data);
-    if (ret < 0)
-      return ret;
-    cnt += ret;
-  }
-  return cnt;
-}
-
+// -------------------------------
+// Printers.
+// -------------------------------
 void klangc_pat_print(klangc_output_t *output, int prec, klangc_pat_t *pat) {
   assert(output != NULL);
   assert(KLANGC_PREC_LOWEST <= prec);
@@ -280,11 +275,9 @@ void klangc_pat_print(klangc_output_t *output, int prec, klangc_pat_t *pat) {
   }
 }
 
-klangc_pat_type_t klangc_pat_get_type(klangc_pat_t *pat) {
-  assert(pat != NULL);
-  return pat->kp_type;
-}
-
+// -------------------------------
+// Binders.
+// -------------------------------
 klangc_bind_result_t klangc_pat_bind(klangc_expr_env_t *env, klangc_pat_t *pat,
                                      klangc_expr_ref_target_t *target) {
   assert(env != NULL);
@@ -303,4 +296,39 @@ klangc_bind_result_t klangc_pat_bind(klangc_expr_env_t *env, klangc_pat_t *pat,
   }
   klangc_printf(kstderr, "UNKOWN ERROR at %s:%d\n", __FILE__, __LINE__);
   return KLANGC_BIND_ERROR;
+}
+
+// -------------------------------
+// Misc.
+// -------------------------------
+int klangc_pat_foreach_ref(klangc_pat_t *pat,
+                           klangc_pat_foreach_ref_func_t func, void *data) {
+  assert(pat != NULL);
+  assert(func != NULL);
+  int ret = 0;
+  int cnt = 0;
+  if (pat->kp_type == KLANGC_PTYPE_REF) {
+    ret = func(pat->kp_ref, data);
+    if (ret < 0)
+      return ret;
+    cnt++;
+  } else if (pat->kp_type == KLANGC_PTYPE_ALGE) {
+    for (int i = 0; i < klangc_pat_alge_get_argc(pat->kp_alge); i++) {
+      klangc_pat_t *arg = klangc_pat_alge_get_arg(pat->kp_alge, i);
+      ret = klangc_pat_foreach_ref(arg, func, data);
+      if (ret < 0)
+        return ret;
+      cnt += ret;
+    }
+  } else if (pat->kp_type == KLANGC_PTYPE_AS) {
+    ret = func(klangc_pat_as_get_ref(pat->kp_as), data);
+    if (ret < 0)
+      return ret;
+    cnt++;
+    ret = klangc_pat_foreach_ref(klangc_pat_as_get_pat(pat->kp_as), func, data);
+    if (ret < 0)
+      return ret;
+    cnt += ret;
+  }
+  return cnt;
 }
