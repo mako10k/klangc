@@ -7,10 +7,10 @@ struct klangc_env {
   klangc_hash_t *ke_hash;
 };
 
-void klangc_env_put(klangc_env_t *env, const char *name, klangc_value_t *val) {
+void klangc_env_put(klangc_env_t *env, const klangc_str_t *name,
+                    klangc_value_t *val) {
   assert(env != NULL);
   assert(name != NULL);
   assert(val != NULL);
-
   klangc_hash_put(env->ke_hash, name, val, NULL);
 }

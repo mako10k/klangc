@@ -1,5 +1,6 @@
 #include "hash.h"
 #include "malloc.h"
+#include "str.h"
 #include <assert.h>
 #include <string.h>
 
@@ -19,7 +20,7 @@ typedef struct klangc_hash_entry klangc_hash_entry_t;
  */
 struct klangc_hash_entry {
   /** Key */
-  const char *khe_key;
+  const klangc_str_t *khe_key;
   /** Value */
   void *khe_value;
   /** Next entry */
@@ -61,21 +62,24 @@ klangc_hash_t *klangc_hash_new(int capacity) {
  * @param key The key to calculate the hash value.
  * @return The hash value of the key.
  */
-static unsigned int klangc_calc_hash(const char *key) {
+static unsigned int klangc_calc_hash(const klangc_str_t *key) {
   assert(key != NULL);
   unsigned int hash = 0;
-  for (int i = 0; key[i] != '\0'; i++)
-    hash = hash * 31 + key[i];
+  const char *key_str = klangc_str_get_str(key);
+  unsigned int key_len = klangc_str_get_len(key);
+  for (unsigned int i = 0; i < key_len; i++)
+    hash = hash * 31 + (key_str[i] & 255);
   return hash;
 }
 
-int klangc_hash_get(klangc_hash_t *hash, const char *key, void **value) {
+int klangc_hash_get(klangc_hash_t *hash, const klangc_str_t *key,
+                    void **value) {
   assert(hash != NULL);
   assert(key != NULL);
   int hash_value = klangc_calc_hash(key) % hash->kh_capacity;
   klangc_hash_entry_t *entry = hash->kh_entries[hash_value];
   while (entry != NULL) {
-    if (strcmp(entry->khe_key, key) == 0) {
+    if (klangc_str_cmp(entry->khe_key, key) == 0) {
       if (value != NULL)
         *value = entry->khe_value;
       return 1;
@@ -97,14 +101,14 @@ int klangc_hash_get(klangc_hash_t *hash, const char *key, void **value) {
  * @return 1 if the entry was successfully inserted, 0 otherwise.
  */
 static int klangc_hash_put_raw(klangc_hash_entry_t **pentry, int capacity,
-                               int *size, const char *key, void *value,
+                               int *size, const klangc_str_t *key, void *value,
                                void **old_value) {
   assert(pentry != NULL);
   assert(size != NULL);
   assert(capacity >= *size);
   assert(key != NULL);
   while (*pentry != NULL) {
-    if (strcmp((*pentry)->khe_key, key) == 0) {
+    if (klangc_str_cmp((*pentry)->khe_key, key) == 0) {
       if (old_value != NULL)
         *old_value = (*pentry)->khe_value;
       (*pentry)->khe_value = value;
@@ -121,7 +125,7 @@ static int klangc_hash_put_raw(klangc_hash_entry_t **pentry, int capacity,
 }
 
 void klangc_hash_foreach(klangc_hash_t *hash,
-                         void (*callback)(const char *, void *, void *),
+                         void (*callback)(const klangc_str_t *, void *, void *),
                          void *data) {
   assert(hash != NULL);
   assert(callback != NULL);
@@ -162,7 +166,7 @@ static void klangc_hash_rehash(klangc_hash_t *hash, int new_capacity) {
   hash->kh_capacity = new_capacity;
 }
 
-int klangc_hash_put(klangc_hash_t *hash, const char *key, void *value,
+int klangc_hash_put(klangc_hash_t *hash, const klangc_str_t *key, void *value,
                     void **old_value) {
   assert(hash != NULL);
   assert(key != NULL);
@@ -170,16 +174,17 @@ int klangc_hash_put(klangc_hash_t *hash, const char *key, void *value,
     klangc_hash_rehash(hash, hash->kh_capacity * 2);
   return klangc_hash_put_raw(
       &hash->kh_entries[klangc_calc_hash(key) % hash->kh_capacity],
-      hash->kh_capacity, &hash->kh_size, klangc_strdup(key), value, old_value);
+      hash->kh_capacity, &hash->kh_size, key, value, old_value);
 }
 
-int klangc_hash_remove(klangc_hash_t *hash, const char *key, void **value) {
+int klangc_hash_remove(klangc_hash_t *hash, const klangc_str_t *key,
+                       void **value) {
   assert(hash != NULL);
   assert(key != NULL);
   int hash_value = klangc_calc_hash(key) % hash->kh_capacity;
   klangc_hash_entry_t **pentry = &hash->kh_entries[hash_value];
   while (*pentry != NULL) {
-    if (strcmp((*pentry)->khe_key, key) == 0) {
+    if (klangc_str_cmp((*pentry)->khe_key, key) == 0) {
       if (value != NULL)
         *value = (*pentry)->khe_value;
       klangc_hash_entry_t *entry = *pentry;

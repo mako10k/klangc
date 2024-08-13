@@ -1,5 +1,4 @@
 #include "expr.h"
-#include "env.h"
 #include "expr_alge.h"
 #include "expr_appl.h"
 #include "expr_closure.h"
@@ -9,6 +8,7 @@
 #include "malloc.h"
 #include "output.h"
 #include "parse.h"
+#include "str.h"
 #include "types.h"
 #include <assert.h>
 
@@ -34,7 +34,7 @@ struct klangc_expr {
     /** Integer value */
     int ke_intval;
     /** String value */
-    const char *ke_strval;
+    const klangc_str_t *ke_strval;
     /** Lambda expression */
     klangc_expr_lambda_t *ke_lambda;
     /** Closure expression */
@@ -85,11 +85,12 @@ klangc_expr_t *klangc_expr_new_int(int intval, klangc_ipos_t ipos) {
   return expr;
 }
 
-klangc_expr_t *klangc_expr_new_string(const char *strval, klangc_ipos_t ipos) {
+klangc_expr_t *klangc_expr_new_str(const klangc_str_t *strval,
+                                   klangc_ipos_t ipos) {
   assert(strval != NULL);
   klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
   expr->ke_type = KLANGC_ETYPE_STRING;
-  expr->ke_strval = klangc_strdup(strval);
+  expr->ke_strval = strval;
   expr->ke_ipos = ipos;
   return expr;
 }
@@ -145,7 +146,7 @@ int klangc_expr_get_int(klangc_expr_t *expr) {
   return expr->ke_intval;
 }
 
-const char *klangc_expr_get_string(klangc_expr_t *expr) {
+const klangc_str_t *klangc_expr_get_str(klangc_expr_t *expr) {
   assert(expr != NULL);
   assert(expr->ke_type == KLANGC_ETYPE_STRING);
   return expr->ke_strval;
@@ -316,13 +317,13 @@ static klangc_parse_result_t klangc_expr_parse_string(klangc_input_t *input,
   assert(pexpr != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  const char *strval;
-  klangc_parse_result_t res = klangc_string_parse(input, &strval);
+  const klangc_str_t *strval;
+  klangc_parse_result_t res = klangc_str_parse(input, &strval);
   if (res != KLANGC_PARSE_OK) {
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_NOPARSE;
   }
-  *pexpr = klangc_expr_new_string(strval, ipos_ss);
+  *pexpr = klangc_expr_new_str(strval, ipos_ss);
   return KLANGC_PARSE_OK;
 }
 
@@ -467,7 +468,7 @@ void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {
     klangc_printf(output, "%d", expr->ke_intval);
     break;
   case KLANGC_ETYPE_STRING:
-    klangc_printf(output, "\"%s\"", expr->ke_strval);
+    klangc_str_print(output, expr->ke_strval);
     break;
   case KLANGC_ETYPE_APPL:
     klangc_expr_appl_print(output, prec, expr->ke_appl);

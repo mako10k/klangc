@@ -23,7 +23,7 @@ klangc_hash_t *klangc_hash_new(int capacity);
  * @param hash Hash table.
  * @return Number of entries.
  */
-int klangc_hash_get(klangc_hash_t *hash, const char *key, void **value);
+int klangc_hash_get(klangc_hash_t *hash, const klangc_str_t *key, void **value);
 
 /**
  * Put a key-value pair into a hash table.
@@ -33,7 +33,7 @@ int klangc_hash_get(klangc_hash_t *hash, const char *key, void **value);
  * @param old_value Pointer to the variable to store the old value.
  * @return 1 if the key already exists, 0 otherwise.
  */
-int klangc_hash_put(klangc_hash_t *hash, const char *key, void *value,
+int klangc_hash_put(klangc_hash_t *hash, const klangc_str_t *key, void *value,
                     void **old_value);
 
 /**
@@ -43,7 +43,8 @@ int klangc_hash_put(klangc_hash_t *hash, const char *key, void *value,
  * @param value Pointer to the variable to store the value.
  * @return 1 if the key exists, 0 otherwise.
  */
-int klangc_hash_remove(klangc_hash_t *hash, const char *key, void **value);
+int klangc_hash_remove(klangc_hash_t *hash, const klangc_str_t *key,
+                       void **value);
 
 /**
  * Iterate over the entries of a hash table.
@@ -52,5 +53,5 @@ int klangc_hash_remove(klangc_hash_t *hash, const char *key, void **value);
  * @param data Data to be passed to the callback function.
  */
 void klangc_hash_foreach(klangc_hash_t *hash,
-                         void (*callback)(const char *, void *, void *),
+                         void (*callback)(const klangc_str_t *, void *, void *),
                          void *data);

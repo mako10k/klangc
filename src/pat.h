@@ -80,7 +80,8 @@ klangc_pat_t *klangc_pat_new_int(int intval, klangc_ipos_t ipos);
  * @param ipos Input position.
  * @return New pattern string.
  */
-klangc_pat_t *klangc_pat_new_string(const char *strval, klangc_ipos_t ipos);
+klangc_pat_t *klangc_pat_new_str(const klangc_str_t *strval,
+                                 klangc_ipos_t ipos);
 
 // -------------------------------
 // Accessors.
@@ -125,7 +126,7 @@ int klangc_pat_get_int(klangc_pat_t *pat);
  * @param pat Pattern.
  * @return String value.
  */
-const char *klangc_pat_get_string(klangc_pat_t *pat);
+const klangc_str_t *klangc_pat_get_str(klangc_pat_t *pat);
 
 // -------------------------------
 // Parsers.

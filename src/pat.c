@@ -7,6 +7,7 @@
 #include "pat_alge.h"
 #include "pat_as.h"
 #include "pat_ref.h"
+#include "str.h"
 #include "types.h"
 #include <assert.h>
 #include <stdio.h>
@@ -33,7 +34,7 @@ struct klangc_pat {
     /** Integer value */
     int kp_intval;
     /** String value */
-    const char *kp_strval;
+    const klangc_str_t *kp_strval;
   };
   /** Input position */
   klangc_ipos_t ipos;
@@ -80,11 +81,12 @@ klangc_pat_t *klangc_pat_new_int(int intval, klangc_ipos_t ipos) {
   return pat;
 }
 
-klangc_pat_t *klangc_pat_new_string(const char *strval, klangc_ipos_t ipos) {
+klangc_pat_t *klangc_pat_new_string(const klangc_str_t *strval,
+                                    klangc_ipos_t ipos) {
   assert(strval != NULL);
   klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
   pat->kp_type = KLANGC_PTYPE_STRING;
-  pat->kp_strval = klangc_strdup(strval);
+  pat->kp_strval = strval;
   pat->ipos = ipos;
   return pat;
 }
@@ -121,7 +123,7 @@ int klangc_pat_get_int(klangc_pat_t *pat) {
   return pat->kp_intval;
 }
 
-const char *klangc_pat_get_string(klangc_pat_t *pat) {
+const klangc_str_t *klangc_pat_get_str(klangc_pat_t *pat) {
   assert(pat != NULL);
   assert(pat->kp_type == KLANGC_PTYPE_STRING);
   return pat->kp_strval;
@@ -231,8 +233,8 @@ klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
     return KLANGC_PARSE_ERROR;
   }
 
-  const char *strval;
-  switch (klangc_string_parse(input, &strval)) {
+  const klangc_str_t *strval;
+  switch (klangc_str_parse(input, &strval)) {
   case KLANGC_PARSE_OK:
     *ppat = klangc_pat_new_string(strval, ipos_ss);
     return KLANGC_PARSE_OK;
@@ -270,7 +272,7 @@ void klangc_pat_print(klangc_output_t *output, int prec, klangc_pat_t *pat) {
     klangc_printf(output, "%d", pat->kp_intval);
     break;
   case KLANGC_PTYPE_STRING:
-    klangc_printf(output, "\"%s\"", pat->kp_strval);
+    klangc_str_print(output, pat->kp_strval);
     break;
   }
 }

@@ -78,7 +78,8 @@ klangc_expr_t *klangc_expr_new_int(int intval, klangc_ipos_t ipos);
  * @param ipos position
  * @return string expression
  */
-klangc_expr_t *klangc_expr_new_string(const char *strval, klangc_ipos_t ipos);
+klangc_expr_t *klangc_expr_new_str(const klangc_str_t *strval,
+                                   klangc_ipos_t ipos);
 
 /**
  * Create a new lambda expression.
@@ -141,7 +142,7 @@ int klangc_expr_get_int(klangc_expr_t *expr);
  * @param expr expression
  * @return string value
  */
-const char *klangc_expr_get_string(klangc_expr_t *expr);
+const klangc_str_t *klangc_expr_get_str(klangc_expr_t *expr);
 
 /**
  * Get the lambda expression of an expression.

@@ -3,6 +3,9 @@
 #include "klangc.h"
 #include <stdio.h>
 
+/** String */
+typedef struct klangc_str klangc_str_t;
+
 /** bind要素 */
 typedef struct klangc_expr_closure_bind klangc_bind_t;
 

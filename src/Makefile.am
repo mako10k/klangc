@@ -49,6 +49,8 @@ klangc_SOURCES =   \
     ref_target.c   \
     symbol.h       \
     symbol.c       \
+    str.h          \
+    str.c          \
     types.h        \
     val.h          \
     val.c          \

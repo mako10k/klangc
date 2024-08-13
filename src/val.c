@@ -6,6 +6,7 @@
 #include "pat_as.h"
 #include "pat_ref.h"
 #include "ref.h"
+#include "str.h"
 #include "symbol.h"
 #include "types.h"
 #include "val_alge.h"
@@ -21,7 +22,7 @@ struct klangc_value {
     klangc_value_ref_t *kv_ref;
     klangc_value_appl_t *kv_appl;
     int kv_intval;
-    const char *kv_strval;
+    const klangc_str_t *kv_strval;
   };
 };
 
@@ -83,7 +84,7 @@ int klangc_value_match(klangc_env_t *env, klangc_pat_t *pat,
     klangc_pat_ref_t *pref = klangc_pat_get_ref(pat);
     klangc_ref_t *ref = klangc_pat_ref_get_ref(pref);
     klangc_symbol_t *sym = klangc_ref_get_symbol(ref);
-    const char *name = klangc_ref_get_name(ref);
+    const klangc_str_t *name = klangc_ref_get_name(ref);
     klangc_env_put(env, name, val);
   }
   case KLANGC_PTYPE_ALGE: {
@@ -99,8 +100,8 @@ int klangc_value_match(klangc_env_t *env, klangc_pat_t *pat,
     if (vtype == KLANGC_VTYPE_ALGE) {
       klangc_value_alge_t *valge = val->kv_alge;
       klangc_symbol_t *vconstr = klangc_value_alge_get_constr(valge);
-      if (strcmp(klangc_symbol_get_name(pconstr),
-                 klangc_symbol_get_name(vconstr)) != 0)
+      if (klangc_str_cmp(klangc_symbol_get_name(pconstr),
+                         klangc_symbol_get_name(vconstr)) != 0)
         return 0;
       int pargc = klangc_pat_alge_get_argc(palge);
       int vargc = klangc_value_alge_get_argc(valge);
@@ -124,7 +125,7 @@ int klangc_value_match(klangc_env_t *env, klangc_pat_t *pat,
       klangc_pat_ref_t *pref = klangc_pat_as_get_ref(pas);
       klangc_ref_t *ref = klangc_pat_ref_get_ref(pref);
       klangc_symbol_t *sym = klangc_ref_get_symbol(ref);
-      const char *name = klangc_symbol_get_name(sym);
+      const klangc_str_t *name = klangc_symbol_get_name(sym);
       klangc_env_put(env, name, val);
     }
   }
@@ -142,9 +143,9 @@ int klangc_value_match(klangc_env_t *env, klangc_pat_t *pat,
     // パターンが文字列の場合
     if (vtype != KLANGC_VTYPE_STRING)
       return 0;
-    const char *pval = klangc_pat_get_string(pat);
-    const char *vval = val->kv_strval;
-    if (strcmp(pval, vval) != 0)
+    const klangc_str_t *pval = klangc_pat_get_str(pat);
+    const klangc_str_t *vval = val->kv_strval;
+    if (klangc_str_cmp(pval, vval) != 0)
       return 0;
     return 1;
   }

@@ -1,18 +1,29 @@
 #include "symbol.h"
+#include "hash.h"
 #include "input.h"
 #include "malloc.h"
 #include "output.h"
+#include "str.h"
 #include <assert.h>
 
 struct klangc_symbol {
-  const char *ks_name;
+  const klangc_str_t *ks_name;
 };
 
-klangc_symbol_t *klangc_symbol_new(const char *name) {
+static klangc_hash_t *g_symbol_hash = NULL;
+
+__attribute__((constructor)) static void klangc_symbol_init() {
+  g_symbol_hash = klangc_hash_new(16);
+}
+
+klangc_symbol_t *klangc_symbol_new(const klangc_str_t *name) {
   assert(name != NULL);
-  klangc_symbol_t *symbol =
-      (klangc_symbol_t *)klangc_malloc(sizeof(klangc_symbol_t));
-  symbol->ks_name = klangc_strdup(name);
+  klangc_symbol_t *symbol;
+  if (klangc_hash_get(g_symbol_hash, name, (void **)&symbol))
+    return symbol;
+  symbol = (klangc_symbol_t *)klangc_malloc(sizeof(klangc_symbol_t));
+  symbol->ks_name = name;
+  klangc_hash_put(g_symbol_hash, name, symbol, NULL);
   return symbol;
 }
 
@@ -46,11 +57,12 @@ klangc_parse_result_t klangc_symbol_parse(klangc_input_t *input,
   }
   name[len] = '\0';
   name = (char *)klangc_realloc(name, len + 1);
-  *psymbol = klangc_symbol_new(name);
+  const klangc_str_t *name_str = klangc_str_new(name, len);
+  *psymbol = klangc_symbol_new(name_str);
   return KLANGC_PARSE_OK;
 }
 
-const char *klangc_symbol_get_name(klangc_symbol_t *symbol) {
+const klangc_str_t *klangc_symbol_get_name(klangc_symbol_t *symbol) {
   assert(symbol != NULL);
   return symbol->ks_name;
 }
@@ -58,11 +70,5 @@ const char *klangc_symbol_get_name(klangc_symbol_t *symbol) {
 void klangc_symbol_print(klangc_output_t *output, klangc_symbol_t *symbol) {
   assert(output != NULL);
   assert(symbol != NULL);
-  klangc_printf(output, "%s", symbol->ks_name);
-}
-
-int klangc_symbol_eq(klangc_symbol_t *s1, klangc_symbol_t *s2) {
-  assert(s1 != NULL);
-  assert(s2 != NULL);
-  return strcmp(s1->ks_name, s2->ks_name) == 0;
+  klangc_printf(output, "%s", klangc_str_get_cstr(symbol->ks_name));
 }

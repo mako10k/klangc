@@ -22,7 +22,7 @@ klangc_symbol_t *klangc_ref_get_symbol(klangc_ref_t *ref) {
   return ref->kr_symbol;
 }
 
-const char *klangc_ref_get_name(klangc_ref_t *ref) {
+const klangc_str_t *klangc_ref_get_name(klangc_ref_t *ref) {
   assert(ref != NULL);
   return klangc_symbol_get_name(ref->kr_symbol);
 }

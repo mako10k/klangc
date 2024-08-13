@@ -32,6 +32,6 @@ klangc_expr_ref_target_t *klangc_expr_env_get_entry(klangc_expr_env_t *env,
 
 int klangc_expr_env_put_entry(klangc_expr_env_t *env, klangc_ref_t *ref,
                               klangc_expr_ref_target_t *target) {
-  const char *name = klangc_ref_get_name(ref);
+  const klangc_str_t *name = klangc_ref_get_name(ref);
   return klangc_hash_put(env->kee_entries, name, target, NULL);
 }
