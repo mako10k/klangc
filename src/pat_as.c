@@ -52,9 +52,9 @@ klangc_pat_t *klangc_pat_as_get_pat(klangc_pat_as_t *pas) {
 void klangc_pat_as_print(klangc_output_t *output, klangc_pat_as_t *pas) {
   assert(output != NULL);
   assert(pas != NULL);
-  klangc_printf(output, "%s@",
-                klangc_pat_ref_get_name(klangc_pat_as_get_ref(pas)));
-  klangc_pat_print(output, KLANGC_PREC_LOWEST, klangc_pat_as_get_pat(pas));
+  klangc_pat_ref_print(output, pas->kpas_ref);
+  klangc_printf(output, "@");
+  klangc_pat_print(output, KLANGC_PREC_APPL + 1, klangc_pat_as_get_pat(pas));
 }
 
 // -------------------------------
