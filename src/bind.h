@@ -2,66 +2,84 @@
 
 #include "klangc.h"
 
+// *******************************
+// Binding sub-expression.
+// *******************************
+// -------------------------------
+// Constructors.
+// -------------------------------
 /**
- * 束縛式を作成する
- * @param pat 参照パターン
- * @param expr 被参照式
- * @param next 次の束縛式
- * @param ipos 位置情報
- * @return 作成した束縛式
+ * Make a new binding sub-expression.
+ * @param pat Reference pattern.
+ * @param expr Referenced expression.
+ * @param next Next binding.
+ * @param ipos Position information.
+ * @return New binding sub-expression.
  */
 klangc_bind_t *klangc_bind_new(klangc_pat_t *pat, klangc_expr_t *expr,
                                klangc_bind_t *next, klangc_ipos_t ipos);
 
+// -------------------------------
+// Accessors.
+// -------------------------------
 /**
- * 束縛式の参照パターンを取得する
- * @param bind 束縛式
- * @return 参照パターン
+ * Get the reference pattern of a binding sub-expression.
+ * @param bind Binding sub-expression.
+ * @return Reference pattern.
  */
 klangc_pat_t *klangc_bind_get_pat(klangc_bind_t *bind);
 
 /**
- * 束縛式の被参照式を取得する
- * @param bind 束縛式
- * @return 被参照式
+ * Get the referenced expression of a binding sub-expression.
+ * @param bind Binding sub-expression.
+ * @return Referenced expression.
  */
 klangc_expr_t *klangc_bind_get_expr(klangc_bind_t *bind);
 
 /**
- * 束縛式の次の束縛式を取得する
- * @param bind 束縛式
- * @return 次の束縛式
+ * Get the next binding sub-expression of a binding sub-expression.
+ * @param bind Binding sub-expression.
+ * @return Next binding sub-expression.
  */
 klangc_bind_t *klangc_bind_get_next(klangc_bind_t *bind);
 
 /**
- * 束縛式の位置情報を取得する
- * @param bind 束縛式
- * @return 位置情報
+ * Get the position information of a binding sub-expression.
+ * @param bind Binding sub-expression.
+ * @return Position information.
  */
 klangc_ipos_t klangc_bind_get_ipos(klangc_bind_t *bind);
 
+// -------------------------------
+// Parsers.
+// -------------------------------
 /**
- * 入力から束縛式をパースする
- * @param input 入力
- * @param pbind パースした束縛式
- * @return パース結果
+ * Parse a binding sub-expression.
+ * @param input Input stream.
+ * @param pbind Pointer to the result.
+ * @return Parsing result.
  */
 klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
                                         klangc_bind_t **pbind);
 
+// -------------------------------
+// Printers.
+// -------------------------------
 /**
- * 束縛式を出力する
- * @param output 出力
- * @param bind 束縛式
+ * Print a binding sub-expression.
+ * @param output Output stream.
+ * @param bind Binding sub-expression.
  */
 void klangc_bind_print(klangc_output_t *output, klangc_bind_t *bind);
 
+// -------------------------------
+// Binders.
+// -------------------------------
 /**
- * 束縛式をバインドする
- * @param env 環境
- * @param bind 束縛式
- * @return バインド結果 KLANGC_BIND_OK: 成功, KLANGC_BIND_ERROR: 失敗
+ * Bind a binding sub-expression.
+ * @param env Environment of the parent expression.
+ * @param bind Binding sub-expression.
+ * @return Binding result.
  */
 klangc_bind_result_t klangc_bind_bind(klangc_expr_env_t *env,
                                       klangc_bind_t *bind);

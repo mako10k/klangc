@@ -9,18 +9,29 @@
 #include "types.h"
 #include <assert.h>
 
-/** bind要素 */
+// *******************************
+// Binding sub-expression.
+// *******************************
+// -------------------------------
+// Structures.
+// -------------------------------
+/**
+ * Binding sub-expression.
+ */
 struct klangc_expr_closure_bind {
-  /** 左パターン */
+  /** Reference pattern */
   klangc_pat_t *kb_pat;
-  /** 右式 */
+  /** Referenced expression */
   klangc_expr_t *kb_expr;
-  /** 次のbind要素 */
+  /** Next binding */
   klangc_bind_t *kb_next;
-  /** 位置情報 */
+  /** Position information */
   klangc_ipos_t kb_ipos;
 };
 
+// -------------------------------
+// Constructors.
+// -------------------------------
 klangc_bind_t *klangc_bind_new(klangc_pat_t *pat, klangc_expr_t *expr,
                                klangc_bind_t *next, klangc_ipos_t ipos) {
   klangc_bind_t *bind = klangc_malloc(sizeof(klangc_bind_t));
@@ -31,20 +42,26 @@ klangc_bind_t *klangc_bind_new(klangc_pat_t *pat, klangc_expr_t *expr,
   return bind;
 }
 
+// -------------------------------
+// Accessors.
+// -------------------------------
 klangc_pat_t *klangc_bind_get_pat(klangc_bind_t *bind) { return bind->kb_pat; }
 
 klangc_expr_t *klangc_bind_get_expr(klangc_bind_t *bind) {
   return bind->kb_expr;
 }
 
-klangc_ipos_t klangc_bind_get_ipos(klangc_bind_t *bind) {
-  return bind->kb_ipos;
-}
-
 klangc_bind_t *klangc_bind_get_next(klangc_bind_t *bind) {
   return bind->kb_next;
 }
 
+klangc_ipos_t klangc_bind_get_ipos(klangc_bind_t *bind) {
+  return bind->kb_ipos;
+}
+
+// -------------------------------
+// Parsers.
+// -------------------------------
 klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
                                         klangc_bind_t **pbind) {
   assert(input != NULL);
@@ -106,6 +123,9 @@ klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
   return KLANGC_PARSE_ERROR;
 }
 
+// -------------------------------
+// Printers.
+// -------------------------------
 void klangc_bind_print(klangc_output_t *output, klangc_bind_t *bind) {
   assert(output != NULL);
   assert(bind != NULL);
@@ -120,6 +140,9 @@ void klangc_bind_print(klangc_output_t *output, klangc_bind_t *bind) {
   }
 }
 
+// -------------------------------
+// Binders.
+// -------------------------------
 klangc_bind_result_t klangc_bind_bind(klangc_expr_env_t *env,
                                       klangc_bind_t *bind) {
   klangc_expr_ref_target_t *target = klangc_expr_ref_target_new_bind(bind);
