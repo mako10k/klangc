@@ -9,6 +9,7 @@
 #include "output.h"
 #include "parse.h"
 #include "str.h"
+#include "symbol.h"
 #include "types.h"
 #include <assert.h>
 
@@ -379,6 +380,82 @@ static klangc_parse_result_t klangc_expr_parse_closure(klangc_input_t *input,
 }
 
 /**
+ * Parse a list expression.
+ * @param input input
+ * @param pexpr expression
+ * @return parse result
+ */
+static klangc_parse_result_t klangc_expr_parse_list(klangc_input_t *input,
+                                                    klangc_expr_t **pexpr) {
+  assert(input != NULL);
+  assert(pexpr != NULL);
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  if (!klangc_expect(input, '[', NULL)) {
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_NOPARSE;
+  }
+  ipos_ss = klangc_skipspaces(input);
+  klangc_symbol_t *nil = klangc_symbol_new(klangc_str_new("[]", 2));
+  if (klangc_expect(input, ']', NULL)) {
+    *pexpr = klangc_expr_new_alge(klangc_expr_alge_new(nil), ipos_ss);
+    return KLANGC_PARSE_OK;
+  }
+  ipos_ss = klangc_skipspaces(input);
+  klangc_expr_t *expr;
+  switch (klangc_expr_parse(input, KLANGC_EXPR_PARSE_NORMAL, &expr)) {
+  case KLANGC_PARSE_OK:
+    break;
+  case KLANGC_PARSE_NOPARSE:
+    klangc_printf_ipos_expects(
+        kstderr, ipos_ss, "<expr>", klangc_getc(input),
+        "<expr> ::= .. | '[' (^<expr> (',' <expr>)*)? ']' | ..;\n");
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
+  klangc_symbol_t *cons = klangc_symbol_new(klangc_str_new(":", 1));
+  klangc_expr_alge_t *alge_cons = klangc_expr_alge_new(cons);
+  klangc_expr_t *expr_cons = klangc_expr_new_alge(alge_cons, ipos_ss);
+  klangc_expr_alge_add_arg(alge_cons, expr);
+  klangc_expr_t *expr_cons1 = expr_cons;
+  while (1) {
+    ipos_ss = klangc_skipspaces(input);
+    int c = klangc_getc(input);
+    if (c == ',') {
+      ipos_ss = klangc_skipspaces(input);
+      switch (klangc_expr_parse(input, KLANGC_EXPR_PARSE_NORMAL, &expr)) {
+      case KLANGC_PARSE_OK:
+        break;
+      case KLANGC_PARSE_NOPARSE:
+        klangc_printf_ipos_expects(
+            kstderr, ipos_ss, "<expr>", klangc_getc(input),
+            "<expr> ::= .. | '[' (<expr> (',' ^<expr>)*)? ']' | ..;\n");
+      case KLANGC_PARSE_ERROR:
+        klangc_input_restore(input, ipos);
+        return KLANGC_PARSE_ERROR;
+      }
+      klangc_expr_alge_t *alge_cons_tl = klangc_expr_alge_new(cons);
+      klangc_expr_t *expr_cons_tl = klangc_expr_new_alge(alge_cons_tl, ipos_ss);
+      klangc_expr_alge_add_arg(alge_cons, expr_cons_tl);
+      klangc_expr_alge_add_arg(alge_cons_tl, expr);
+      expr_cons = expr_cons_tl;
+      alge_cons = alge_cons_tl;
+    } else if (c == ']') {
+      klangc_expr_alge_add_arg(
+          alge_cons, klangc_expr_new_alge(klangc_expr_alge_new(nil), ipos_ss));
+      *pexpr = expr_cons1;
+      return KLANGC_PARSE_OK;
+    } else {
+      klangc_printf_ipos_expects(
+          kstderr, ipos_ss, "',' or ']'", c,
+          "<expr> ::= .. | '[' (<expr> ^(',' <expr>)*)? ']' | ..;\n");
+      klangc_input_restore(input, ipos);
+      return KLANGC_PARSE_ERROR;
+    }
+  }
+}
+/**
  * Parse an expression without application.
  * @param input input
  * @param epopt expression parse option
@@ -396,6 +473,10 @@ klangc_expr_parse_noappl(klangc_input_t *input, klangc_expr_parse_opt_t epopt,
     return res;
 
   res = klangc_expr_parse_closure(input, pexpr);
+  if (res != KLANGC_PARSE_NOPARSE)
+    return res;
+
+  res = klangc_expr_parse_list(input, pexpr);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
