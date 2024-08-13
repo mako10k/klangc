@@ -20,7 +20,7 @@ struct klangc_expr_alge {
   /** Constructor symbol */
   klangc_symbol_t *ker_constr;
   /** Number of arguments */
-  int ker_argc;
+  unsigned int ker_argc;
   /** Arguments */
   klangc_expr_t **ker_args;
 };
@@ -113,7 +113,7 @@ void klangc_expr_alge_print(klangc_output_t *output, int prec,
   if (prec > KLANGC_PREC_APPL)
     klangc_printf(output, "(");
   klangc_symbol_print(output, expr->ker_constr);
-  for (int i = 0; i < expr->ker_argc; i++) {
+  for (unsigned int i = 0; i < expr->ker_argc; i++) {
     klangc_printf(output, " ");
     klangc_expr_print(output, KLANGC_PREC_APPL + 1, expr->ker_args[i]);
   }
@@ -128,7 +128,7 @@ klangc_bind_result_t klangc_expr_alge_bind(klangc_expr_env_t *upper,
                                            klangc_expr_alge_t *expr) {
   assert(upper != NULL);
   assert(expr != NULL);
-  for (int i = 0; i < expr->ker_argc; i++) {
+  for (unsigned int i = 0; i < expr->ker_argc; i++) {
     klangc_expr_t *arg = klangc_expr_alge_get_arg(expr, i);
     klangc_bind_result_t res = klangc_expr_bind(upper, arg);
     if (res != KLANGC_BIND_OK)

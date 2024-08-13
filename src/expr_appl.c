@@ -19,7 +19,7 @@ struct klangc_expr_appl {
   /** Function expression */
   klangc_expr_t *kva_func;
   /** Number of arguments */
-  int kva_argc;
+  unsigned int kva_argc;
   /** Arguments */
   klangc_expr_t **kva_args;
 };
@@ -111,7 +111,7 @@ void klangc_expr_appl_print(klangc_output_t *output, int prec,
   if (prec > KLANGC_PREC_APPL)
     klangc_printf(output, "(");
   klangc_expr_print(output, KLANGC_PREC_APPL + 1, appl->kva_func);
-  for (int i = 0; i < appl->kva_argc; i++) {
+  for (unsigned int i = 0; i < appl->kva_argc; i++) {
     klangc_printf(output, " ");
     klangc_expr_print(output, KLANGC_PREC_APPL + 1, appl->kva_args[i]);
   }
