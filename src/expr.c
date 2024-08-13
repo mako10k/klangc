@@ -28,7 +28,7 @@ struct klangc_expr {
     /** Algebraic expression */
     klangc_expr_alge_t *ke_alge;
     /** Reference expression */
-    klangc_expr_ref_t *ke_ref;
+    klangc_expr_ref_t *ke_eref;
     /** Application expression */
     klangc_expr_appl_t *ke_appl;
     /** Integer value */
@@ -62,8 +62,9 @@ klangc_expr_t *klangc_expr_new_ref(klangc_expr_ref_t *eref,
   assert(eref != NULL);
   klangc_expr_t *expr = klangc_malloc(sizeof(klangc_expr_t));
   expr->ke_type = KLANGC_ETYPE_REF;
-  expr->ke_ref = eref;
+  expr->ke_eref = eref;
   expr->ke_ipos = ipos;
+  klangc_expr_ref_set_expr(eref, expr);
   return expr;
 }
 
@@ -131,7 +132,7 @@ klangc_expr_alge_t *klangc_expr_get_alge(klangc_expr_t *expr) {
 klangc_expr_ref_t *klangc_expr_get_ref(klangc_expr_t *expr) {
   assert(expr != NULL);
   assert(expr->ke_type == KLANGC_ETYPE_REF);
-  return expr->ke_ref;
+  return expr->ke_eref;
 }
 
 klangc_expr_appl_t *klangc_expr_get_appl(klangc_expr_t *expr) {
@@ -462,7 +463,7 @@ void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {
     klangc_expr_alge_print(output, prec, expr->ke_alge);
     break;
   case KLANGC_ETYPE_REF:
-    klangc_expr_ref_print(output, expr->ke_ref);
+    klangc_expr_ref_print(output, expr->ke_eref);
     break;
   case KLANGC_ETYPE_INT:
     klangc_printf(output, "%d", expr->ke_intval);
@@ -494,7 +495,7 @@ klangc_bind_result_t klangc_expr_bind(klangc_expr_env_t *env,
   case KLANGC_ETYPE_ALGE:
     return klangc_expr_alge_bind(env, expr->ke_alge);
   case KLANGC_ETYPE_REF:
-    return klangc_expr_ref_bind(env, expr->ke_ref);
+    return klangc_expr_ref_bind(env, expr->ke_eref);
 
   case KLANGC_ETYPE_APPL:
     return klangc_expr_appl_bind(env, expr->ke_appl);

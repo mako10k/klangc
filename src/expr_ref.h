@@ -10,10 +10,11 @@
 // -------------------------------
 /**
  * Make a new reference expression.
- * @param ref Reference.
+ * @param sym Reference.
+ * @param expr Expression.
  * @return New reference expression.
  */
-klangc_expr_ref_t *klangc_expr_ref_new(klangc_ref_t *ref);
+klangc_expr_ref_t *klangc_expr_ref_new(klangc_symbol_t *sym);
 
 /**
  * Set the target of a reference expression.
@@ -23,15 +24,22 @@ klangc_expr_ref_t *klangc_expr_ref_new(klangc_ref_t *ref);
 void klangc_expr_ref_set_target(klangc_expr_ref_t *eref,
                                 klangc_expr_ref_target_t *target);
 
+/**
+ * Set the expression of a reference expression.
+ * @param eref Reference expression.
+ * @param expr Expression.
+ */
+void klangc_expr_ref_set_expr(klangc_expr_ref_t *eref, klangc_expr_t *expr);
+
 // -------------------------------
 // Accessors.
 // -------------------------------
 /**
  * Get the reference of a reference expression.
  * @param eref Reference expression.
- * @return Reference.
+ * @return Reference symbol.
  */
-klangc_ref_t *klangc_expr_ref_get_ref(klangc_expr_ref_t *eref);
+klangc_symbol_t *klangc_expr_ref_get_symbol(klangc_expr_ref_t *eref);
 
 /**
  * Get the target of a reference expression.
@@ -39,6 +47,13 @@ klangc_ref_t *klangc_expr_ref_get_ref(klangc_expr_ref_t *eref);
  * @return Target.
  */
 klangc_expr_ref_target_t *klangc_expr_ref_get_target(klangc_expr_ref_t *eref);
+
+/**
+ * Get the expression of a reference expression.
+ * @param eref Reference expression.
+ * @return Expression.
+ */
+klangc_expr_t *klangc_expr_ref_get_expr(klangc_expr_ref_t *eref);
 
 // -------------------------------
 // Parsers.

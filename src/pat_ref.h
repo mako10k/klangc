@@ -10,15 +10,15 @@
 // -------------------------------
 /**
  * Make a new pattern reference.
- * @param ref Reference.
+ * @param sym Reference.
  * @return New pattern reference.
  */
-klangc_pat_ref_t *klangc_pat_ref_new(klangc_ref_t *ref);
+klangc_pat_ref_t *klangc_pat_ref_new(klangc_symbol_t *sym);
 
 // -------------------------------
 // Accessors.
 // -------------------------------
-klangc_ref_t *klangc_pat_ref_get_ref(klangc_pat_ref_t *pref);
+klangc_symbol_t *klangc_pat_ref_get_symbol(klangc_pat_ref_t *pref);
 
 // -------------------------------
 // Parsers.
