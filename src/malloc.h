@@ -4,30 +4,33 @@
 
 #include <stdio.h>
 
+// *******************************
+// Memory.
+// *******************************
 /**
- * メモリを確保
- * @param size サイズ
- * @return 確保したメモリ
+ * Allocate memory.
+ * @param size Size.
+ * @return Memory.
  */
 void *klangc_malloc(size_t size);
 
 /**
- * メモリを再確保
- * @param ptr メモリ
- * @param size サイズ
- * @return 確保したメモリ
+ * Reallocate memory.
+ * @param ptr Memory.
+ * @param size Size.
+ * @return Memory.
  */
 void *klangc_realloc(void *ptr, size_t size);
 
 /**
- * メモリを解放
- * @param ptr メモリ
+ * Free memory.
+ * @param ptr Memory.
  */
 void klangc_free(void *ptr);
 
 /**
- * 文字列を複製
- * @param s 文字列
- * @return 複製した文字列
+ * Duplicate a string.
+ * @param s String.
+ * @return Duplicate.
  */
 char *klangc_strdup(const char *s);

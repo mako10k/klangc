@@ -16,6 +16,9 @@
 #define GC_STRDUP(s) strdup(s)
 #endif
 
+// *******************************
+// Memory.
+// *******************************
 void *klangc_malloc(size_t size) {
   void *ptr = GC_MALLOC(size);
   if (ptr == NULL) {
