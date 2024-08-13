@@ -157,9 +157,10 @@ void klangc_expr_closure_print(klangc_output_t *output,
 void klangc_expr_closure_print_nobrace(klangc_output_t *output,
                                        klangc_expr_closure_t *closure) {
   klangc_expr_print(output, KLANGC_PREC_LOWEST, closure->kc_expr);
-  klangc_printf(output, ";\n");
-  if (closure->kc_bind != NULL)
+  if (closure->kc_bind != NULL) {
+    klangc_printf(output, ";\n");
     klangc_bind_print(output, closure->kc_bind);
+  }
 }
 
 // -------------------------------
