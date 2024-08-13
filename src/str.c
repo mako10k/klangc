@@ -63,6 +63,107 @@ const char *klangc_str_get_cstr(const klangc_str_t *str) {
   return str->ks_str;
 }
 
+static int klangc_parse_hexchar(klangc_input_t *input) {
+  int hex = 0;
+  klangc_ipos_t ipos = klangc_input_save(input);
+  int c = klangc_getc(input);
+  if (c == EOF)
+    return EOF;
+
+  if ('0' <= c && c <= '9')
+    hex = c - '0';
+  else if ('a' <= c && c <= 'f')
+    hex = c - 'a' + 10;
+  else if ('A' <= c && c <= 'F')
+    hex = c - 'A' + 10;
+  else {
+    klangc_input_restore(input, ipos);
+    return 'x';
+  }
+  klangc_ipos_t ipos2 = klangc_input_save(input);
+  c = klangc_getc(input);
+  if (c == EOF)
+    return EOF;
+  if ('0' <= c && c <= '9')
+    hex = hex * 16 + (c - '0');
+  else if ('a' <= c && c <= 'f')
+    hex = hex * 16 + (c - 'a' + 10);
+  else if ('A' <= c && c <= 'F')
+    hex = hex * 16 + (c - 'A' + 10);
+  else {
+    klangc_input_restore(input, ipos2);
+    return hex;
+  }
+  return hex;
+}
+
+static int klangc_parse_octchar(klangc_input_t *input, int oct) {
+  oct = oct - '0';
+  klangc_ipos_t ipos = klangc_input_save(input);
+  int c = klangc_getc(input);
+  if (c == EOF)
+    return EOF;
+  if ('0' <= c && c <= '7')
+    oct = oct * 8 + (c - '0');
+  else {
+    klangc_input_restore(input, ipos);
+    return oct;
+  }
+  return oct;
+}
+
+static int klangc_parse_escchar(klangc_input_t *input) {
+  assert(input != NULL);
+  klangc_ipos_t ipos = klangc_input_save(input);
+  int c = klangc_getc(input);
+  switch (c) {
+  case EOF:
+    return EOF;
+  case 'n':
+  case 'N':
+    c = '\n';
+    break;
+  case 't':
+  case 'T':
+    c = '\t';
+    break;
+  case 'r':
+  case 'R':
+    c = '\r';
+    break;
+  case '0':
+    c = '\0';
+    break;
+  case '\\':
+  case '"':
+  case '\'':
+    break;
+  case 'a':
+  case 'A':
+    c = '\a';
+    break;
+  case 'b':
+  case 'B':
+    c = '\b';
+    break;
+  case 'f':
+  case 'F':
+    c = '\f';
+    break;
+  case 'v':
+  case 'V':
+    c = '\v';
+    break;
+  case 'x':
+  case 'X':
+    c = klangc_parse_hexchar(input);
+  default:
+    if ('0' <= c && c <= '7')
+      c = klangc_parse_octchar(input, c);
+  }
+  return c;
+}
+
 klangc_parse_result_t klangc_str_parse(klangc_input_t *input,
                                        const klangc_str_t **pstrval) {
   klangc_ipos_t ipos = klangc_input_save(input);
@@ -76,137 +177,29 @@ klangc_parse_result_t klangc_str_parse(klangc_input_t *input,
   size_t len = 0;
   size_t cap = 16;
   while (1) {
+    klangc_ipos_t ipos2 = klangc_input_save(input);
     c = klangc_getc(input);
-    if (c == EOF) {
-      klangc_printf(kstderr, "Unexpected EOF\n");
-      klangc_input_restore(input, ipos);
-      return KLANGC_PARSE_ERROR;
-    }
     if (c == '"')
       break;
     if (c == '\\') {
-      c = klangc_getc(input);
-      if (c == EOF)
-        goto eof;
-      switch (c) {
-      case 'n':
-      case 'N':
-        c = '\n';
-        break;
-      case 't':
-      case 'T':
-        c = '\t';
-        break;
-      case 'r':
-      case 'R':
-        c = '\r';
-        break;
-      case '0':
-        c = '\0';
-        break;
-      case '\\':
-        c = '\\';
-        break;
-      case '"':
-        c = '"';
-        break;
-      case '\'':
-        c = '\'';
-        break;
-      case 'a':
-      case 'A':
-        c = '\a';
-        break;
-      case 'b':
-      case 'B':
-        c = '\b';
-        break;
-      case 'f':
-      case 'F':
-        c = '\f';
-        break;
-      case 'v':
-      case 'V':
-        c = '\v';
-        break;
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7': {
-        int oct = c - '0';
-        klangc_ipos_t ipos2 = klangc_input_save(input);
-        c = klangc_getc(input);
-        if (c == EOF)
-          goto eof;
-        if ('0' <= c && c <= '7') {
-          oct = oct * 8 + (c - '0');
-          klangc_ipos_t ipos2 = klangc_input_save(input);
-          c = klangc_getc(input);
-          if (c == EOF)
-            goto eof;
-          if ('0' <= c && c <= '7' && oct <= 037)
-            oct = oct * 8 + (c - '0');
-          else
-            klangc_input_restore(input, ipos2);
-        } else
-          klangc_input_restore(input, ipos2);
-        c = oct;
-        break;
-      }
-      case 'x':
-      case 'X': {
-        int hex = 0;
-        klangc_ipos_t ipos2 = klangc_input_save(input);
-        c = klangc_getc(input);
-        if (c == EOF)
-          goto eof;
-        if ('0' <= c && c <= '9')
-          hex = c - '0';
-        else if ('a' <= c && c <= 'f')
-          hex = c - 'a' + 10;
-        else if ('A' <= c && c <= 'F')
-          hex = c - 'A' + 10;
-        else {
-          klangc_input_restore(input, ipos2);
-          c = 'x';
-          break;
-        }
-        klangc_ipos_t ipos3 = klangc_input_save(input);
-        c = klangc_getc(input);
-        if (c == EOF)
-          goto eof;
-        if ('0' <= c && c <= '9')
-          hex = hex * 16 + (c - '0');
-        else if ('a' <= c && c <= 'f')
-          hex = hex * 16 + (c - 'a' + 10);
-        else if ('A' <= c && c <= 'F')
-          hex = hex * 16 + (c - 'A' + 10);
-        else
-          klangc_input_restore(input, ipos3);
-        c = hex;
-        break;
-      }
-      default:
-        break;
-      }
-      if (cap <= len + 1) {
-        cap *= 2;
-        strval = klangc_realloc(strval, cap);
-      }
-      strval[len++] = c;
+      ipos2 = klangc_input_save(input);
+      c = klangc_parse_escchar(input);
     }
+    if (c == EOF) {
+      klangc_printf_ipos(kstderr, ipos2, "Unexpected EOF\n");
+      klangc_input_restore(input, ipos);
+      return KLANGC_PARSE_ERROR;
+    }
+    if (cap <= len + 1) {
+      cap *= 2;
+      strval = klangc_realloc(strval, cap);
+    }
+    strval[len++] = c;
   }
   strval[len] = '\0';
   strval = klangc_realloc(strval, len + 1);
   *pstrval = klangc_str_new(strval, len);
   return KLANGC_PARSE_OK;
-eof:
-  klangc_printf(kstderr, "Unexpected EOF\n");
-  klangc_input_restore(input, ipos);
-  return KLANGC_PARSE_ERROR;
 }
 
 void klangc_str_print(klangc_output_t *output, const klangc_str_t *str) {
