@@ -5,7 +5,6 @@
 #include "pat_alge.h"
 #include "pat_as.h"
 #include "pat_ref.h"
-#include "ref.h"
 #include "str.h"
 #include "symbol.h"
 #include "types.h"
@@ -19,7 +18,7 @@ struct klangc_value {
   klangc_expr_t *kv_expr;
   union {
     klangc_value_alge_t *kv_alge;
-    klangc_value_ref_t *kv_ref;
+    klangc_value_ref_t *kv_vref;
     klangc_value_appl_t *kv_appl;
     int kv_intval;
     const klangc_str_t *kv_strval;
@@ -82,9 +81,8 @@ int klangc_value_match(klangc_env_t *env, klangc_pat_t *pat,
   case KLANGC_PTYPE_REF: {
     // パターンが参照の場合 (一切評価せずに環境に登録)
     klangc_pat_ref_t *pref = klangc_pat_get_ref(pat);
-    klangc_ref_t *ref = klangc_pat_ref_get_ref(pref);
-    klangc_symbol_t *sym = klangc_ref_get_symbol(ref);
-    const klangc_str_t *name = klangc_ref_get_name(ref);
+    klangc_symbol_t *sym = klangc_pat_ref_get_symbol(pref);
+    const klangc_str_t *name = klangc_symbol_get_name(sym);
     klangc_env_put(env, name, val);
   }
   case KLANGC_PTYPE_ALGE: {
@@ -123,8 +121,7 @@ int klangc_value_match(klangc_env_t *env, klangc_pat_t *pat,
     int ret = klangc_value_match(env, pinner, val);
     if (ret) {
       klangc_pat_ref_t *pref = klangc_pat_as_get_ref(pas);
-      klangc_ref_t *ref = klangc_pat_ref_get_ref(pref);
-      klangc_symbol_t *sym = klangc_ref_get_symbol(ref);
+      klangc_symbol_t *sym = klangc_pat_ref_get_symbol(pref);
       const klangc_str_t *name = klangc_symbol_get_name(sym);
       klangc_env_put(env, name, val);
     }

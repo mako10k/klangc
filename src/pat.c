@@ -26,7 +26,7 @@ struct klangc_pat {
   klangc_pat_type_t kp_type;
   union {
     /** Reference */
-    klangc_pat_ref_t *kp_ref;
+    klangc_pat_ref_t *kp_pref;
     /** Algebraic */
     klangc_pat_alge_t *kp_alge;
     /** As */
@@ -47,7 +47,7 @@ klangc_pat_t *klangc_pat_new_ref(klangc_pat_ref_t *pref, klangc_ipos_t ipos) {
   assert(pref != NULL);
   klangc_pat_t *pat = klangc_malloc(sizeof(klangc_pat_t));
   pat->kp_type = KLANGC_PTYPE_REF;
-  pat->kp_ref = pref;
+  pat->kp_pref = pref;
   pat->ipos = ipos;
   return pat;
 }
@@ -102,7 +102,7 @@ klangc_pat_type_t klangc_pat_get_type(klangc_pat_t *pat) {
 klangc_pat_ref_t *klangc_pat_get_ref(klangc_pat_t *pat) {
   assert(pat != NULL);
   assert(pat->kp_type == KLANGC_PTYPE_REF);
-  return pat->kp_ref;
+  return pat->kp_pref;
 }
 
 klangc_pat_alge_t *klangc_pat_get_alge(klangc_pat_t *pat) {
@@ -260,7 +260,7 @@ void klangc_pat_print(klangc_output_t *output, int prec, klangc_pat_t *pat) {
 
   switch (pat->kp_type) {
   case KLANGC_PTYPE_REF:
-    klangc_pat_ref_print(output, pat->kp_ref);
+    klangc_pat_ref_print(output, pat->kp_pref);
     break;
   case KLANGC_PTYPE_ALGE:
     klangc_pat_alge_print(output, prec, pat->kp_alge);
@@ -287,7 +287,7 @@ klangc_bind_result_t klangc_pat_bind(klangc_expr_env_t *env, klangc_pat_t *pat,
   assert(target != NULL);
   switch (pat->kp_type) {
   case KLANGC_PTYPE_REF:
-    return klangc_pat_ref_bind(env, pat->kp_ref, target);
+    return klangc_pat_ref_bind(env, pat->kp_pref, target);
   case KLANGC_PTYPE_ALGE:
     return klangc_pat_alge_bind(env, pat->kp_alge, target);
   case KLANGC_PTYPE_AS:
@@ -310,7 +310,7 @@ int klangc_pat_foreach_ref(klangc_pat_t *pat,
   int ret = 0;
   int cnt = 0;
   if (pat->kp_type == KLANGC_PTYPE_REF) {
-    ret = func(pat->kp_ref, data);
+    ret = func(pat->kp_pref, data);
     if (ret < 0)
       return ret;
     cnt++;

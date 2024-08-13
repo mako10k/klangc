@@ -66,9 +66,6 @@ typedef struct klangc_value_appl klangc_value_appl_t;
 /** シンボル（値） */
 typedef struct klangc_symbol klangc_symbol_t;
 
-/** 参照 */
-typedef struct klangc_ref klangc_ref_t;
-
 /** 入力 */
 typedef struct klangc_input klangc_input_t;
 
