@@ -3,26 +3,31 @@
 #include "input.h"
 #include "klangc.h"
 
+// *******************************
+// Parse.
+// *******************************
+// -------------------------------
+// Parsers.
+// -------------------------------
 /**
- * int値をパースする
- * @param input 入力
- * @param pintval int値を格納する変数
+ * parse an integer
+ * @param input input
+ * @param pintval integer to store the parsed integer
  */
 klangc_parse_result_t klangc_int_parse(klangc_input_t *input, int *pintval);
 
 /**
- * 文字列をパースする
- * @param input 入力
- * @param pstrval 文字列を格納する変数
+ * parse a string
+ * @param input input
+ * @param pstrval string to store the parsed string
  */
 klangc_parse_result_t klangc_string_parse(klangc_input_t *input,
                                           const char **pstrval);
 
 /**
- * 期待する文字をパースする
- * @param input 入力
- * @param c 期待する文字
- * @param pc パースした文字を格納する変数
- * @return パース結果
+ * parse a expected character
+ * @param input input
+ * @param c expected character
+ * @param pcval character to store the parsed character
  */
 int klangc_expect(klangc_input_t *input, int c, int *pc);

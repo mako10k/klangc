@@ -2,6 +2,12 @@
 #include "malloc.h"
 #include "output.h"
 
+// *******************************
+// Parse.
+// *******************************
+// -------------------------------
+// Parsers.
+// -------------------------------
 klangc_parse_result_t klangc_int_parse(klangc_input_t *input, int *pintval) {
   int intval = 0;
   klangc_ipos_t ipos = klangc_input_save(input);
