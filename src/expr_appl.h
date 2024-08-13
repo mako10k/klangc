@@ -2,7 +2,6 @@
 
 #include "expr.h"
 #include "klangc.h"
-#include "types.h"
 
 // *******************************
 // Function application expression.
