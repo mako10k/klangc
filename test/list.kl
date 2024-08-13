@@ -1,12 +1,7 @@
-~List;
-  ~List = {
-    \~c -> (
-      \nil -> ~c nil;
-      \cons -> (\~hd -> \~tl -> (~c cons) ~hd ~tl);
-      \singleton -> (\~elem -> (~c cons) ~elem (~c nil));
-      \map -> \~f -> (
-        \nil -> ~c nil;
-        \cons ~hd ~tl -> (~c cons) (~f ~hd) ((~c map) ~f ~tl)
-      )
-    );
-  };
+~map (\x -> ~add 1) (cons 1 (cons 2 (cons 3 (cons 4 nil))));
+~singleton = \~elem -> cons ~elem nil;
+~map = \~f -> (
+  \nil -> nil;
+  \cons ~hd ~tl -> cons (~f ~hd) (~map ~f ~tl)
+);
+~add = \x -> \y -> add x y;

@@ -2,6 +2,7 @@
 #include "bind.h"
 #include "expr.h"
 #include "expr_env.h"
+#include "expr_lambda.h"
 #include "input.h"
 #include "malloc.h"
 #include "output.h"
@@ -45,6 +46,19 @@ klangc_expr_t *klangc_expr_closure_get_expr(klangc_expr_closure_t *closure) {
 
 klangc_bind_t *klangc_expr_closure_get_bind(klangc_expr_closure_t *closure) {
   return closure->kc_bind;
+}
+
+static int klangc_expr_closure_is_multiline(klangc_expr_closure_t *closure) {
+  if (closure->kc_bind != NULL)
+    return 1;
+  klangc_expr_type_t type = klangc_expr_get_type(closure->kc_expr);
+  if (type != KLANGC_ETYPE_LAMBDA)
+    return 1;
+  klangc_expr_lambda_t *lambda = klangc_expr_get_lambda(closure->kc_expr);
+  klangc_expr_lambda_t *lambda_next = klangc_expr_lambda_get_next(lambda);
+  if (lambda_next != NULL)
+    return 1;
+  return 0;
 }
 
 // -------------------------------
@@ -142,10 +156,17 @@ klangc_expr_closure_parse(klangc_input_t *input,
 // -------------------------------
 void klangc_expr_closure_print(klangc_output_t *output,
                                klangc_expr_closure_t *closure) {
-  klangc_printf(output, "{");
+
+  if (!klangc_expr_closure_is_multiline(closure)) {
+    klangc_printf(output, "{ ");
+    klangc_expr_print(output, KLANGC_PREC_LOWEST, closure->kc_expr);
+    klangc_printf(output, " }");
+    return;
+  }
+  klangc_printf(output, "{\n");
+  klangc_indent(output, 2);
   klangc_expr_print(output, KLANGC_PREC_LOWEST, closure->kc_expr);
   klangc_printf(output, ";\n");
-  klangc_indent(output, 2);
   if (closure->kc_bind != NULL) {
     klangc_bind_print(output, closure->kc_bind);
     klangc_printf(output, ";\n");
@@ -156,10 +177,16 @@ void klangc_expr_closure_print(klangc_output_t *output,
 
 void klangc_expr_closure_print_nobrace(klangc_output_t *output,
                                        klangc_expr_closure_t *closure) {
+
+  if (!klangc_expr_closure_is_multiline(closure)) {
+    klangc_expr_print(output, KLANGC_PREC_LOWEST, closure->kc_expr);
+    return;
+  }
   klangc_expr_print(output, KLANGC_PREC_LOWEST, closure->kc_expr);
+  klangc_printf(output, ";\n");
   if (closure->kc_bind != NULL) {
-    klangc_printf(output, ";\n");
     klangc_bind_print(output, closure->kc_bind);
+    klangc_printf(output, ";\n");
   }
 }
 
