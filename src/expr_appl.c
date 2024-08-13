@@ -6,12 +6,27 @@
 #include "types.h"
 #include <assert.h>
 
+// *******************************
+// Function application expression.
+// *******************************
+// -------------------------------
+// Structures.
+// -------------------------------
+/**
+ * Function application expression.
+ */
 struct klangc_expr_appl {
+  /** Function expression */
   klangc_expr_t *kva_func;
+  /** Number of arguments */
   int kva_argc;
+  /** Arguments */
   klangc_expr_t **kva_args;
 };
 
+// -------------------------------
+// Constructors.
+// -------------------------------
 klangc_expr_appl_t *klangc_expr_appl_new(klangc_expr_t *func) {
   assert(func != NULL);
   klangc_expr_appl_t *ret = klangc_malloc(sizeof(klangc_expr_appl_t));
@@ -31,9 +46,17 @@ void klangc_expr_appl_add_arg(klangc_expr_appl_t *appl, klangc_expr_t *arg) {
   appl->kva_args = new_args;
 }
 
+// -------------------------------
+// Accessors.
+// -------------------------------
 klangc_expr_t *klangc_expr_appl_get_func(klangc_expr_appl_t *appl) {
   assert(appl != NULL);
   return appl->kva_func;
+}
+
+unsigned int klangc_expr_appl_get_argc(klangc_expr_appl_t *appl) {
+  assert(appl != NULL);
+  return appl->kva_argc;
 }
 
 klangc_expr_t *klangc_expr_appl_get_arg(klangc_expr_appl_t *appl, int index) {
@@ -42,6 +65,9 @@ klangc_expr_t *klangc_expr_appl_get_arg(klangc_expr_appl_t *appl, int index) {
   return appl->kva_args[index];
 }
 
+// -------------------------------
+// Parsers.
+// -------------------------------
 klangc_parse_result_t klangc_expr_appl_parse(klangc_input_t *input,
                                              klangc_expr_parse_opt_t epopt,
                                              klangc_expr_t *efunc,
@@ -71,21 +97,9 @@ klangc_parse_result_t klangc_expr_appl_parse(klangc_input_t *input,
   }
 }
 
-klangc_bind_result_t klangc_expr_appl_bind(klangc_expr_env_t *env,
-                                           klangc_expr_appl_t *appl) {
-  assert(env != NULL);
-  assert(appl != NULL);
-  klangc_bind_result_t res = klangc_expr_bind(env, appl->kva_func);
-  if (res != KLANGC_BIND_OK)
-    return res;
-  for (int i = 0; i < appl->kva_argc; i++) {
-    res = klangc_expr_bind(env, appl->kva_args[i]);
-    if (res != KLANGC_BIND_OK)
-      return res;
-  }
-  return KLANGC_BIND_OK;
-}
-
+// -------------------------------
+// Printers.
+// -------------------------------
 void klangc_expr_appl_print(klangc_output_t *output, int prec,
                             klangc_expr_appl_t *appl) {
   assert(output != NULL);
@@ -103,4 +117,22 @@ void klangc_expr_appl_print(klangc_output_t *output, int prec,
   }
   if (prec > KLANGC_PREC_APPL)
     klangc_printf(output, ")");
+}
+
+// -------------------------------
+// Binders.
+// -------------------------------
+klangc_bind_result_t klangc_expr_appl_bind(klangc_expr_env_t *env,
+                                           klangc_expr_appl_t *appl) {
+  assert(env != NULL);
+  assert(appl != NULL);
+  klangc_bind_result_t res = klangc_expr_bind(env, appl->kva_func);
+  if (res != KLANGC_BIND_OK)
+    return res;
+  for (int i = 0; i < appl->kva_argc; i++) {
+    res = klangc_expr_bind(env, appl->kva_args[i]);
+    if (res != KLANGC_BIND_OK)
+      return res;
+  }
+  return KLANGC_BIND_OK;
 }
