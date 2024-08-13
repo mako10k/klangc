@@ -39,7 +39,7 @@ klangc_symbol_t *klangc_expr_alge_get_constr(klangc_expr_alge_t *ealge);
  * @param ealge Algebraic expression.
  * @return Number of arguments.
  */
-int klangc_expr_alge_get_argc(klangc_expr_alge_t *ealge);
+unsigned int klangc_expr_alge_get_argc(klangc_expr_alge_t *ealge);
 
 /**
  * Get the argument at a given index of an algebraic expression.

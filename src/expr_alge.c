@@ -55,7 +55,7 @@ klangc_symbol_t *klangc_expr_alge_get_constr(klangc_expr_alge_t *expr) {
   return expr->ker_constr;
 }
 
-int klangc_expr_alge_get_argc(klangc_expr_alge_t *expr) {
+unsigned int klangc_expr_alge_get_argc(klangc_expr_alge_t *expr) {
   assert(expr != NULL);
   return expr->ker_argc;
 }
