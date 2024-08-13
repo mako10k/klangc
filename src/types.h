@@ -51,6 +51,9 @@ typedef struct klangc_hash klangc_hash_t;
 /** 値 */
 typedef struct klangc_value klangc_value_t;
 
+/** 代数的値 */
+typedef struct klangc_value_alge klangc_value_alge_t;
+
 /** 参照（値） */
 typedef struct klangc_value_ref klangc_value_ref_t;
 
@@ -71,6 +74,9 @@ typedef struct klangc_output klangc_output_t;
 
 /** 環境（値） */
 typedef struct klangc_env klangc_env_t;
+
+/** C関数 */
+typedef struct klangc_expr_cfunc klangc_expr_cfunc_t;
 
 /** 位置情報 */
 typedef struct klangc_ipos {

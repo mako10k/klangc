@@ -9,14 +9,16 @@ klangc_SOURCES =   \
     env.c          \
     expr.h         \
     expr.c         \
-    expr_alge.h.   \
+    expr_alge.h    \
     expr_alge.c    \
     expr_appl.h    \
     expr_appl.c    \
-    expr_env.h     \
-    expr_env.c     \
+    expr_cfunc.h   \
+    expr_cfunc.c   \
     expr_closure.h \
     expr_closure.c \
+    expr_env.h     \
+    expr_env.c     \
     expr_lambda.h  \
     expr_lambda.c  \
     expr_ref.h     \

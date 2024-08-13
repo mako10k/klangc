@@ -115,13 +115,13 @@ klangc_pat_as_t *klangc_pat_get_as(klangc_pat_t *pat) {
   return pat->kp_as;
 }
 
-int klangc_pat_get_intval(klangc_pat_t *pat) {
+int klangc_pat_get_int(klangc_pat_t *pat) {
   assert(pat != NULL);
   assert(pat->kp_type == KLANGC_PTYPE_INT);
   return pat->kp_intval;
 }
 
-const char *klangc_pat_get_strval(klangc_pat_t *pat) {
+const char *klangc_pat_get_string(klangc_pat_t *pat) {
   assert(pat != NULL);
   assert(pat->kp_type == KLANGC_PTYPE_STRING);
   return pat->kp_strval;
