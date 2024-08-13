@@ -1,0 +1,12 @@
+~List;
+  ~List = {
+    \~c -> (
+      \nil -> ~c nil;
+      \cons -> (\~hd -> \~tl -> (~c cons) ~hd ~tl);
+      \singleton -> (\~elem -> (~c cons) ~elem (~c nil));
+      \map -> \~f -> (
+        \nil -> ~c nil;
+        \cons ~hd ~tl -> (~c cons) (~f ~hd) ((~c map) ~f ~tl)
+      )
+    );
+  };
