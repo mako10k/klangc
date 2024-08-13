@@ -10,12 +10,27 @@
 #include "types.h"
 #include <assert.h>
 
+// *******************************
+// Lambda expression.
+// *******************************
+// -------------------------------
+// Structures.
+// -------------------------------
+/**
+ * Lambda expression.
+ */
 struct klangc_expr_lambda {
+  /** Argument pattern */
   klangc_pat_t *kvl_arg;
+  /** Body expression */
   klangc_expr_t *kvl_body;
+  /** Next lambda expression */
   klangc_expr_lambda_t *kvl_next;
 };
 
+// -------------------------------
+// Constructors.
+// -------------------------------
 klangc_expr_lambda_t *klangc_expr_lambda_new(klangc_pat_t *arg,
                                              klangc_expr_t *body,
                                              klangc_expr_lambda_t *next) {
@@ -28,6 +43,25 @@ klangc_expr_lambda_t *klangc_expr_lambda_new(klangc_pat_t *arg,
   return lambda;
 }
 
+// -------------------------------
+// Accessors.
+// -------------------------------
+klangc_pat_t *klangc_expr_lambda_get_arg(klangc_expr_lambda_t *lambda) {
+  return lambda->kvl_arg;
+}
+
+klangc_expr_t *klangc_expr_lambda_get_body(klangc_expr_lambda_t *lambda) {
+  return lambda->kvl_body;
+}
+
+klangc_expr_lambda_t *
+klangc_expr_lambda_get_next(klangc_expr_lambda_t *lambda) {
+  return lambda->kvl_next;
+}
+
+// -------------------------------
+// Parsers.
+// -------------------------------
 klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
                                                klangc_expr_lambda_t **plambda) {
   klangc_ipos_t ipos = klangc_input_save(input);
@@ -110,6 +144,9 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   return KLANGC_PARSE_OK;
 }
 
+// -------------------------------
+// Printers.
+// -------------------------------
 void klangc_expr_lambda_print(klangc_output_t *output, int prec,
                               klangc_expr_lambda_t *lambda) {
   assert(lambda != NULL);
@@ -138,19 +175,9 @@ void klangc_expr_lambda_print(klangc_output_t *output, int prec,
     klangc_printf(output, "\n)");
 }
 
-klangc_pat_t *klangc_expr_lambda_get_arg(klangc_expr_lambda_t *lambda) {
-  return lambda->kvl_arg;
-}
-
-klangc_expr_t *klangc_expr_lambda_get_body(klangc_expr_lambda_t *lambda) {
-  return lambda->kvl_body;
-}
-
-klangc_expr_lambda_t *
-klangc_expr_lambda_get_next(klangc_expr_lambda_t *lambda) {
-  return lambda->kvl_next;
-}
-
+// -------------------------------
+// Binders.
+// -------------------------------
 klangc_bind_result_t klangc_expr_lambda_bind(klangc_expr_env_t *env,
                                              klangc_expr_lambda_t *lambda) {
   klangc_expr_env_t *env_inner = klangc_expr_env_new(env);
