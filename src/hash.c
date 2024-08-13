@@ -3,20 +3,44 @@
 #include <assert.h>
 #include <string.h>
 
+// *******************************
+// Hash table.
+// *******************************
+// -------------------------------
+// Structures.
+// -------------------------------
+/**
+ * Hash table entry.
+ */
 typedef struct klangc_hash_entry klangc_hash_entry_t;
 
+/**
+ * Hash table entry.
+ */
 struct klangc_hash_entry {
+  /** Key */
   const char *khe_key;
+  /** Value */
   void *khe_value;
+  /** Next entry */
   klangc_hash_entry_t *khe_next;
 };
 
+/**
+ * Hash table.
+ */
 struct klangc_hash {
+  /** Entries */
   klangc_hash_entry_t **kh_entries;
+  /** Number of entries */
   int kh_size;
+  /** Capacity */
   int kh_capacity;
 };
 
+// -------------------------------
+// Constructors.
+// -------------------------------
 klangc_hash_t *klangc_hash_new(int capacity) {
   assert(capacity > 0);
   klangc_hash_t *hash = klangc_malloc(sizeof(klangc_hash_t));
@@ -28,10 +52,14 @@ klangc_hash_t *klangc_hash_new(int capacity) {
   return hash;
 }
 
+// -------------------------------
+// Accessors.
+// -------------------------------
 /**
- * ハッシュ値を計算する
- * @param key キー
- * @return ハッシュ値
+ * Calculates the hash value of a key.
+ *
+ * @param key The key to calculate the hash value.
+ * @return The hash value of the key.
  */
 static unsigned int klangc_calc_hash(const char *key) {
   assert(key != NULL);
