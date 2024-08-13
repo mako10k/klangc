@@ -8,71 +8,87 @@
 #include <stdio.h>
 #include <string.h>
 
+// *******************************
+// Input.
+// *******************************
+// -------------------------------
+// Structures.
+// -------------------------------
 /**
- * 入力
+ * Input.
  */
 typedef struct klangc_input klangc_input_t;
 
+// -------------------------------
+// Constructors.
+// -------------------------------
 /**
- * 新しい入力を作成
- * @param fp ファイルポインタ
- * @param name 入力の名前
- * @return 作成した入力
+ * Make a new input.
+ * @param fp File pointer.
+ * @param name Name.
+ * @return New input.
  */
 klangc_input_t *klangc_input_new(FILE *fp, const char *name);
 
+// -------------------------------
+// Accessors.
+// -------------------------------
 /**
- * 入力の名前を取得
- * @param input 入力
- * @return 入力の名前
+ * Get the name of an input.
+ * @param input Input.
+ * @return Name.
  */
 const char *klangc_input_get_name(klangc_input_t *input);
 
 /**
- * 入力位置を返す
- * @param input 入力
- * @return 入力位置
+ * Get the position of an input.
+ * @param input Input.
+ * @return File pointer.
  */
 klangc_ipos_t klangc_input_save(klangc_input_t *input);
 
 /**
- * 入力位置を復元
- * @param input 入力
- * @param ipos 入力位置
+ * Restore the position of an input.
+ * @param input Input.
+ * @param ipos Position.
  */
 void klangc_input_restore(klangc_input_t *input, klangc_ipos_t ipos);
 
 /**
- * 入力から1文字読み込む
- * @param input 入力
- * @return 読み込んだ文字
+ * Get the next char of an input.
+ * @param input Input.
+ * @return Next char.
  */
 int klangc_getc(klangc_input_t *input);
 
 /**
- * 入力文字がスペースかどうかチェック
- * @param in_comment コメント中かどうかを格納する変数へのポインタ
- * @return スペースの場合は1、それ以外の場合は0
+ * Test if the input is spaces.
+ * @param c Char.
+ * @param in_comment In comment.
+ * @return True if the input is spaces.
  */
 int klangc_isspace(int c, int *in_comment);
 
 /**
- * スペース以外の1文字を入力する
- * @param input 入力
- * @return スペースをスキップした後の文字
+ * Get the next char of an input after skip spaces.
+ * @param input Input.
+ * @return Next char.
  */
 int klangc_getc_skipspaces(klangc_input_t *input);
 
 /**
- * スペースをスキップ
- * @param input 入力
- * @return スペースをスキップした後の入力位置
+ * Get the position of an input after skip spaces.
+ * @param input Input.
+ * @return Position.
  */
 klangc_ipos_t klangc_skipspaces(klangc_input_t *input);
 
+// -------------------------------
+// Printers.
+// -------------------------------
 /**
- * ファイル名と位置を出力
- * @param input 入力
- * @param ipos 入力位置
+ * Print an input position.
+ * @param output Output.
+ * @param ipos Position.
  */
 void klangc_ipos_print(klangc_output_t *output, klangc_ipos_t ipos);

@@ -2,14 +2,31 @@
 #include "malloc.h"
 #include "output.h"
 
+// *******************************
+// Input.
+// *******************************
+// -------------------------------
+// Structures.
+// -------------------------------
+/**
+ * Input.
+ */
 struct klangc_input {
+  /** Stream */
   FILE *kip_stream;
+  /** Name */
   const char *kip_name;
+  /** Offset */
   off_t kip_offset;
+  /** Line */
   int kip_line;
+  /** Column */
   int kip_col;
 };
 
+// -------------------------------
+// Constructors.
+// -------------------------------
 klangc_input_t *klangc_input_new(FILE *fp, const char *name) {
   assert(fp != NULL);
   assert(name != NULL);
@@ -23,6 +40,9 @@ klangc_input_t *klangc_input_new(FILE *fp, const char *name) {
   return input;
 }
 
+// -------------------------------
+// Accessors.
+// -------------------------------
 const char *klangc_input_get_name(klangc_input_t *input) {
   return input->kip_name;
 }
@@ -46,6 +66,12 @@ void klangc_input_restore(klangc_input_t *input, klangc_ipos_t ipos) {
   input->kip_col = ipos.kip_col;
 }
 
+/**
+ * Process to update internal state in input.
+ * @param input Input.
+ * @param c Character.
+ * @return Character.
+ */
 static int klangc_procc(klangc_input_t *input, int c) {
   if (c == EOF)
     return EOF;
@@ -102,6 +128,9 @@ klangc_ipos_t klangc_skipspaces(klangc_input_t *input) {
   }
 }
 
+// -------------------------------
+// Printers.
+// -------------------------------
 void klangc_ipos_print(klangc_output_t *output, klangc_ipos_t ipos) {
   klangc_printf(output, "%s(%d,%d): ", klangc_input_get_name(ipos.kip_input),
                 ipos.kip_line + 1, ipos.kip_col + 1);
