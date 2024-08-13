@@ -32,7 +32,7 @@ int main(int argc, const char *argv[]) {
                                  "<program> ::= <closure'> ';'^;\n");
       return EXIT_FAILURE;
     }
-    klangc_expr_closure_print(kstdout, closure);
+    klangc_expr_closure_print_nobrace(kstdout, closure);
     klangc_printf(kstdout, ";\n");
     klangc_expr_closure_bind(prelude, closure);
   }

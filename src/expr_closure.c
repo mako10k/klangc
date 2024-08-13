@@ -1,6 +1,5 @@
 #include "expr_closure.h"
 #include "bind.h"
-#include "env.h"
 #include "expr.h"
 #include "expr_env.h"
 #include "input.h"
@@ -153,6 +152,14 @@ void klangc_expr_closure_print(klangc_output_t *output,
   }
   klangc_indent(output, -2);
   klangc_printf(output, "}");
+}
+
+void klangc_expr_closure_print_nobrace(klangc_output_t *output,
+                                       klangc_expr_closure_t *closure) {
+  klangc_expr_print(output, KLANGC_PREC_LOWEST, closure->kc_expr);
+  klangc_printf(output, ";\n");
+  if (closure->kc_bind != NULL)
+    klangc_bind_print(output, closure->kc_bind);
 }
 
 // -------------------------------

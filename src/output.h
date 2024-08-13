@@ -87,6 +87,7 @@ extern klangc_output_t *kstderr;
 
 enum {
   KLANGC_PREC_LOWEST,
+  KLANGC_PREC_LAMBDAS,
   KLANGC_PREC_LAMBDA,
   KLANGC_PREC_APPL,
   KLANGC_PREC_HIGHEST,

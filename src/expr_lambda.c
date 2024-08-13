@@ -144,34 +144,63 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   return KLANGC_PARSE_OK;
 }
 
+//
+// <lambda> ::= '\' <pat> '->' <expr> (';' <lambda>)?;
+// <expr> が <lambda> なら、<expr> は '(' <lambda> ')' としないと
+// うまくいかない。
+//
+
 // -------------------------------
 // Printers.
 // -------------------------------
+/**
+ * Print a single lambda expression.
+ * @param output Output stream.
+ * @param prec Precedence.
+ * @param lambda Lambda expression.
+ */
+static void klangc_expr_lambda_print_single(klangc_output_t *output, int prec,
+                                            klangc_expr_lambda_t *lambda) {
+  assert(output != NULL);
+  assert(lambda != NULL);
+  int prec2 =
+      lambda->kvl_next == NULL ? KLANGC_PREC_LAMBDA : KLANGC_PREC_LAMBDA + 1;
+  if (prec > KLANGC_PREC_LAMBDA) {
+    klangc_printf(output, "(");
+    prec2 = KLANGC_PREC_LOWEST;
+  }
+  klangc_printf(output, "\\");
+  klangc_pat_print(output, KLANGC_PREC_LOWEST, lambda->kvl_arg);
+  klangc_printf(output, " -> ");
+  klangc_expr_print(output, prec2, lambda->kvl_body);
+  if (prec > KLANGC_PREC_LAMBDA)
+    klangc_printf(output, ")");
+  return;
+}
 void klangc_expr_lambda_print(klangc_output_t *output, int prec,
                               klangc_expr_lambda_t *lambda) {
+  assert(output != NULL);
   assert(lambda != NULL);
   if (lambda->kvl_next == NULL) {
-    klangc_printf(output, "\\");
-    klangc_pat_print(output, KLANGC_PREC_LOWEST, lambda->kvl_arg);
-    klangc_printf(output, " -> ");
-    klangc_expr_print(output, KLANGC_PREC_LAMBDA + 1, lambda->kvl_body);
+    klangc_expr_lambda_print_single(output, prec, lambda);
     return;
   }
-  if (prec > KLANGC_PREC_LAMBDA)
+  int prec2 = prec;
+  if (prec > KLANGC_PREC_LAMBDAS) {
     klangc_printf(output, "(");
+    prec2 = KLANGC_PREC_LOWEST;
+  }
   klangc_indent(output, 2);
   while (1) {
-    klangc_printf(output, "\n\\");
-    klangc_pat_print(output, KLANGC_PREC_LOWEST, lambda->kvl_arg);
-    klangc_printf(output, " -> ");
-    klangc_expr_print(output, KLANGC_PREC_LAMBDA + 1, lambda->kvl_body);
+    klangc_printf(output, "\n");
+    klangc_expr_lambda_print_single(output, prec2, lambda);
     lambda = lambda->kvl_next;
     if (lambda == NULL)
       break;
     klangc_printf(output, ";");
   }
   klangc_indent(output, -2);
-  if (prec > KLANGC_PREC_LAMBDA)
+  if (prec > KLANGC_PREC_LAMBDAS)
     klangc_printf(output, "\n)");
 }
 
