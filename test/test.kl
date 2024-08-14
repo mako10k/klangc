@@ -4,7 +4,7 @@
 ~go = \[] -> ~prelude exit 0;
       \(~hd:~tl) -> ~prelude chain
          (~prelude println hd)
-         \~_ -> ~go ~tl;
+         \() -> ~go ~tl;
  
 ~join = \~m -> ~go chain ~m ~id;
 ~id = \~x -> ~x;
@@ -25,3 +25,7 @@
 ~testNil = \[] -> [];
 
 ~testCons = \~x : ~y : [] -> (~x : ~y) : ~z : [];
+~testTuple = \() -> ();
+             \(~x) -> (~x);
+             \(~x, ~y) -> (~x, ~y);
+             \(~x, ~y, ~z) -> (~x, ~y, ~z);

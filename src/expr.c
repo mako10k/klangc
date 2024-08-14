@@ -10,6 +10,7 @@
 #include "output.h"
 #include "parse.h"
 #include "str.h"
+#include "tuple.h"
 #include <assert.h>
 
 // *******************************
@@ -173,49 +174,6 @@ klangc_expr_closure_t *klangc_expr_get_closure(klangc_expr_t *expr) {
 // -------------------------------
 // Parsers.
 // -------------------------------
-/**
- * Parse a parenthesized expression.
- * @param input input
- * @param pexpr expression
- * @return parse result
- */
-static klangc_parse_result_t klangc_expr_parse_paren(klangc_input_t *input,
-                                                     klangc_expr_t **pexpr) {
-  assert(input != NULL);
-  assert(pexpr != NULL);
-  klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  klangc_parse_result_t res = klangc_expect(input, '(', NULL);
-  if (res != KLANGC_PARSE_OK) {
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_NOPARSE;
-  }
-  ipos_ss = klangc_skipspaces(input);
-  klangc_expr_t *expr;
-  switch (klangc_expr_parse(input, KLANGC_EXPR_PARSE_NORMAL, &expr)) {
-  case KLANGC_PARSE_OK:
-    break;
-  case KLANGC_PARSE_NOPARSE:
-    klangc_printf_ipos_expects(kstderr, ipos_ss, "<expr>", klangc_getc(input),
-                               "<expr> ::= .. | '(' ^<expr> ')' | ..;\n");
-  case KLANGC_PARSE_ERROR:
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
-  }
-
-  ipos_ss = klangc_skipspaces(input);
-  int c;
-  res = klangc_expect(input, ')', &c);
-  if (res != KLANGC_PARSE_OK) {
-    klangc_printf_ipos_expects(kstderr, ipos_ss, "'('", c,
-                               "<expr> ::= .. | '(' <expr> ^')' | ..;\n");
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
-  }
-  *pexpr = expr;
-  return KLANGC_PARSE_OK;
-}
-
 /**
  * Parse an algebraic expression.
  * @param input input
@@ -473,7 +431,7 @@ klangc_expr_parse_noappl(klangc_input_t *input, klangc_expr_parse_opt_t epopt,
   assert(input != NULL);
   assert(pexpr != NULL);
   klangc_parse_result_t res;
-  res = klangc_expr_parse_paren(input, pexpr);
+  res = klangc_expr_parse_tuple(input, pexpr);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
@@ -592,6 +550,10 @@ klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
 void klangc_expr_print(klangc_output_t *output, int prec, klangc_expr_t *expr) {
   assert(output != NULL);
   assert(expr != NULL);
+  if (klangc_expr_is_tuple(expr)) {
+    klangc_expr_print_tuple(output, expr);
+    return;
+  }
   switch (expr->ke_type) {
   case KLANGC_ETYPE_ALGE:
     klangc_expr_alge_print(output, prec, expr->ke_alge);

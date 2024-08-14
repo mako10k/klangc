@@ -55,6 +55,8 @@ klangc_SOURCES =   \
     symbol.c       \
     str.h          \
     str.c          \
+    tuple.h        \
+    tuple.c        \
     types.h        \
     val.h          \
     val.c          \

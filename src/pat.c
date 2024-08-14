@@ -9,6 +9,7 @@
 #include "pat_as.h"
 #include "pat_ref.h"
 #include "str.h"
+#include "tuple.h"
 #include "types.h"
 #include <assert.h>
 #include <stdio.h>
@@ -138,43 +139,6 @@ klangc_ipos_t klangc_pat_get_ipos(klangc_pat_t *pat) {
 // -------------------------------
 // Parsers.
 // -------------------------------
-static klangc_parse_result_t klangc_pat_parse_paren(klangc_input_t *input,
-                                                    klangc_pat_t **ppat) {
-  klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  klangc_parse_result_t res = klangc_expect(input, '(', NULL);
-  if (res != KLANGC_PARSE_OK)
-    return res;
-  klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
-  klangc_pat_t *pat;
-  res = klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &pat);
-  switch (res) {
-  case KLANGC_PARSE_OK:
-    break;
-  case KLANGC_PARSE_NOPARSE:
-    klangc_ipos_print(kstderr, ipos_ss2);
-    klangc_printf(kstderr, "expect <pat>: ['(' ^<pat> ')']\n");
-  case KLANGC_PARSE_ERROR:
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
-  }
-  ipos_ss2 = klangc_skipspaces(input);
-  int c;
-  res = klangc_expect(input, ')', &c);
-  switch (res) {
-  case KLANGC_PARSE_OK:
-    break;
-  case KLANGC_PARSE_NOPARSE:
-    klangc_ipos_print(kstderr, ipos_ss2);
-    klangc_printf(kstderr, "expect ')' but get '%c': ['(' <pat> ^')']\n", c);
-  case KLANGC_PARSE_ERROR:
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
-  }
-  *ppat = pat;
-  return KLANGC_PARSE_OK;
-}
-
 /**
  * Parse a list of patterns.
  * @param input Input.
@@ -350,7 +314,7 @@ klangc_parse_result_t klangc_pat_parse_nocons(klangc_input_t *input,
   assert(input != NULL);
   assert(ppat != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_parse_result_t res = klangc_pat_parse_paren(input, ppat);
+  klangc_parse_result_t res = klangc_pat_parse_tuple(input, ppat);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
@@ -452,6 +416,10 @@ void klangc_pat_print(klangc_output_t *output, int prec, klangc_pat_t *pat) {
   assert(prec <= KLANGC_PREC_HIGHEST);
   assert(pat != NULL);
 
+  if (klangc_pat_is_tuple(pat)) {
+    klangc_pat_print_tuple(output, pat);
+    return;
+  }
   switch (pat->kp_type) {
   case KLANGC_PTYPE_REF:
     klangc_pat_ref_print(output, pat->kp_pref);
