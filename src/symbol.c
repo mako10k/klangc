@@ -16,7 +16,7 @@ __attribute__((constructor)) static void klangc_symbol_init() {
   g_symbol_hash = klangc_hash_new(16);
 }
 
-klangc_symbol_t *klangc_symbol_new(const klangc_str_t *name) {
+const klangc_symbol_t *klangc_symbol_new(const klangc_str_t *name) {
   assert(name != NULL);
   klangc_symbol_t *symbol;
   if (klangc_hash_get(g_symbol_hash, name, (void **)&symbol))
@@ -28,7 +28,7 @@ klangc_symbol_t *klangc_symbol_new(const klangc_str_t *name) {
 }
 
 klangc_parse_result_t klangc_symbol_parse(klangc_input_t *input,
-                                          klangc_symbol_t **psymbol) {
+                                          const klangc_symbol_t **psymbol) {
   assert(input != NULL);
   assert(psymbol != NULL);
 
@@ -62,12 +62,13 @@ klangc_parse_result_t klangc_symbol_parse(klangc_input_t *input,
   return KLANGC_PARSE_OK;
 }
 
-const klangc_str_t *klangc_symbol_get_name(klangc_symbol_t *symbol) {
+const klangc_str_t *klangc_symbol_get_name(const klangc_symbol_t *symbol) {
   assert(symbol != NULL);
   return symbol->ks_name;
 }
 
-void klangc_symbol_print(klangc_output_t *output, klangc_symbol_t *symbol) {
+void klangc_symbol_print(klangc_output_t *output,
+                         const klangc_symbol_t *symbol) {
   assert(output != NULL);
   assert(symbol != NULL);
   klangc_printf(output, "%s", klangc_str_get_cstr(symbol->ks_name));

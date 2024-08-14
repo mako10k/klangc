@@ -18,7 +18,7 @@
  */
 struct klangc_expr_ref {
   /** Reference */
-  klangc_symbol_t *ker_sym;
+  const klangc_symbol_t *ker_sym;
   /** Target */
   klangc_expr_ref_target_t *ker_target;
   /** Expression */
@@ -28,7 +28,7 @@ struct klangc_expr_ref {
 // -------------------------------
 // Constructors.
 // -------------------------------
-klangc_expr_ref_t *klangc_expr_ref_new(klangc_symbol_t *sym) {
+klangc_expr_ref_t *klangc_expr_ref_new(const klangc_symbol_t *sym) {
   assert(sym != NULL);
   klangc_expr_ref_t *eref = klangc_malloc(sizeof(klangc_expr_ref_t));
   eref->ker_sym = sym;
@@ -55,7 +55,7 @@ void klangc_expr_ref_set_expr(klangc_expr_ref_t *eref, klangc_expr_t *expr) {
 // -------------------------------
 // Accessors.
 // -------------------------------
-klangc_symbol_t *klangc_expr_ref_get_symbol(klangc_expr_ref_t *eref) {
+const klangc_symbol_t *klangc_expr_ref_get_symbol(klangc_expr_ref_t *eref) {
   assert(eref != NULL);
   return eref->ker_sym;
 }
@@ -77,7 +77,7 @@ klangc_parse_result_t klangc_expr_ref_parse(klangc_input_t *input,
                                             klangc_expr_ref_t **eref) {
   assert(input != NULL);
   assert(eref != NULL);
-  klangc_symbol_t *sym;
+  const klangc_symbol_t *sym;
   switch (klangc_ref_parse(input, &sym)) {
   case KLANGC_PARSE_OK:
     break;
@@ -104,7 +104,7 @@ void klangc_expr_ref_print(klangc_output_t *output, klangc_expr_ref_t *eref) {
 // -------------------------------
 klangc_bind_result_t klangc_expr_ref_bind(klangc_expr_env_t *eenv,
                                           klangc_expr_ref_t *eref) {
-  klangc_symbol_t *sym = klangc_expr_ref_get_symbol(eref);
+  const klangc_symbol_t *sym = klangc_expr_ref_get_symbol(eref);
   klangc_expr_ref_target_t *target = klangc_expr_env_get_entry(eenv, sym);
   if (target == NULL) {
     klangc_expr_t *expr = klangc_expr_ref_get_expr(eref);

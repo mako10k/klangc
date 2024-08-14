@@ -15,7 +15,7 @@
  * @param constr Constructor symbol.
  * @return New algebraic expression.
  */
-klangc_expr_alge_t *klangc_expr_alge_new(klangc_symbol_t *constr);
+klangc_expr_alge_t *klangc_expr_alge_new(const klangc_symbol_t *constr);
 
 /**
  * Add an argument to an algebraic expression.
@@ -32,7 +32,7 @@ void klangc_expr_alge_add_arg(klangc_expr_alge_t *ealge, klangc_expr_t *arg);
  * @param ealge Algebraic expression.
  * @return Constructor symbol.
  */
-klangc_symbol_t *klangc_expr_alge_get_constr(klangc_expr_alge_t *ealge);
+const klangc_symbol_t *klangc_expr_alge_get_constr(klangc_expr_alge_t *ealge);
 
 /**
  * Get the number of arguments of an algebraic expression.

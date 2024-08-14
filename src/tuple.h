@@ -15,8 +15,8 @@ __attribute__((unused)) static const klangc_str_t *klangc_tuple_str(void) {
   return tuple_str;
 }
 
-__attribute__((unused)) static klangc_symbol_t *klangc_tuple_symbol(void) {
-  static klangc_symbol_t *tuple_sym = NULL;
+__attribute__((unused)) static const klangc_symbol_t *klangc_tuple_symbol(void) {
+  static const klangc_symbol_t *tuple_sym = NULL;
   if (tuple_sym == NULL) {
     tuple_sym = klangc_symbol_new(klangc_tuple_str());
   }

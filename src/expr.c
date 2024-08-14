@@ -376,7 +376,7 @@ static klangc_parse_result_t klangc_expr_parse_list(klangc_input_t *input,
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
-  klangc_symbol_t *sym_cons = klangc_cons_symbol();
+  const klangc_symbol_t *sym_cons = klangc_cons_symbol();
   klangc_expr_alge_t *ealge_cons = klangc_expr_alge_new(sym_cons);
   klangc_expr_t *expr_cons = klangc_expr_new_alge(ealge_cons, ipos_ss);
   klangc_expr_alge_add_arg(ealge_cons, expr);

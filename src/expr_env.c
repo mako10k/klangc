@@ -19,8 +19,8 @@ klangc_expr_env_t *klangc_expr_env_get_upper(klangc_expr_env_t *env) {
   return env->kee_upper;
 }
 
-klangc_expr_ref_target_t *klangc_expr_env_get_entry(klangc_expr_env_t *env,
-                                                    klangc_symbol_t *sym) {
+klangc_expr_ref_target_t *
+klangc_expr_env_get_entry(klangc_expr_env_t *env, const klangc_symbol_t *sym) {
   klangc_expr_ref_target_t *target;
   for (klangc_expr_env_t *e = env; e != NULL; e = e->kee_upper) {
     if (klangc_hash_get(e->kee_entries, klangc_symbol_get_name(sym),
@@ -30,7 +30,8 @@ klangc_expr_ref_target_t *klangc_expr_env_get_entry(klangc_expr_env_t *env,
   return NULL;
 }
 
-int klangc_expr_env_put_entry(klangc_expr_env_t *env, klangc_symbol_t *sym,
+int klangc_expr_env_put_entry(klangc_expr_env_t *env,
+                              const klangc_symbol_t *sym,
                               klangc_expr_ref_target_t *target) {
   const klangc_str_t *name = klangc_symbol_get_name(sym);
   return klangc_hash_put(env->kee_entries, name, target, NULL);

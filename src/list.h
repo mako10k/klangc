@@ -17,8 +17,8 @@ __attribute__((unused)) static const klangc_str_t *klangc_nil_str(void) {
   return nil_str;
 }
 
-__attribute__((unused)) static klangc_symbol_t *klangc_nil_symbol(void) {
-  static klangc_symbol_t *nil_sym = NULL;
+__attribute__((unused)) static const klangc_symbol_t *klangc_nil_symbol(void) {
+  static const klangc_symbol_t *nil_sym = NULL;
   if (nil_sym == NULL)
     nil_sym = klangc_symbol_new(klangc_nil_str());
   return nil_sym;
@@ -47,8 +47,8 @@ __attribute__((unused)) static const klangc_str_t *klangc_cons_str(void) {
   return cons_str;
 }
 
-__attribute__((unused)) static klangc_symbol_t *klangc_cons_symbol(void) {
-  static klangc_symbol_t *cons_sym = NULL;
+__attribute__((unused)) static const klangc_symbol_t *klangc_cons_symbol(void) {
+  static const klangc_symbol_t *cons_sym = NULL;
   if (cons_sym == NULL)
     cons_sym = klangc_symbol_new(klangc_cons_str());
   return cons_sym;

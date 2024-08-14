@@ -13,12 +13,12 @@
  * @param sym Reference.
  * @return New pattern reference.
  */
-klangc_pat_ref_t *klangc_pat_ref_new(klangc_symbol_t *sym);
+klangc_pat_ref_t *klangc_pat_ref_new(const klangc_symbol_t *sym);
 
 // -------------------------------
 // Accessors.
 // -------------------------------
-klangc_symbol_t *klangc_pat_ref_get_symbol(klangc_pat_ref_t *pref);
+const klangc_symbol_t *klangc_pat_ref_get_symbol(klangc_pat_ref_t *pref);
 
 // -------------------------------
 // Parsers.

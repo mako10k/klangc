@@ -14,7 +14,7 @@
  * @param expr Expression.
  * @return New reference expression.
  */
-klangc_expr_ref_t *klangc_expr_ref_new(klangc_symbol_t *sym);
+klangc_expr_ref_t *klangc_expr_ref_new(const klangc_symbol_t *sym);
 
 /**
  * Set the target of a reference expression.
@@ -39,7 +39,7 @@ void klangc_expr_ref_set_expr(klangc_expr_ref_t *eref, klangc_expr_t *expr);
  * @param eref Reference expression.
  * @return Reference symbol.
  */
-klangc_symbol_t *klangc_expr_ref_get_symbol(klangc_expr_ref_t *eref);
+const klangc_symbol_t *klangc_expr_ref_get_symbol(klangc_expr_ref_t *eref);
 
 /**
  * Get the target of a reference expression.

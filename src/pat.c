@@ -184,7 +184,7 @@ static klangc_parse_result_t klangc_pat_parse_list(klangc_input_t *input,
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
-  klangc_symbol_t *sym_cons = klangc_cons_symbol();
+  const klangc_symbol_t *sym_cons = klangc_cons_symbol();
   klangc_pat_alge_t *palge_hd = klangc_pat_alge_new(sym_cons);
   klangc_pat_alge_add_arg(palge_hd, pat);
   klangc_pat_t *pat_hd = klangc_pat_new_alge(palge_hd, ipos_ss2);

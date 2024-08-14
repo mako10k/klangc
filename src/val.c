@@ -81,7 +81,7 @@ int klangc_value_match(klangc_env_t *env, klangc_pat_t *pat,
   case KLANGC_PTYPE_REF: {
     // パターンが参照の場合 (一切評価せずに環境に登録)
     klangc_pat_ref_t *pref = klangc_pat_get_ref(pat);
-    klangc_symbol_t *sym = klangc_pat_ref_get_symbol(pref);
+    const klangc_symbol_t *sym = klangc_pat_ref_get_symbol(pref);
     const klangc_str_t *name = klangc_symbol_get_name(sym);
     klangc_env_put(env, name, val);
   }
@@ -90,14 +90,14 @@ int klangc_value_match(klangc_env_t *env, klangc_pat_t *pat,
     // 値も既に代数的値に簡約化されている場合はコンストラクタと引数を比較
     // 値が適用の場合は適用を評価してから比較
     klangc_pat_alge_t *palge = klangc_pat_get_alge(pat);
-    klangc_symbol_t *pconstr = klangc_pat_alge_get_constr(palge);
+    const klangc_symbol_t *pconstr = klangc_pat_alge_get_constr(palge);
     if (vtype == KLANGC_VTYPE_APPL) {
       klangc_value_eval_appl(val);
       vtype = val->kv_type;
     }
     if (vtype == KLANGC_VTYPE_ALGE) {
       klangc_value_alge_t *valge = val->kv_alge;
-      klangc_symbol_t *vconstr = klangc_value_alge_get_constr(valge);
+      const klangc_symbol_t *vconstr = klangc_value_alge_get_constr(valge);
       if (klangc_str_cmp(klangc_symbol_get_name(pconstr),
                          klangc_symbol_get_name(vconstr)) != 0)
         return 0;
@@ -121,7 +121,7 @@ int klangc_value_match(klangc_env_t *env, klangc_pat_t *pat,
     int ret = klangc_value_match(env, pinner, val);
     if (ret) {
       klangc_pat_ref_t *pref = klangc_pat_as_get_ref(pas);
-      klangc_symbol_t *sym = klangc_pat_ref_get_symbol(pref);
+      const klangc_symbol_t *sym = klangc_pat_ref_get_symbol(pref);
       const klangc_str_t *name = klangc_symbol_get_name(sym);
       klangc_env_put(env, name, val);
     }

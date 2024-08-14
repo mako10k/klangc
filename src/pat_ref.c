@@ -16,13 +16,13 @@
  */
 struct klangc_pat_ref {
   /** Reference */
-  klangc_symbol_t *kpr_sym;
+  const klangc_symbol_t *kpr_sym;
 };
 
 // -------------------------------
 // Constructors.
 // -------------------------------
-klangc_pat_ref_t *klangc_pat_ref_new(klangc_symbol_t *sym) {
+klangc_pat_ref_t *klangc_pat_ref_new(const klangc_symbol_t *sym) {
   assert(sym != NULL);
   klangc_pat_ref_t *pref = klangc_malloc(sizeof(klangc_pat_ref_t));
   pref->kpr_sym = sym;
@@ -32,7 +32,7 @@ klangc_pat_ref_t *klangc_pat_ref_new(klangc_symbol_t *sym) {
 // -------------------------------
 // Accessors.
 // -------------------------------
-klangc_symbol_t *klangc_pat_ref_get_symbol(klangc_pat_ref_t *pref) {
+const klangc_symbol_t *klangc_pat_ref_get_symbol(klangc_pat_ref_t *pref) {
   assert(pref != NULL);
   return pref->kpr_sym;
 }
@@ -44,7 +44,7 @@ klangc_parse_result_t klangc_pat_ref_parse(klangc_input_t *input,
                                            klangc_pat_ref_t **pref) {
   assert(input != NULL);
   assert(pref != NULL);
-  klangc_symbol_t *sym = NULL;
+  const klangc_symbol_t *sym = NULL;
   klangc_parse_result_t res = klangc_ref_parse(input, &sym);
   if (res != KLANGC_PARSE_OK)
     return res;
@@ -70,7 +70,7 @@ klangc_bind_result_t klangc_pat_ref_bind(klangc_expr_env_t *env,
   assert(env != NULL);
   assert(pref != NULL);
   assert(target != NULL);
-  klangc_symbol_t *sym = klangc_pat_ref_get_symbol(pref);
+  const klangc_symbol_t *sym = klangc_pat_ref_get_symbol(pref);
   klangc_expr_env_put_entry(env, sym, target);
   return KLANGC_BIND_OK;
 }

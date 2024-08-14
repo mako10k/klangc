@@ -14,7 +14,7 @@
  * @param constr Constructor.
  * @return New pattern algebra.
  */
-klangc_pat_alge_t *klangc_pat_alge_new(klangc_symbol_t *constr);
+klangc_pat_alge_t *klangc_pat_alge_new(const klangc_symbol_t *constr);
 
 /**
  * Add an argument to a pattern algebra.
@@ -31,7 +31,7 @@ void klangc_pat_alge_add_arg(klangc_pat_alge_t *palge, klangc_pat_t *arg);
  * @param palge Pattern algebra.
  * @return Constructor.
  */
-klangc_symbol_t *klangc_pat_alge_get_constr(klangc_pat_alge_t *palge);
+const klangc_symbol_t *klangc_pat_alge_get_constr(klangc_pat_alge_t *palge);
 
 /**
  * Get the number of arguments of a pattern algebra.

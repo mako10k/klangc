@@ -7,7 +7,7 @@
 #include <assert.h>
 
 klangc_parse_result_t klangc_ref_parse(klangc_input_t *input,
-                                       klangc_symbol_t **psym) {
+                                       const klangc_symbol_t **psym) {
   assert(input != NULL);
   assert(psym != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
@@ -17,7 +17,7 @@ klangc_parse_result_t klangc_ref_parse(klangc_input_t *input,
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_NOPARSE;
   }
-  klangc_symbol_t *sym;
+  const klangc_symbol_t *sym;
   ipos_ss = klangc_skipspaces(input);
   res = klangc_symbol_parse(input, &sym);
   switch (res) {
@@ -34,7 +34,7 @@ klangc_parse_result_t klangc_ref_parse(klangc_input_t *input,
   return KLANGC_PARSE_OK;
 }
 
-void klangc_ref_print(klangc_output_t *output, klangc_symbol_t *sym) {
+void klangc_ref_print(klangc_output_t *output, const klangc_symbol_t *sym) {
   assert(output != NULL);
   assert(sym != NULL);
   klangc_printf(output, "~");

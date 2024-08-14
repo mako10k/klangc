@@ -18,7 +18,7 @@
  */
 struct klangc_pat_alge {
   /** Constructor */
-  klangc_symbol_t *kpa_constr;
+  const klangc_symbol_t *kpa_constr;
   /** Number of arguments */
   unsigned int kpa_argc;
   /** Arguments */
@@ -28,7 +28,7 @@ struct klangc_pat_alge {
 // -------------------------------
 // Constructors.
 // -------------------------------
-klangc_pat_alge_t *klangc_pat_alge_new(klangc_symbol_t *constr) {
+klangc_pat_alge_t *klangc_pat_alge_new(const klangc_symbol_t *constr) {
   assert(constr != NULL);
   klangc_pat_alge_t *res = klangc_malloc(sizeof(klangc_pat_alge_t));
   res->kpa_constr = constr;
@@ -50,7 +50,7 @@ void klangc_pat_alge_add_arg(klangc_pat_alge_t *palge, klangc_pat_t *arg) {
 // -------------------------------
 // Accessors.
 // -------------------------------
-klangc_symbol_t *klangc_pat_alge_get_constr(klangc_pat_alge_t *palge) {
+const klangc_symbol_t *klangc_pat_alge_get_constr(klangc_pat_alge_t *palge) {
   assert(palge != NULL);
   return palge->kpa_constr;
 }
@@ -150,7 +150,7 @@ klangc_parse_result_t klangc_pat_alge_parse(klangc_input_t *input,
   assert(input != NULL);
   assert(palge != NULL);
   klangc_parse_result_t res;
-  klangc_symbol_t *constr;
+  const klangc_symbol_t *constr;
   res = klangc_symbol_parse(input, &constr);
   if (res != KLANGC_PARSE_OK)
     return res;

@@ -2,12 +2,12 @@
 #include <assert.h>
 
 struct klangc_value_alge {
-  klangc_symbol_t *kva_constr;
+  const klangc_symbol_t *kva_constr;
   int kva_argc;
   klangc_value_t **kva_args;
 };
 
-klangc_symbol_t *klangc_value_alge_get_constr(klangc_value_alge_t *valge) {
+const klangc_symbol_t *klangc_value_alge_get_constr(klangc_value_alge_t *valge) {
   assert(valge != NULL);
   return valge->kva_constr;
 }
