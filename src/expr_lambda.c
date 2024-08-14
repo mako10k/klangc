@@ -90,17 +90,17 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   ipos_ss = klangc_skipspaces(input);
   res = klangc_expect(input, '-', &c);
   if (res != KLANGC_PARSE_OK) {
-    klangc_printf_ipos(kstderr, ipos_ss,
-                       "expect '-' but get '%c': ['\\' <pat> ^'->' <expr>]\n",
-                       c);
+    klangc_printf_ipos_expects(
+        kstderr, ipos_ss, "'->'", c,
+        "<lambda> ::= '\\' <pat> ^'->' <expr> (';' <lambda>)*;\n");
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
   res = klangc_expect(input, '>', &c);
   if (res != KLANGC_PARSE_OK) {
     klangc_printf_ipos(kstderr, ipos_ss,
-                       "expect '->' but get '-%c': ['\\' <pat> ^'->' "
-                       "<expr>]\n",
+                       "expect '->' but get '-%c': <lambda> ::= '\\' <pat> "
+                       "^'->' <expr> (';' <lambda>)*;\n",
                        c);
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
@@ -144,12 +144,6 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   *plambda = klangc_expr_lambda_new(arg, body, next);
   return KLANGC_PARSE_OK;
 }
-
-//
-// <lambda> ::= '\' <pat> '->' <expr> (';' <lambda>)?;
-// <expr> が <lambda> なら、<expr> は '(' <lambda> ')' としないと
-// うまくいかない。
-//
 
 // -------------------------------
 // Printers.

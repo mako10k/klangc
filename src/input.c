@@ -157,6 +157,6 @@ klangc_ipos_t klangc_skipspaces(klangc_input_t *input) {
 // -------------------------------
 int klangc_ipos_print(klangc_output_t *output, klangc_ipos_t ipos) {
   return klangc_printf(output,
-                       "%s(%d,%d): ", klangc_input_get_name(ipos.kip_input),
+                       "%s:%d:%d: ", klangc_input_get_name(ipos.kip_input),
                        ipos.kip_line + 1, ipos.kip_col + 1);
 }
