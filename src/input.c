@@ -1,6 +1,8 @@
 #include "input.h"
 #include "malloc.h"
 #include "output.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 // *******************************
 // Input.
@@ -12,10 +14,14 @@
  * Input.
  */
 struct klangc_input {
-  /** Stream */
-  FILE *kip_stream;
   /** Name */
   const char *kip_name;
+  /** buffer */
+  char *kip_buffer;
+  /** buffer size */
+  size_t kip_bufsize;
+  /** Filesize */
+  off_t kip_filesize;
   /** Offset */
   off_t kip_offset;
   /** Line */
@@ -32,12 +38,35 @@ klangc_input_t *klangc_input_new(FILE *fp, const char *name) {
   assert(name != NULL);
   klangc_input_t *input =
       (klangc_input_t *)klangc_malloc(sizeof(klangc_input_t));
-  input->kip_stream = fp;
   input->kip_name = klangc_strdup(name);
-  input->kip_offset = ftell(fp);
+  input->kip_buffer = NULL;
+  input->kip_bufsize = 0;
+  input->kip_filesize = 0;
+  input->kip_offset = 0;
   input->kip_line = 0;
   input->kip_col = 0;
+  while (1) {
+    while (input->kip_bufsize <= input->kip_filesize) {
+      input->kip_bufsize += 4096;
+      input->kip_buffer =
+          (char *)realloc(input->kip_buffer, input->kip_bufsize);
+    }
+    size_t n = fread(input->kip_buffer + input->kip_filesize, 1,
+                     input->kip_bufsize - input->kip_filesize, fp);
+    if (n == 0)
+      break;
+    input->kip_filesize += n;
+  }
   return input;
+}
+
+// -------------------------------
+// Destructors.
+// -------------------------------
+void klangc_input_free(klangc_input_t *input) {
+  free(input->kip_buffer);
+  klangc_free((void *)input->kip_name);
+  klangc_free(input);
 }
 
 // -------------------------------
@@ -58,10 +87,7 @@ klangc_ipos_t klangc_input_save(klangc_input_t *input) {
 
 void klangc_input_restore(klangc_input_t *input, klangc_ipos_t ipos) {
   assert(input == ipos.kip_input);
-  if (input->kip_offset != ipos.kip_offset) {
-    fseek(input->kip_stream, ipos.kip_offset, SEEK_SET);
-    input->kip_offset = ipos.kip_offset;
-  }
+  input->kip_offset = ipos.kip_offset;
   input->kip_line = ipos.kip_line;
   input->kip_col = ipos.kip_col;
 }
@@ -73,9 +99,7 @@ void klangc_input_restore(klangc_input_t *input, klangc_ipos_t ipos) {
  * @return Character.
  */
 static int klangc_procc(klangc_input_t *input, int c) {
-  if (c == EOF)
-    return EOF;
-  input->kip_offset++;
+  assert(0 <= c && c <= 255);
   if (c == '\n') {
     input->kip_line++;
     input->kip_col = 0;
@@ -85,7 +109,10 @@ static int klangc_procc(klangc_input_t *input, int c) {
 }
 
 int klangc_getc(klangc_input_t *input) {
-  return klangc_procc(input, fgetc(input->kip_stream));
+  assert(input != NULL);
+  if (input->kip_offset >= input->kip_filesize)
+    return EOF;
+  return klangc_procc(input, input->kip_buffer[input->kip_offset++]);
 }
 
 int klangc_isspace(int c, int *in_comment) {
@@ -117,15 +144,12 @@ int klangc_getc_skipspaces(klangc_input_t *input) {
 
 klangc_ipos_t klangc_skipspaces(klangc_input_t *input) {
   int in_comment = 0;
-  while (1) {
-    int c = fgetc(input->kip_stream);
-    if (!klangc_isspace(c, &in_comment)) {
-      if (c != EOF)
-        ungetc(c, input->kip_stream);
-      return klangc_input_save(input);
-    }
-    klangc_procc(input, c);
-  }
+  off_t offset = input->kip_offset;
+  while (offset < input->kip_filesize &&
+         klangc_isspace(input->kip_buffer[offset], &in_comment))
+    klangc_procc(input, input->kip_buffer[offset++]);
+  input->kip_offset = offset;
+  return klangc_input_save(input);
 }
 
 // -------------------------------

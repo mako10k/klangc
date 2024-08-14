@@ -31,6 +31,15 @@ typedef struct klangc_input klangc_input_t;
 klangc_input_t *klangc_input_new(FILE *fp, const char *name);
 
 // -------------------------------
+// Destructors.
+// -------------------------------
+/**
+ * Free an input.
+ * @param input Input.
+ */
+void klangc_input_free(klangc_input_t *input);
+
+// -------------------------------
 // Accessors.
 // -------------------------------
 /**

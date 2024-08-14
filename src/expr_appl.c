@@ -89,6 +89,8 @@ klangc_parse_result_t klangc_expr_appl_parse(klangc_input_t *input,
       klangc_expr_appl_add_arg(appl, arg);
       continue;
     case KLANGC_PARSE_NOPARSE:
+      if (appl->kva_argc == 0)
+        return KLANGC_PARSE_NOPARSE;
       *pappl = appl;
       return KLANGC_PARSE_OK;
     case KLANGC_PARSE_ERROR:

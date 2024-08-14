@@ -182,6 +182,7 @@ void klangc_expr_closure_print_nobrace(klangc_output_t *output,
 
   if (!klangc_expr_closure_is_multiline(closure)) {
     klangc_expr_print(output, KLANGC_PREC_LOWEST, closure->kc_expr);
+    klangc_printf(output, ";\n");
     return;
   }
   klangc_expr_print(output, KLANGC_PREC_LOWEST, closure->kc_expr);
