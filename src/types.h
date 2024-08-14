@@ -78,6 +78,9 @@ typedef struct klangc_env klangc_env_t;
 /** C関数 */
 typedef struct klangc_expr_cfunc klangc_expr_cfunc_t;
 
+/** Program */
+typedef struct klangc_program klangc_program_t;
+
 /** 位置情報 */
 typedef struct klangc_ipos {
   klangc_input_t *kip_input;

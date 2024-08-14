@@ -1,8 +1,8 @@
-#include "expr_closure.h"
 #include "expr_env.h"
 #include "input.h"
 #include "output.h"
-#include "parse.h"
+#include "program.h"
+#include "types.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,26 +16,22 @@ int main(int argc, const char *argv[]) {
     }
     klangc_input_t *input = klangc_input_new(fp, argv[i]);
     fclose(fp);
-    klangc_expr_closure_t *closure;
-    switch (klangc_expr_closure_parse_nobrace(input, &closure)) {
+    klangc_program_t *program;
+    klangc_ipos_t ipos = klangc_input_save(input);
+    klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+    klangc_parse_result_t res = klangc_program_parse(input, &program);
+    switch (res) {
     case KLANGC_PARSE_OK:
       break;
     case KLANGC_PARSE_NOPARSE:
-      klangc_printf(kstderr, "No definition found\n");
+      klangc_printf_ipos_expects(kstderr, ipos_ss, "<program>",
+                                 klangc_getc(input), "^<program>;\n");
       return EXIT_FAILURE;
     case KLANGC_PARSE_ERROR:
       return EXIT_FAILURE;
     }
-    klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-    int c;
-    klangc_parse_result_t res = klangc_expect(input, EOF, &c);
-    if (res != KLANGC_PARSE_OK) {
-      klangc_printf_ipos_expects(kstderr, ipos_ss, "EOF", c,
-                                 "<program> ::= <closure_bare> ';'^;\n");
-      return EXIT_FAILURE;
-    }
-    klangc_expr_closure_print_nobrace(kstdout, closure);
-    klangc_expr_closure_bind(prelude, closure);
+    klangc_program_print(kstdout, program);
+    klangc_program_bind(prelude, program);
     klangc_input_free(input);
   }
 }

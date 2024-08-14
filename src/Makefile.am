@@ -45,6 +45,8 @@ klangc_SOURCES =   \
     pat_as.c       \
     pat_ref.h      \
     pat_ref.c      \
+    program.h      \
+    program.c      \
     ref.h          \
     ref.c          \
     ref_target.h   \

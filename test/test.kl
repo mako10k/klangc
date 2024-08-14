@@ -1,6 +1,12 @@
 # COMMENT
-\~args -> ~println "hoge\n";
-~join = \~m -> ~chain ~m ~id;
+\~args -> ~go ~args;
+
+~go = \[] -> ~prelude exit 0;
+      \(~hd:~tl) -> ~prelude chain
+         (~prelude println hd)
+         \~_ -> ~go ~tl;
+ 
+~join = \~m -> ~go chain ~m ~id;
 ~id = \~x -> ~x;
 ~fix = \~f -> { ~x ; ~x = ~f ~x; };
 ~chain = \~m -> \~f -> ~join (~fmap ~f ~m);
