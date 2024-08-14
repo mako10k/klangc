@@ -2,7 +2,7 @@
 
 set -e
 sudo apt-get update
-sudo apt-get install --yes libgc-dev
+sudo apt-get install --yes libgc-dev doxygen graphviz
 make uninstall || true
 make distclean || true
 autoreconf -iv
