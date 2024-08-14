@@ -11,7 +11,6 @@
 /**
  * Make a new reference expression.
  * @param sym Reference.
- * @param expr Expression.
  * @return New reference expression.
  */
 klangc_expr_ref_t *klangc_expr_ref_new(const klangc_symbol_t *sym);
@@ -61,7 +60,7 @@ klangc_expr_t *klangc_expr_ref_get_expr(klangc_expr_ref_t *eref);
 /**
  * Parse a reference expression.
  * @param input Input stream.
- * @param eref Pointer to the result.
+ * @param peref Pointer to the result.
  * @return Parsing result.
  */
 klangc_parse_result_t klangc_expr_ref_parse(klangc_input_t *input,

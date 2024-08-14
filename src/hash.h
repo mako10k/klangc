@@ -21,6 +21,8 @@ klangc_hash_t *klangc_hash_new(int capacity);
 /**
  * Get the number of entries in a hash table.
  * @param hash Hash table.
+ * @param key Key.
+ * @param value Pointer to the variable to store the value.
  * @return Number of entries.
  */
 int klangc_hash_get(klangc_hash_t *hash, const klangc_str_t *key, void **value);

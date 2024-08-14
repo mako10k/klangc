@@ -33,8 +33,8 @@ void klangc_output_free(klangc_output_t *output);
  * @param fmt Format.
  * @param ... Arguments.
  */
-__attribute__((unused, format(printf, 2, 3))) int
-klangc_printf(klangc_output_t *output, const char *fmt, ...);
+int klangc_printf(klangc_output_t *output, const char *fmt, ...)
+    __attribute__((unused, format(printf, 2, 3)));
 
 /**
  * print formatted output with expected value.
@@ -44,9 +44,9 @@ klangc_printf(klangc_output_t *output, const char *fmt, ...);
  * @param fmt Format.
  * @param ... Arguments.
  */
-__attribute__((unused, format(printf, 4, 5))) int
-klangc_printf_expects(klangc_output_t *output, const char *expect, int actual,
-                      const char *fmt, ...);
+int klangc_printf_expects(klangc_output_t *output, const char *expect,
+                          int actual, const char *fmt, ...)
+    __attribute__((unused, format(printf, 4, 5)));
 
 /**
  * print formatted output with position.
@@ -55,9 +55,9 @@ klangc_printf_expects(klangc_output_t *output, const char *expect, int actual,
  * @param fmt Format.
  * @param ... Arguments.
  */
-__attribute__((unused, format(printf, 3, 4))) int
-klangc_printf_ipos(klangc_output_t *output, klangc_ipos_t ipos, const char *fmt,
-                   ...);
+int klangc_printf_ipos(klangc_output_t *output, klangc_ipos_t ipos,
+                       const char *fmt, ...)
+    __attribute__((unused, format(printf, 3, 4)));
 
 /**
  * print formatted output with position and expected value.
@@ -68,10 +68,10 @@ klangc_printf_ipos(klangc_output_t *output, klangc_ipos_t ipos, const char *fmt,
  * @param fmt Format.
  * @param ... Arguments.
  */
-__attribute__((unused, format(printf, 5, 6))) int
-klangc_printf_ipos_expects(klangc_output_t *output, klangc_ipos_t ipos,
-                           const char *expect, int actual, const char *fmt,
-                           ...);
+int klangc_printf_ipos_expects(klangc_output_t *output, klangc_ipos_t ipos,
+                               const char *expect, int actual, const char *fmt,
+                               ...)
+    __attribute__((unused, format(printf, 5, 6)));
 
 /**
  * increment the indentation.

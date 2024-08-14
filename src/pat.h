@@ -134,7 +134,7 @@ const klangc_str_t *klangc_pat_get_str(klangc_pat_t *pat);
 /**
  * Parse a pattern.
  * @param input Input.
- * @param noarg Parse options.
+ * @param ppopts Parse options.
  * @param ppat Pattern.
  * @return Parse result.
  */

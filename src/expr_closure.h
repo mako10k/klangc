@@ -63,7 +63,6 @@ klangc_expr_closure_parse(klangc_input_t *input,
 /**
  * Print a closure expression.
  * @param output Output stream.
- * @param showbrace Show braces.
  * @param eclosure Closure expression.
  */
 void klangc_expr_closure_print(klangc_output_t *output,

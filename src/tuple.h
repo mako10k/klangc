@@ -7,7 +7,7 @@
 #include "symbol.h"
 #include "types.h"
 
-__attribute__((unused)) static const klangc_str_t *klangc_tuple_str(void) {
+__attribute_used__ static const klangc_str_t *klangc_tuple_str(void) {
   static const klangc_str_t *tuple_str = NULL;
   if (tuple_str == NULL) {
     tuple_str = klangc_str_new(",", 1);
@@ -15,7 +15,7 @@ __attribute__((unused)) static const klangc_str_t *klangc_tuple_str(void) {
   return tuple_str;
 }
 
-__attribute__((unused)) static const klangc_symbol_t *klangc_tuple_symbol(void) {
+__attribute_used__ static const klangc_symbol_t *klangc_tuple_symbol(void) {
   static const klangc_symbol_t *tuple_sym = NULL;
   if (tuple_sym == NULL) {
     tuple_sym = klangc_symbol_new(klangc_tuple_str());
@@ -23,7 +23,7 @@ __attribute__((unused)) static const klangc_symbol_t *klangc_tuple_symbol(void) 
   return tuple_sym;
 }
 
-__attribute__((unused)) static klangc_pat_alge_t *klangc_unit_pat_alge(void) {
+__attribute_used__ static klangc_pat_alge_t *klangc_unit_pat_alge(void) {
   static klangc_pat_alge_t *unit_pat_alge = NULL;
   if (unit_pat_alge == NULL) {
     unit_pat_alge = klangc_pat_alge_new(klangc_tuple_symbol());
@@ -31,7 +31,7 @@ __attribute__((unused)) static klangc_pat_alge_t *klangc_unit_pat_alge(void) {
   return unit_pat_alge;
 }
 
-__attribute__((unused)) static klangc_expr_alge_t *klangc_unit_expr_alge(void) {
+__attribute_used__ static klangc_expr_alge_t *klangc_unit_expr_alge(void) {
   static klangc_expr_alge_t *unit_expr_alge = NULL;
   if (unit_expr_alge == NULL) {
     unit_expr_alge = klangc_expr_alge_new(klangc_tuple_symbol());
