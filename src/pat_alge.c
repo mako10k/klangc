@@ -1,4 +1,5 @@
 #include "pat_alge.h"
+#include "list.h"
 #include "malloc.h"
 #include "output.h"
 #include "pat.h"
@@ -69,12 +70,50 @@ klangc_pat_t *klangc_pat_alge_get_arg(klangc_pat_alge_t *palge, int index) {
 // -------------------------------
 // Printers.
 // -------------------------------
+static void klangc_pat_alge_print_cons(klangc_output_t *output,
+                                       klangc_pat_alge_t *palge) {
+  assert(output != NULL);
+  assert(palge != NULL);
+  if (palge->kpa_constr == klangc_nil_symbol())
+    return;
+  klangc_pat_print(output, KLANGC_PREC_LOWEST, palge->kpa_args[0]);
+  while (1) {
+    palge = klangc_pat_get_alge(palge->kpa_args[1]);
+    if (palge->kpa_constr == klangc_nil_symbol())
+      return;
+    klangc_printf(output, ", ");
+    klangc_pat_print(output, KLANGC_PREC_LOWEST, palge->kpa_args[0]);
+  }
+}
+
+static int klangc_pat_alge_is_list(klangc_pat_alge_t *palge) {
+  assert(palge != NULL);
+  while (1) {
+    if (palge->kpa_constr == klangc_nil_symbol())
+      return 1;
+    if (palge->kpa_constr != klangc_cons_symbol())
+      return 0;
+    if (palge->kpa_argc != 2)
+      return 0;
+    klangc_pat_t *pat = palge->kpa_args[1];
+    if (klangc_pat_get_type(pat) != KLANGC_PTYPE_ALGE)
+      return 0;
+    palge = klangc_pat_get_alge(pat);
+  }
+}
+
 void klangc_pat_alge_print(klangc_output_t *output, int prec,
                            klangc_pat_alge_t *palge) {
   assert(output != NULL);
   assert(KLANGC_PREC_LOWEST <= prec);
   assert(prec <= KLANGC_PREC_HIGHEST);
   assert(palge != NULL);
+  if (klangc_pat_alge_is_list(palge)) {
+    klangc_printf(output, "[");
+    klangc_pat_alge_print_cons(output, palge);
+    klangc_printf(output, "]");
+    return;
+  }
   if (palge->kpa_argc == 0) {
     klangc_symbol_print(output, palge->kpa_constr);
     return;

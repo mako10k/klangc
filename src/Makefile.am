@@ -29,6 +29,8 @@ klangc_SOURCES =   \
     input.c        \
     klangc.h       \
     klangc.c       \
+    list.h         \
+    list.c         \
     malloc.h       \
     malloc.c       \
     output.h       \

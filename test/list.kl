@@ -1,4 +1,4 @@
-~map (~add 1) [1, 2, 3, 4];
+\[~x, ~y, ~z] -> ~map (~add 1) [1, 2, 3, 4];
 ~singleton = \~elem -> cons ~elem nil;
 ~map = \~f -> (
   \nil -> nil;

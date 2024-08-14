@@ -1,6 +1,5 @@
 #include "val_appl.h"
 #include "malloc.h"
-#include "val.h"
 #include <assert.h>
 
 struct klangc_value_appl {

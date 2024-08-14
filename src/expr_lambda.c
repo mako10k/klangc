@@ -121,22 +121,21 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   }
 
   klangc_ipos_t ipos2 = klangc_input_save(input);
-  ipos_ss = klangc_skipspaces(input);
-  if (!klangc_expect(input, ';', &c)) {
-    klangc_input_restore(input, ipos2);
+  klangc_skipspaces(input);
+  res = klangc_expect(input, ';', &c);
+  if (res != KLANGC_PARSE_OK) {
     *plambda = klangc_expr_lambda_new(arg, body, NULL);
     return KLANGC_PARSE_OK;
   }
 
   klangc_expr_lambda_t *next = NULL;
-  switch (klangc_expr_lambda_parse(input, &next)) {
+  res = klangc_expr_lambda_parse(input, &next);
+  switch (res) {
   case KLANGC_PARSE_OK:
     break;
-
   case KLANGC_PARSE_NOPARSE:
     klangc_input_restore(input, ipos2);
     break;
-
   case KLANGC_PARSE_ERROR:
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;

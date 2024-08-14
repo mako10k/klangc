@@ -28,7 +28,7 @@ klangc_parse_result_t klangc_int_parse(klangc_input_t *input, int *pintval) {
   return KLANGC_PARSE_OK;
 }
 
-int klangc_expect(klangc_input_t *input, int c, int *pc) {
+klangc_parse_result_t klangc_expect(klangc_input_t *input, int c, int *pc) {
   assert(input != NULL);
   assert(c == EOF || (0 <= c && c <= 255));
   klangc_ipos_t ipos = klangc_input_save(input);

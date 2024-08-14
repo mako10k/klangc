@@ -30,7 +30,7 @@ int main(int argc, const char *argv[]) {
     klangc_parse_result_t res = klangc_expect(input, EOF, &c);
     if (res != KLANGC_PARSE_OK) {
       klangc_printf_ipos_expects(kstderr, ipos_ss, "EOF", c,
-                                 "<program> ::= <closure'> ';'^;\n");
+                                 "<program> ::= <closure_bare> ';'^;\n");
       return EXIT_FAILURE;
     }
     klangc_expr_closure_print_nobrace(kstdout, closure);

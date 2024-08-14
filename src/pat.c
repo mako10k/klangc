@@ -1,6 +1,7 @@
 
 #include "pat.h"
 #include "input.h"
+#include "list.h"
 #include "malloc.h"
 #include "output.h"
 #include "parse.h"
@@ -137,113 +138,258 @@ klangc_ipos_t klangc_pat_get_ipos(klangc_pat_t *pat) {
 // -------------------------------
 // Parsers.
 // -------------------------------
+static klangc_parse_result_t klangc_pat_parse_paren(klangc_input_t *input,
+                                                    klangc_pat_t **ppat) {
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  klangc_parse_result_t res = klangc_expect(input, '(', NULL);
+  if (res != KLANGC_PARSE_OK)
+    return res;
+  klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
+  klangc_pat_t *pat;
+  res = klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &pat);
+  switch (res) {
+  case KLANGC_PARSE_OK:
+    break;
+  case KLANGC_PARSE_NOPARSE:
+    klangc_ipos_print(kstderr, ipos_ss2);
+    klangc_printf(kstderr, "expect <pat>: ['(' ^<pat> ')']\n");
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
+  ipos_ss2 = klangc_skipspaces(input);
+  int c;
+  res = klangc_expect(input, ')', &c);
+  switch (res) {
+  case KLANGC_PARSE_OK:
+    break;
+  case KLANGC_PARSE_NOPARSE:
+    klangc_ipos_print(kstderr, ipos_ss2);
+    klangc_printf(kstderr, "expect ')' but get '%c': ['(' <pat> ^')']\n", c);
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
+  *ppat = pat;
+  return KLANGC_PARSE_OK;
+}
+
+/**
+ * Parse a list of patterns.
+ * @param input Input.
+ * @param ppat Pattern.
+ * @return Parse result.
+ */
+static klangc_parse_result_t klangc_pat_parse_list(klangc_input_t *input,
+                                                   klangc_pat_t **ppat) {
+  assert(input != NULL);
+  assert(ppat != NULL);
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  int c;
+  klangc_parse_result_t res = klangc_expect(input, '[', NULL);
+  if (res != KLANGC_PARSE_OK) {
+    klangc_input_restore(input, ipos);
+    return res;
+  }
+  klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
+  klangc_pat_alge_t *palge_nil = klangc_nil_pat_alge();
+  klangc_pat_t *pat_nil = klangc_pat_new_alge(palge_nil, ipos_ss);
+  res = klangc_expect(input, ']', NULL);
+  switch (res) {
+  case KLANGC_PARSE_OK:
+    *ppat = pat_nil;
+    return KLANGC_PARSE_OK;
+  case KLANGC_PARSE_NOPARSE:
+    break;
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
+  klangc_pat_t *pat;
+  res = klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &pat);
+  switch (res) {
+  case KLANGC_PARSE_OK:
+    break;
+  case KLANGC_PARSE_NOPARSE:
+    klangc_printf_ipos_expects(
+        kstderr, ipos_ss2, "<pat> or ']'", klangc_getc(input),
+        "<pat> ::= .. | '[' ^(<pat> (',' <pat>)*)? ']' | ..;\n");
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
+  klangc_symbol_t *sym_cons = klangc_cons_symbol();
+  klangc_pat_alge_t *palge_hd = klangc_pat_alge_new(sym_cons);
+  klangc_pat_alge_add_arg(palge_hd, pat);
+  klangc_pat_t *pat_hd = klangc_pat_new_alge(palge_hd, ipos_ss2);
+  klangc_pat_alge_t *palge_tl = palge_hd;
+  klangc_pat_t *pat_tl = pat_hd;
+  while (1) {
+    ipos_ss2 = klangc_skipspaces(input);
+    res = klangc_expect(input, ']', NULL);
+    switch (res) {
+    case KLANGC_PARSE_OK:
+      klangc_pat_alge_add_arg(palge_tl, pat_nil);
+      *ppat = pat_hd;
+      return KLANGC_PARSE_OK;
+    case KLANGC_PARSE_NOPARSE:
+      break;
+    case KLANGC_PARSE_ERROR:
+      klangc_input_restore(input, ipos);
+      return KLANGC_PARSE_ERROR;
+    }
+    res = klangc_expect(input, ',', NULL);
+    switch (res) {
+    case KLANGC_PARSE_OK:
+      break;
+    case KLANGC_PARSE_NOPARSE:
+      klangc_printf_ipos_expects(
+          kstderr, ipos_ss2, "',' or ']'", c,
+          "<pat> ::= .. | '[' (<pat> ^(',' <pat>)*)? ']' | ..;\n");
+    case KLANGC_PARSE_ERROR:
+      klangc_input_restore(input, ipos);
+      return KLANGC_PARSE_ERROR;
+    }
+    klangc_pat_t *pat;
+    ipos_ss2 = klangc_skipspaces(input);
+    res = klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &pat);
+    switch (res) {
+    case KLANGC_PARSE_OK: {
+      klangc_pat_alge_t *palge_cons = klangc_pat_alge_new(sym_cons);
+      klangc_pat_t *pat_cons = klangc_pat_new_alge(palge_cons, ipos_ss2);
+      klangc_pat_alge_add_arg(palge_cons, pat);
+      klangc_pat_alge_add_arg(palge_tl, pat_cons);
+      palge_tl = palge_cons;
+      pat_tl = pat_cons;
+      break;
+    }
+    case KLANGC_PARSE_NOPARSE:
+      klangc_printf_ipos_expects(
+          kstderr, ipos_ss2, "<pat>", klangc_getc(input),
+          "<pat> ::= .. | '[' (<pat> (',' ^<pat>)*)? ']' | ..;\n");
+    case KLANGC_PARSE_ERROR:
+      klangc_input_restore(input, ipos);
+      return KLANGC_PARSE_ERROR;
+    }
+  }
+}
+
+static klangc_parse_result_t klangc_pat_parse_alge(klangc_input_t *input,
+                                                   klangc_pat_t **ppat) {
+  klangc_pat_alge_t *alge;
+  klangc_parse_result_t res =
+      klangc_pat_alge_parse(input, KLANGC_PAT_PARSE_NORMAL, &alge);
+  if (res != KLANGC_PARSE_OK)
+    return res;
+  *ppat = klangc_pat_new_alge(alge, klangc_input_save(input));
+  return KLANGC_PARSE_OK;
+}
+
+static klangc_parse_result_t klangc_pat_parse_ref(klangc_input_t *input,
+                                                  klangc_pat_t **ppat) {
+  klangc_pat_ref_t *ref;
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  klangc_parse_result_t res = klangc_pat_ref_parse(input, &ref);
+  if (res != KLANGC_PARSE_OK) {
+    klangc_input_restore(input, ipos);
+    return res;
+  }
+  *ppat = klangc_pat_new_ref(ref, ipos_ss);
+  return KLANGC_PARSE_OK;
+}
+
+static klangc_parse_result_t klangc_pat_parse_as(klangc_input_t *input,
+                                                 klangc_pat_ref_t *ref,
+                                                 klangc_pat_t **ppat) {
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  klangc_parse_result_t res = klangc_expect(input, '@', NULL);
+  if (res != KLANGC_PARSE_OK)
+    return KLANGC_PARSE_NOPARSE;
+  klangc_pat_t *pat;
+  res = klangc_pat_parse(input, KLANGC_PAT_PARSE_NOARG, &pat);
+  if (res != KLANGC_PARSE_OK)
+    return res;
+  *ppat = klangc_pat_new_as(ref, pat, ipos_ss);
+  return KLANGC_PARSE_OK;
+}
+
+static klangc_parse_result_t klangc_pat_parse_int(klangc_input_t *input,
+                                                  klangc_pat_t **ppat) {
+  int intval;
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  klangc_parse_result_t res = klangc_int_parse(input, &intval);
+  if (res != KLANGC_PARSE_OK) {
+    klangc_input_restore(input, ipos);
+    return res;
+  }
+  *ppat = klangc_pat_new_int(intval, ipos_ss);
+  return KLANGC_PARSE_OK;
+}
+
+static klangc_parse_result_t klangc_pat_parse_string(klangc_input_t *input,
+                                                     klangc_pat_t **ppat) {
+  const klangc_str_t *strval;
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  klangc_parse_result_t res = klangc_str_parse(input, &strval);
+  if (res != KLANGC_PARSE_OK) {
+    klangc_input_restore(input, ipos);
+    return res;
+  }
+  *ppat = klangc_pat_new_string(strval, ipos_ss);
+  return KLANGC_PARSE_OK;
+}
+
 klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
                                        klangc_pat_parse_opt_t ppopt,
                                        klangc_pat_t **ppat) {
   assert(input != NULL);
   assert(ppat != NULL);
-
   klangc_ipos_t ipos = klangc_input_save(input);
-  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  int c = klangc_getc(input);
-  if (c == '(') {
-    klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
-    klangc_pat_t *pat;
-    switch (klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &pat)) {
-    case KLANGC_PARSE_OK:
-      break;
-    case KLANGC_PARSE_NOPARSE:
-      klangc_ipos_print(kstderr, ipos_ss2);
-      klangc_printf(kstderr, "expect <pat>: ['(' ^<pat> ')']\n");
-    case KLANGC_PARSE_ERROR:
-      klangc_input_restore(input, ipos);
-      return KLANGC_PARSE_ERROR;
-    }
+  klangc_parse_result_t res = klangc_pat_parse_paren(input, ppat);
+  if (res != KLANGC_PARSE_NOPARSE)
+    return res;
 
-    ipos_ss2 = klangc_skipspaces(input);
-    c = klangc_getc(input);
-    if (c != ')') {
-      klangc_ipos_print(kstderr, ipos_ss2);
-      klangc_printf(kstderr, "expect ')' but get '%c': ['(' <pat> ^')']\n", c);
-      klangc_input_restore(input, ipos);
-      return KLANGC_PARSE_ERROR;
-    }
-    *ppat = pat;
-    return KLANGC_PARSE_OK;
-  }
-  klangc_input_restore(input, ipos_ss);
+  res = klangc_pat_parse_list(input, ppat);
+  if (res != KLANGC_PARSE_NOPARSE)
+    return res;
 
-  klangc_pat_alge_t *alge;
-  switch (klangc_pat_alge_parse(input, ppopt, &alge)) {
+  res = klangc_pat_parse_alge(input, ppat);
+  if (res != KLANGC_PARSE_NOPARSE)
+    return res;
+
+  klangc_pat_t *pat_ref;
+  res = klangc_pat_parse_ref(input, &pat_ref);
+  switch (res) {
   case KLANGC_PARSE_OK:
-    *ppat = klangc_pat_new_alge(alge, ipos_ss);
-    return KLANGC_PARSE_OK;
-  case KLANGC_PARSE_NOPARSE:
-    break;
-  case KLANGC_PARSE_ERROR:
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
-  }
-
-  klangc_input_restore(input, ipos_ss);
-
-  klangc_pat_ref_t *ref;
-  switch (klangc_pat_ref_parse(input, &ref)) {
-  case KLANGC_PARSE_OK: {
-    klangc_pat_t *reference = klangc_pat_new_ref(ref, ipos_ss);
-    klangc_ipos_t ipos_refend = klangc_input_save(input);
-    klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
-    c = klangc_getc(input);
-    if (c != '@') {
-      klangc_input_restore(input, ipos_refend);
-      *ppat = reference;
+    res = klangc_pat_parse_as(input, klangc_pat_get_ref(pat_ref), ppat);
+    switch (res) {
+    case KLANGC_PARSE_OK:
+      return res;
+    case KLANGC_PARSE_NOPARSE:
+      *ppat = pat_ref;
       return KLANGC_PARSE_OK;
-    }
-    klangc_pat_t *pat;
-    ipos_ss2 = klangc_skipspaces(input);
-    switch (klangc_pat_parse(input, KLANGC_PAT_PARSE_NOARG, &pat)) {
-    case KLANGC_PARSE_OK:
-      break;
-    case KLANGC_PARSE_NOPARSE:
-      klangc_ipos_print(kstderr, ipos_ss2);
-      klangc_printf(kstderr, "expect <pat>: [<ref> '@' ^<pat>]\n");
     case KLANGC_PARSE_ERROR:
       klangc_input_restore(input, ipos);
       return KLANGC_PARSE_ERROR;
     }
-    *ppat = klangc_pat_new_as(ref, pat, ipos_ss);
-    return KLANGC_PARSE_OK;
-  }
   case KLANGC_PARSE_NOPARSE:
     break;
   case KLANGC_PARSE_ERROR:
-    klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
 
-  int intval;
-  switch (klangc_int_parse(input, &intval)) {
-  case KLANGC_PARSE_OK:
-    *ppat = klangc_pat_new_int(intval, ipos_ss);
-    return KLANGC_PARSE_OK;
-  case KLANGC_PARSE_NOPARSE:
-    break;
-  case KLANGC_PARSE_ERROR:
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
-  }
+  res = klangc_pat_parse_int(input, ppat);
+  if (res != KLANGC_PARSE_NOPARSE)
+    return res;
 
-  const klangc_str_t *strval;
-  switch (klangc_str_parse(input, &strval)) {
-  case KLANGC_PARSE_OK:
-    *ppat = klangc_pat_new_string(strval, ipos_ss);
-    return KLANGC_PARSE_OK;
-  case KLANGC_PARSE_NOPARSE:
-    break;
-  case KLANGC_PARSE_ERROR:
-    klangc_input_restore(input, ipos);
-    return KLANGC_PARSE_ERROR;
-  }
+  res = klangc_pat_parse_string(input, ppat);
+  if (res != KLANGC_PARSE_NOPARSE)
+    return res;
 
   klangc_input_restore(input, ipos);
   return KLANGC_PARSE_NOPARSE;

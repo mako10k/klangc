@@ -3,6 +3,7 @@
 #include "output.h"
 #include "parse.h"
 #include "symbol.h"
+#include "types.h"
 #include <assert.h>
 
 klangc_parse_result_t klangc_ref_parse(klangc_input_t *input,
@@ -18,7 +19,7 @@ klangc_parse_result_t klangc_ref_parse(klangc_input_t *input,
   }
   klangc_symbol_t *sym;
   ipos_ss = klangc_skipspaces(input);
-  klangc_parse_result_t res = klangc_symbol_parse(input, &sym);
+  res = klangc_symbol_parse(input, &sym);
   switch (res) {
   case KLANGC_PARSE_OK:
     break;

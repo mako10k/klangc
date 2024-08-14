@@ -1,5 +1,6 @@
 #include "expr_alge.h"
 #include "expr.h"
+#include "list.h"
 #include "malloc.h"
 #include "output.h"
 #include "symbol.h"
@@ -102,10 +103,52 @@ klangc_parse_result_t klangc_expr_alge_parse(klangc_input_t *input,
 // -------------------------------
 // Printers.
 // -------------------------------
+static void klangc_expr_alge_print_cons(klangc_output_t *output,
+                                        klangc_expr_alge_t *ealge) {
+  assert(output != NULL);
+  assert(ealge != NULL);
+  if (ealge->ker_constr == klangc_nil_symbol())
+    return;
+  assert(ealge->ker_constr == klangc_cons_symbol());
+  assert(ealge->ker_argc == 2);
+  klangc_expr_print(output, KLANGC_PREC_LOWEST, ealge->ker_args[0]);
+  while (1) {
+    ealge = klangc_expr_get_alge(ealge->ker_args[1]);
+    if (ealge->ker_constr == klangc_nil_symbol())
+      return;
+    assert(ealge->ker_constr == klangc_cons_symbol());
+    assert(ealge->ker_argc == 2);
+    klangc_printf(output, ", ");
+    klangc_expr_print(output, KLANGC_PREC_LOWEST, ealge->ker_args[0]);
+  }
+}
+
+static int klangc_expr_alge_is_list(klangc_expr_alge_t *ealge) {
+  assert(ealge != NULL);
+  while (1) {
+    if (ealge->ker_constr == klangc_nil_symbol())
+      return 1;
+    if (ealge->ker_constr != klangc_cons_symbol())
+      return 0;
+    if (ealge->ker_argc != 2)
+      return 0;
+    klangc_expr_t *expr_tl = ealge->ker_args[1];
+    if (klangc_expr_get_type(expr_tl) != KLANGC_ETYPE_ALGE)
+      return 0;
+    ealge = klangc_expr_get_alge(expr_tl);
+  }
+}
+
 void klangc_expr_alge_print(klangc_output_t *output, int prec,
                             klangc_expr_alge_t *expr) {
   assert(output != NULL);
   assert(expr != NULL);
+  if (klangc_expr_alge_is_list(expr)) {
+    klangc_printf(output, "[");
+    klangc_expr_alge_print_cons(output, expr);
+    klangc_printf(output, "]");
+    return;
+  }
   if (expr->ker_argc == 0) {
     klangc_symbol_print(output, expr->ker_constr);
     return;
