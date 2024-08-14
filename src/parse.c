@@ -37,7 +37,7 @@ int klangc_expect(klangc_input_t *input, int c, int *pc) {
     klangc_input_restore(input, ipos);
     if (pc != NULL)
       *pc = c2;
-    return 0;
+    return KLANGC_PARSE_NOPARSE;
   }
-  return 1;
+  return KLANGC_PARSE_OK;
 }

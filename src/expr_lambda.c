@@ -67,14 +67,14 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
   int c;
-  if (!klangc_expect(input, '\\', &c)) {
+  klangc_parse_result_t res = klangc_expect(input, '\\', &c);
+  if (res != KLANGC_PARSE_OK) {
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_NOPARSE;
   }
   ipos_ss = klangc_skipspaces(input);
   klangc_pat_t *arg;
-  klangc_parse_result_t res =
-      klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &arg);
+  res = klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &arg);
   switch (res) {
   case KLANGC_PARSE_OK:
     break;
@@ -88,14 +88,16 @@ klangc_parse_result_t klangc_expr_lambda_parse(klangc_input_t *input,
   }
 
   ipos_ss = klangc_skipspaces(input);
-  if (!klangc_expect(input, '-', &c)) {
+  res = klangc_expect(input, '-', &c);
+  if (res != KLANGC_PARSE_OK) {
     klangc_printf_ipos(kstderr, ipos_ss,
                        "expect '-' but get '%c': ['\\' <pat> ^'->' <expr>]\n",
                        c);
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_ERROR;
   }
-  if (!klangc_expect(input, '>', &c)) {
+  res = klangc_expect(input, '>', &c);
+  if (res != KLANGC_PARSE_OK) {
     klangc_printf_ipos(kstderr, ipos_ss,
                        "expect '->' but get '-%c': ['\\' <pat> ^'->' "
                        "<expr>]\n",

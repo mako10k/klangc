@@ -76,7 +76,8 @@ klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
 
   klangc_ipos_t ipos_ss2 = klangc_skipspaces(input);
   int c;
-  if (!klangc_expect(input, '=', &c)) {
+  res = klangc_expect(input, '=', &c);
+  if (res != KLANGC_PARSE_OK) {
     klangc_printf_ipos_expects(
         kstderr, ipos_ss2, "'='", c,
         "<bind> ::= <pat> ^'=' <expr> ( ';' <bind> )*;\n");
@@ -101,7 +102,8 @@ klangc_parse_result_t klangc_bind_parse(klangc_input_t *input,
 
   klangc_ipos_t ipos3 = klangc_input_save(input);
   klangc_skipspaces(input);
-  if (!klangc_expect(input, ';', &c)) {
+  res = klangc_expect(input, ';', &c);
+  if (res != KLANGC_PARSE_OK) {
     // ';' の前まで入力を巻き戻す
     klangc_input_restore(input, ipos3);
     *pbind = klangc_bind_new(pat, expr, NULL, ipos_ss);

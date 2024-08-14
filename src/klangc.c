@@ -27,7 +27,8 @@ int main(int argc, const char *argv[]) {
     }
     klangc_ipos_t ipos_ss = klangc_skipspaces(input);
     int c;
-    if (klangc_expect(input, EOF, &c) == 0) {
+    klangc_parse_result_t res = klangc_expect(input, EOF, &c);
+    if (res != KLANGC_PARSE_OK) {
       klangc_printf_ipos_expects(kstderr, ipos_ss, "EOF", c,
                                  "<program> ::= <closure'> ';'^;\n");
       return EXIT_FAILURE;

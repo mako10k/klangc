@@ -20,6 +20,7 @@ klangc_parse_result_t klangc_int_parse(klangc_input_t *input, int *pintval);
  * parse a expected character
  * @param input input
  * @param c expected character
- * @param pcval character to store the parsed character
+ * @param pc character to store the parsed character
+ * @return parse result
  */
-int klangc_expect(klangc_input_t *input, int c, int *pc);
+klangc_parse_result_t klangc_expect(klangc_input_t *input, int c, int *pc);

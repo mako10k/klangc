@@ -186,7 +186,8 @@ static klangc_parse_result_t klangc_expr_parse_paren(klangc_input_t *input,
   assert(pexpr != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  if (!klangc_expect(input, '(', NULL)) {
+  klangc_parse_result_t res = klangc_expect(input, '(', NULL);
+  if (res != KLANGC_PARSE_OK) {
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_NOPARSE;
   }
@@ -205,7 +206,8 @@ static klangc_parse_result_t klangc_expr_parse_paren(klangc_input_t *input,
 
   ipos_ss = klangc_skipspaces(input);
   int c;
-  if (!klangc_expect(input, ')', &c)) {
+  res = klangc_expect(input, ')', &c);
+  if (res != KLANGC_PARSE_OK) {
     klangc_printf_ipos_expects(kstderr, ipos_ss, "'('", c,
                                "<expr> ::= .. | '(' <expr> ^')' | ..;\n");
     klangc_input_restore(input, ipos);
@@ -391,13 +393,15 @@ static klangc_parse_result_t klangc_expr_parse_list(klangc_input_t *input,
   assert(pexpr != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  if (!klangc_expect(input, '[', NULL)) {
+  klangc_parse_result_t res = klangc_expect(input, '[', NULL);
+  if (res != KLANGC_PARSE_OK) {
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_NOPARSE;
   }
   ipos_ss = klangc_skipspaces(input);
   klangc_symbol_t *nil = klangc_symbol_new(klangc_str_new("[]", 2));
-  if (klangc_expect(input, ']', NULL)) {
+  res = klangc_expect(input, ']', NULL);
+  if (res == KLANGC_PARSE_OK) {
     *pexpr = klangc_expr_new_alge(klangc_expr_alge_new(nil), ipos_ss);
     return KLANGC_PARSE_OK;
   }

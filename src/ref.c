@@ -11,7 +11,8 @@ klangc_parse_result_t klangc_ref_parse(klangc_input_t *input,
   assert(psym != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  if (!klangc_expect(input, '~', NULL)) {
+  klangc_parse_result_t res = klangc_expect(input, '~', NULL);
+  if (res != KLANGC_PARSE_OK) {
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_NOPARSE;
   }

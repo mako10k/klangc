@@ -80,7 +80,8 @@ klangc_expr_closure_parse_nobrace(klangc_input_t *input,
   klangc_ipos_t ipos2 = klangc_input_save(input);
   ipos_ss = klangc_skipspaces(input);
   int c = EOF;
-  if (!klangc_expect(input, ';', &c)) {
+  res = klangc_expect(input, ';', &c);
+  if (res != KLANGC_PARSE_OK) {
     klangc_printf_ipos_expects(kstderr, ipos_ss, "';'", c,
                                "<closure'> ::= <expr> ^';' ( <bind> ';' )?;\n");
     klangc_input_restore(input, ipos);
@@ -102,7 +103,8 @@ klangc_expr_closure_parse_nobrace(klangc_input_t *input,
     return KLANGC_PARSE_ERROR;
   }
   ipos_ss = klangc_skipspaces(input);
-  if (!klangc_expect(input, ';', &c)) {
+  res = klangc_expect(input, ';', &c);
+  if (res != KLANGC_PARSE_OK) {
     klangc_printf_ipos_expects(kstderr, ipos_ss, "';'", c,
                                "<closure> ::= <expr> ';' ( <bind> ^';' )?;\n");
     klangc_input_restore(input, ipos);
@@ -118,14 +120,14 @@ klangc_expr_closure_parse(klangc_input_t *input,
   assert(input != NULL);
   assert(pclosure != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
-  if (!klangc_expect(input, '{', NULL)) {
+  klangc_parse_result_t res = klangc_expect(input, '{', NULL);
+  if (res != KLANGC_PARSE_OK) {
     klangc_input_restore(input, ipos);
     return KLANGC_PARSE_NOPARSE;
   }
   klangc_expr_closure_t *closure = NULL;
   klangc_ipos_t ipos_ss = klangc_skipspaces(input);
-  klangc_parse_result_t res =
-      klangc_expr_closure_parse_nobrace(input, &closure);
+  res = klangc_expr_closure_parse_nobrace(input, &closure);
   switch (res) {
   case KLANGC_PARSE_OK:
     break;
@@ -141,7 +143,8 @@ klangc_expr_closure_parse(klangc_input_t *input,
 
   int c = EOF;
   ipos_ss = klangc_skipspaces(input);
-  if (!klangc_expect(input, '}', &c)) {
+  res = klangc_expect(input, '}', &c);
+  if (res != KLANGC_PARSE_OK) {
     klangc_printf_ipos_expects(kstderr, ipos_ss, "}", c,
                                "<closure> ::= '{' <closure'> ^'}'\n");
     klangc_input_restore(input, ipos);
