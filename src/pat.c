@@ -344,9 +344,9 @@ static klangc_parse_result_t klangc_pat_parse_string(klangc_input_t *input,
   return KLANGC_PARSE_OK;
 }
 
-klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
-                                       klangc_pat_parse_opt_t ppopt,
-                                       klangc_pat_t **ppat) {
+klangc_parse_result_t klangc_pat_parse_nocons(klangc_input_t *input,
+                                              klangc_pat_parse_opt_t ppopt,
+                                              klangc_pat_t **ppat) {
   assert(input != NULL);
   assert(ppat != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
@@ -393,6 +393,54 @@ klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
 
   klangc_input_restore(input, ipos);
   return KLANGC_PARSE_NOPARSE;
+}
+
+static klangc_parse_result_t klangc_pat_parse_cons(klangc_input_t *input,
+                                                   klangc_pat_t *pat_hd,
+                                                   klangc_pat_t **ppat) {
+  assert(input != NULL);
+  assert(pat_hd != NULL);
+  assert(ppat != NULL);
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  klangc_parse_result_t res = klangc_expect(input, ':', NULL);
+  if (res != KLANGC_PARSE_OK) {
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_NOPARSE;
+  }
+  klangc_pat_t *pat_tl;
+  res = klangc_pat_parse(input, KLANGC_PAT_PARSE_NORMAL, &pat_tl);
+  switch (res) {
+  case KLANGC_PARSE_OK:
+    break;
+  case KLANGC_PARSE_NOPARSE:
+    klangc_printf_ipos_expects(kstderr, ipos_ss, "<pat>", klangc_getc(input),
+                               "<pat> ::= .. | <pat> ':' ^<pat> | ..;\n");
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
+  klangc_pat_alge_t *palge = klangc_pat_alge_new(klangc_cons_symbol());
+  klangc_pat_alge_add_arg(palge, pat_hd);
+  klangc_pat_alge_add_arg(palge, pat_tl);
+  *ppat = klangc_pat_new_alge(palge, klangc_input_save(input));
+  return KLANGC_PARSE_OK;
+}
+
+klangc_parse_result_t klangc_pat_parse(klangc_input_t *input,
+                                       klangc_pat_parse_opt_t ppopt,
+                                       klangc_pat_t **ppat) {
+  assert(input != NULL);
+  assert(ppat != NULL);
+  klangc_pat_t *pat;
+  klangc_parse_result_t res = klangc_pat_parse_nocons(input, ppopt, &pat);
+  if (res != KLANGC_PARSE_OK)
+    return res;
+  res = klangc_pat_parse_cons(input, pat, ppat);
+  if (res != KLANGC_PARSE_NOPARSE)
+    return res;
+  *ppat = pat;
+  return KLANGC_PARSE_OK;
 }
 
 // -------------------------------

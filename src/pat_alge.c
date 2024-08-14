@@ -114,6 +114,16 @@ void klangc_pat_alge_print(klangc_output_t *output, int prec,
     klangc_printf(output, "]");
     return;
   }
+  if (palge->kpa_constr == klangc_cons_symbol() && palge->kpa_argc == 2) {
+    if (prec > KLANGC_PREC_CONS)
+      klangc_printf(output, "(");
+    klangc_pat_print(output, KLANGC_PREC_CONS + 1, palge->kpa_args[0]);
+    klangc_printf(output, ":");
+    klangc_pat_print(output, KLANGC_PREC_CONS, palge->kpa_args[1]);
+    if (prec > KLANGC_PREC_CONS)
+      klangc_printf(output, ")");
+    return;
+  }
   if (palge->kpa_argc == 0) {
     klangc_symbol_print(output, palge->kpa_constr);
     return;

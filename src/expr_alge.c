@@ -132,33 +132,42 @@ static int klangc_expr_alge_is_list(klangc_expr_alge_t *ealge) {
       return 0;
     if (ealge->ker_argc != 2)
       return 0;
-    klangc_expr_t *expr_tl = ealge->ker_args[1];
-    if (klangc_expr_get_type(expr_tl) != KLANGC_ETYPE_ALGE)
+    if (klangc_expr_get_type(ealge->ker_args[1]) != KLANGC_ETYPE_ALGE)
       return 0;
-    ealge = klangc_expr_get_alge(expr_tl);
+    ealge = klangc_expr_get_alge(ealge->ker_args[1]);
   }
 }
 
 void klangc_expr_alge_print(klangc_output_t *output, int prec,
-                            klangc_expr_alge_t *expr) {
+                            klangc_expr_alge_t *ealge) {
   assert(output != NULL);
-  assert(expr != NULL);
-  if (klangc_expr_alge_is_list(expr)) {
+  assert(ealge != NULL);
+  if (klangc_expr_alge_is_list(ealge)) {
     klangc_printf(output, "[");
-    klangc_expr_alge_print_cons(output, expr);
+    klangc_expr_alge_print_cons(output, ealge);
     klangc_printf(output, "]");
     return;
   }
-  if (expr->ker_argc == 0) {
-    klangc_symbol_print(output, expr->ker_constr);
+  if (ealge->ker_constr == klangc_cons_symbol() && ealge->ker_argc == 2) {
+    if (prec > KLANGC_PREC_CONS)
+      klangc_printf(output, "(");
+    klangc_expr_print(output, KLANGC_PREC_CONS + 1, ealge->ker_args[0]);
+    klangc_printf(output, ":");
+    klangc_expr_print(output, KLANGC_PREC_CONS, ealge->ker_args[1]);
+    if (prec > KLANGC_PREC_CONS)
+      klangc_printf(output, ")");
+    return;
+  }
+  if (ealge->ker_argc == 0) {
+    klangc_symbol_print(output, ealge->ker_constr);
     return;
   }
   if (prec > KLANGC_PREC_APPL)
     klangc_printf(output, "(");
-  klangc_symbol_print(output, expr->ker_constr);
-  for (unsigned int i = 0; i < expr->ker_argc; i++) {
+  klangc_symbol_print(output, ealge->ker_constr);
+  for (unsigned int i = 0; i < ealge->ker_argc; i++) {
     klangc_printf(output, " ");
-    klangc_expr_print(output, KLANGC_PREC_APPL + 1, expr->ker_args[i]);
+    klangc_expr_print(output, KLANGC_PREC_APPL + 1, ealge->ker_args[i]);
   }
   if (prec > KLANGC_PREC_APPL)
     klangc_printf(output, ")");

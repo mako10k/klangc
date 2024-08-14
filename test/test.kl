@@ -16,3 +16,6 @@
 };
 ~f = \~x -> \~x -> ~x;
 ~testList = \[~x, ~y, ~z] -> ~map (~add 1) [1, 2, 3, 4];
+~testNil = \[] -> [];
+
+~testCons = \~x : ~y : [] -> (~x : ~y) : ~z;

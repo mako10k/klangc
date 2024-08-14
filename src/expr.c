@@ -508,9 +508,9 @@ klangc_expr_parse_noappl(klangc_input_t *input, klangc_expr_parse_opt_t epopt,
   return KLANGC_PARSE_NOPARSE;
 }
 
-klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
-                                        klangc_expr_parse_opt_t epopt,
-                                        klangc_expr_t **pexpr) {
+static klangc_parse_result_t
+klangc_expr_parse_nocons(klangc_input_t *input, klangc_expr_parse_opt_t epopt,
+                         klangc_expr_t **pexpr) {
   assert(input != NULL);
   assert(pexpr != NULL);
   klangc_ipos_t ipos = klangc_input_save(input);
@@ -536,6 +536,54 @@ klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
   }
   *pexpr = expr;
   return KLANGC_PARSE_OK;
+}
+
+static klangc_parse_result_t klangc_expr_parse_cons(klangc_input_t *input,
+                                                    klangc_expr_t *expr_hd,
+                                                    klangc_expr_t **pexpr) {
+  assert(input != NULL);
+  assert(pexpr != NULL);
+  klangc_ipos_t ipos = klangc_input_save(input);
+  klangc_ipos_t ipos_ss = klangc_skipspaces(input);
+  klangc_parse_result_t res;
+  res = klangc_expect(input, ':', NULL);
+  if (res != KLANGC_PARSE_OK)
+    return res;
+  klangc_expr_t *expr_tl;
+  res = klangc_expr_parse(input, KLANGC_EXPR_PARSE_NORMAL, &expr_tl);
+  switch (res) {
+  case KLANGC_PARSE_OK:
+    break;
+  case KLANGC_PARSE_NOPARSE:
+    klangc_printf_ipos_expects(kstderr, ipos_ss, "<expr>", klangc_getc(input),
+                               "<expr> ::= .. | <expr> ':' ^<expr> | ..;\n");
+  case KLANGC_PARSE_ERROR:
+    klangc_input_restore(input, ipos);
+    return KLANGC_PARSE_ERROR;
+  }
+  *pexpr =
+      klangc_expr_new_alge(klangc_expr_alge_new(klangc_cons_symbol()), ipos_ss);
+  klangc_expr_alge_add_arg(klangc_expr_get_alge(*pexpr), expr_hd);
+  klangc_expr_alge_add_arg(klangc_expr_get_alge(*pexpr), expr_tl);
+  return KLANGC_PARSE_OK;
+}
+
+klangc_parse_result_t klangc_expr_parse(klangc_input_t *input,
+                                        klangc_expr_parse_opt_t epopt,
+                                        klangc_expr_t **pexpr) {
+  assert(input != NULL);
+  assert(pexpr != NULL);
+  klangc_parse_result_t res;
+  klangc_expr_t *expr = NULL;
+  res = klangc_expr_parse_nocons(input, epopt, &expr);
+  if (res != KLANGC_PARSE_OK)
+    return res;
+  res = klangc_expr_parse_cons(input, expr, pexpr);
+  if (res == KLANGC_PARSE_NOPARSE) {
+    res = KLANGC_PARSE_OK;
+    *pexpr = expr;
+  }
+  return res;
 }
 
 // -------------------------------
