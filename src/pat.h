@@ -128,6 +128,13 @@ int klangc_pat_get_int(klangc_pat_t *pat);
  */
 const klangc_str_t *klangc_pat_get_str(klangc_pat_t *pat);
 
+/**
+ * Get the input position of a pattern.
+ * @param pat Pattern.
+ * @return Input position.
+ */
+klangc_ipos_t klangc_pat_get_ipos(klangc_pat_t *pat);
+
 // -------------------------------
 // Parsers.
 // -------------------------------

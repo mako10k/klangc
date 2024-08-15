@@ -1,0 +1,26 @@
+~IO;
+~IO = {
+  # Functor
+  \fmap ~f (IO ~g) -> IO (\~s -> {
+      (~s2, ~f ~a);
+      (~s2, ~a) = ~g ~s;
+    }
+  );
+
+  # Applicative
+  \pure ~a -> IO (\~s -> (~a, ~s));
+  \app (IO ~f) (IO ~g) -> IO (\~s -> {
+    (~s3, ~h ~a);
+    (~s2, ~h) = ~f ~s;
+    (~s3, ~a) = ~g ~s2;
+  });
+
+  # Monad
+  \return -> ~IO pure;
+  \chain (IO ~f) ~g -> IO (\~s -> {
+    ~h ~s2;
+    (~s2, ~a) = ~f ~s;
+    IO ~h = ~g ~a;
+  });
+
+};

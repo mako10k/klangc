@@ -6,7 +6,9 @@
 #include "output.h"
 #include "parse.h"
 #include "pat.h"
+#include "pat_alge.h"
 #include "ref_target.h"
+#include "symbol.h"
 #include "types.h"
 #include <assert.h>
 
@@ -24,6 +26,8 @@ struct klangc_expr_lambda {
   klangc_pat_t *kvl_arg;
   /** Body expression */
   klangc_expr_t *kvl_body;
+  /** Body expression (Original) */
+  klangc_expr_t *kvl_body_original;
   /** Next lambda expression */
   klangc_expr_lambda_t *kvl_next;
 };
@@ -39,7 +43,23 @@ klangc_expr_lambda_t *klangc_expr_lambda_new(klangc_pat_t *arg,
   klangc_expr_lambda_t *lambda = klangc_malloc(sizeof(klangc_expr_lambda_t));
   lambda->kvl_arg = arg;
   lambda->kvl_body = body;
+  lambda->kvl_body_original = body;
   lambda->kvl_next = next;
+
+  if (klangc_pat_get_type(arg) == KLANGC_PTYPE_ALGE) {
+    // if pattern is algebra, convert it to lambda.
+    klangc_pat_alge_t *palge = klangc_pat_get_alge(arg);
+    unsigned int argc = klangc_pat_alge_get_argc(palge);
+    for (unsigned int i = 0; i < argc; i++) {
+      klangc_pat_t *pat = klangc_pat_alge_get_arg(palge, argc - i - 1);
+      if (pat == NULL)
+        break;
+      klangc_expr_lambda_t *elambda =
+          klangc_expr_lambda_new(pat, lambda->kvl_body, NULL);
+      lambda->kvl_body =
+          klangc_expr_new_lambda(elambda, klangc_pat_get_ipos(arg));
+    }
+  }
   return lambda;
 }
 
@@ -165,7 +185,23 @@ static void klangc_expr_lambda_print_single(klangc_output_t *output, int prec,
     prec2 = KLANGC_PREC_LOWEST;
   }
   klangc_printf(output, "\\");
-  klangc_pat_print(output, KLANGC_PREC_LOWEST, lambda->kvl_arg);
+  if (klangc_pat_get_type(lambda->kvl_arg) == KLANGC_PTYPE_ALGE) {
+    klangc_pat_alge_t *palge = klangc_pat_get_alge(lambda->kvl_arg);
+    const klangc_symbol_t *sym_constr = klangc_pat_alge_get_constr(palge);
+    klangc_symbol_print(output, sym_constr);
+    unsigned int argc = klangc_pat_alge_get_argc(palge);
+    if (argc > 0) {
+      klangc_printf(output, " #");
+      for (unsigned int i = 0; i < argc; i++) {
+        klangc_pat_t *arg = klangc_pat_alge_get_arg(palge, i);
+        if (i > 0)
+          klangc_printf(output, " ");
+        klangc_pat_print(output, KLANGC_PREC_APPL + 1, arg);
+      }
+      klangc_printf(output, "#");
+    }
+  } else
+    klangc_pat_print(output, KLANGC_PREC_LOWEST, lambda->kvl_arg);
   klangc_printf(output, " -> ");
   klangc_expr_print(output, prec2, lambda->kvl_body);
   if (prec > KLANGC_PREC_LAMBDA)
