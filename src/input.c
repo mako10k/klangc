@@ -119,7 +119,7 @@ int klangc_isspace(int c, int *in_comment) {
   if (c == EOF)
     return 0;
   if (*in_comment) {
-    if (c == '\n')
+    if (c == '\n' || c == '#')
       *in_comment = 0;
     return 1;
   }
