@@ -1,0 +1,30 @@
+~State;
+~State = {
+  \runState (State ~f) -> ~f;
+  \get -> State (\~s -> (~s, ~s));
+  \put ~s -> State (\~_ -> ((), ~s));
+  \state -> State;
+
+  # Functor
+  \fmap ~f (State ~g) -> State (\~s -> {
+      (~s2, ~f ~a);
+      (~s2, ~a) = ~g ~s;
+    }
+  );
+
+  # Applicative
+  \pure ~a -> State (\~s -> (~a, ~s));
+  \app (State ~f) (State ~g) -> State (\~s -> {
+    (~s3, ~h ~a);
+    (~s2, ~h) = ~f ~s;
+    (~s3, ~a) = ~g ~s2;
+  });
+
+  # Monad
+  \return -> ~State pure;
+  \chain ~m ~k -> State (\~s -> {
+    ~State runSate (~k ~a) ~s2;
+    (~a, ~s2) = ~State runState ~m ~s;
+  });
+
+};
