@@ -241,10 +241,10 @@ static klangc_parse_result_t klangc_pat_parse_list(klangc_input_t *input,
 }
 
 static klangc_parse_result_t klangc_pat_parse_alge(klangc_input_t *input,
+                                                   klangc_pat_parse_opt_t ppopt,
                                                    klangc_pat_t **ppat) {
   klangc_pat_alge_t *alge;
-  klangc_parse_result_t res =
-      klangc_pat_alge_parse(input, KLANGC_PAT_PARSE_NORMAL, &alge);
+  klangc_parse_result_t res = klangc_pat_alge_parse(input, ppopt, &alge);
   if (res != KLANGC_PARSE_OK)
     return res;
   *ppat = klangc_pat_new_alge(alge, klangc_input_save(input));
@@ -322,7 +322,7 @@ klangc_parse_result_t klangc_pat_parse_nocons(klangc_input_t *input,
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
-  res = klangc_pat_parse_alge(input, ppat);
+  res = klangc_pat_parse_alge(input, ppopt, ppat);
   if (res != KLANGC_PARSE_NOPARSE)
     return res;
 
