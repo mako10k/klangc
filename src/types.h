@@ -81,6 +81,16 @@ typedef struct klangc_expr_cfunc klangc_expr_cfunc_t;
 /** Program */
 typedef struct klangc_program klangc_program_t;
 
+typedef struct klangc_value_ioref klangc_value_ioref_t;
+
+typedef struct klangc_inst klangc_inst_t;
+
+typedef struct klangc_inst_ent klangc_inst_ent_t;
+
+typedef struct klangc_value_error klangc_value_error_t;
+
+typedef struct klangc_value_data klangc_value_data_t;
+
 /** 位置情報 */
 typedef struct klangc_ipos {
   klangc_input_t *kip_input;
@@ -101,3 +111,15 @@ typedef enum klangc_bind_result {
   KLANGC_BIND_OK,
   KLANGC_BIND_ERROR,
 } klangc_bind_result_t;
+
+typedef enum klangc_value_type {
+  KLANGC_VTYPE_EXPR,
+  KLANGC_VTYPE_ALGE,
+  KLANGC_VTYPE_REF,
+  KLANGC_VTYPE_APPL,
+  KLANGC_VTYPE_INT,
+  KLANGC_VTYPE_STRING,
+  KLANGC_VTYPE_IOREF,
+  KLANGC_VTYPE_ERROR,
+  KLANGC_VTYPE_DATA,
+} klangc_value_type_t;

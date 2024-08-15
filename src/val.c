@@ -20,6 +20,8 @@ struct klangc_value {
     klangc_value_alge_t *kv_alge;
     klangc_value_ref_t *kv_vref;
     klangc_value_appl_t *kv_appl;
+    klangc_value_ioref_t *kv_ioref;
+    klangc_value_data_t *kv_data;
     int kv_intval;
     const klangc_str_t *kv_strval;
   };
@@ -148,4 +150,85 @@ int klangc_value_match(klangc_env_t *env, klangc_pat_t *pat,
   }
   }
   return 0;
+}
+
+klangc_value_t *klangc_value_new_error(const char *message) {
+  assert(message != NULL);
+  klangc_value_t *val = klangc_malloc(sizeof(klangc_value_t));
+  val->kv_type = KLANGC_VTYPE_ERROR;
+  val->kv_strval = klangc_str_new(message, strlen(message));
+  return val;
+}
+
+klangc_value_type_t klangc_value_get_type(klangc_value_t *val) {
+  assert(val != NULL);
+  return val->kv_type;
+}
+
+const klangc_str_t *klangc_value_get_string(klangc_value_t *val) {
+  assert(val != NULL);
+  assert(val->kv_type == KLANGC_VTYPE_STRING);
+  return val->kv_strval;
+}
+
+klangc_value_t *klangc_value_new_ioref(klangc_value_ioref_t *ioref) {
+  assert(ioref != NULL);
+  klangc_value_t *val = klangc_malloc(sizeof(klangc_value_t));
+  val->kv_type = KLANGC_VTYPE_IOREF;
+  val->kv_ioref = ioref;
+  return val;
+}
+
+klangc_value_alge_t *klangc_value_get_alge(klangc_value_t *val) {
+  assert(val != NULL);
+  assert(val->kv_type == KLANGC_VTYPE_ALGE);
+  return val->kv_alge;
+}
+
+klangc_value_t *klangc_value_new_alge(klangc_value_alge_t *alge) {
+  assert(alge != NULL);
+  klangc_value_t *val = klangc_malloc(sizeof(klangc_value_t));
+  val->kv_type = KLANGC_VTYPE_ALGE;
+  val->kv_alge = alge;
+  return val;
+}
+
+klangc_value_t *klangc_value_new_data(klangc_value_data_t *data) {
+  assert(data != NULL);
+  klangc_value_t *val = klangc_malloc(sizeof(klangc_value_t));
+  val->kv_type = KLANGC_VTYPE_DATA;
+  val->kv_data = data;
+  return val;
+}
+
+klangc_value_data_t *klangc_value_get_data(klangc_value_t *val) {
+  assert(val != NULL);
+  assert(val->kv_type == KLANGC_VTYPE_DATA);
+  return val->kv_data;
+}
+
+int klangc_value_get_int(klangc_value_t *val) {
+  assert(val != NULL);
+  assert(val->kv_type == KLANGC_VTYPE_INT);
+  return val->kv_intval;
+}
+
+const klangc_str_t *klangc_value_get_str(klangc_value_t *val) {
+  assert(val != NULL);
+  assert(val->kv_type == KLANGC_VTYPE_STRING);
+  return val->kv_strval;
+}
+
+klangc_value_t *klangc_value_new_int(int intval) {
+  klangc_value_t *val = klangc_malloc(sizeof(klangc_value_t));
+  val->kv_type = KLANGC_VTYPE_INT;
+  val->kv_intval = intval;
+  return val;
+}
+
+klangc_value_t *klangc_value_new_str(const klangc_str_t *str) {
+  klangc_value_t *val = klangc_malloc(sizeof(klangc_value_t));
+  val->kv_type = KLANGC_VTYPE_STRING;
+  val->kv_strval = str;
+  return val;
 }

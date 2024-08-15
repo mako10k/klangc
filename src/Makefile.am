@@ -27,6 +27,8 @@ klangc_SOURCES =   \
     hash.c         \
     input.h        \
     input.c        \
+    inst.h         \
+    inst.c         \
     klangc.h       \
     klangc.c       \
     list.h         \
@@ -64,6 +66,12 @@ klangc_SOURCES =   \
     val_alge.c     \
     val_appl.h     \
     val_appl.c     \
+    val_data.h     \
+    val_data.c     \
+    val_error.h    \
+    val_error.c    \
+    val_ioref.h    \
+    val_ioref.c    \
     val_ref.h      \
     val_ref.c      
 

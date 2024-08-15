@@ -254,5 +254,10 @@ klangc_bind_result_t klangc_expr_lambda_bind(klangc_expr_env_t *env,
     if (res != KLANGC_BIND_OK)
       return res;
   }
-  return klangc_expr_bind(env_inner, elam->kel_body);
+  klangc_bind_result_t res = klangc_expr_bind(env_inner, elam->kel_body);
+  if (res != KLANGC_BIND_OK)
+    return res;
+  if (elam->kel_next != NULL)
+    return klangc_expr_lambda_bind(env, elam->kel_next);
+  return KLANGC_BIND_OK;
 }

@@ -6,6 +6,8 @@
 #include "str.h"
 #include "symbol.h"
 #include "types.h"
+#include "val.h"
+#include "val_alge.h"
 
 __attribute_used__ static const klangc_str_t *klangc_tuple_str(void) {
   static const klangc_str_t *tuple_str = NULL;
@@ -37,6 +39,18 @@ __attribute_used__ static klangc_expr_alge_t *klangc_unit_expr_alge(void) {
     unit_expr_alge = klangc_expr_alge_new(klangc_tuple_symbol());
   }
   return unit_expr_alge;
+}
+
+__attribute_used__ static klangc_value_alge_t *klangc_unit_value_alge(void) {
+  static klangc_value_alge_t *unit_value_alge = NULL;
+  if (unit_value_alge == NULL) {
+    unit_value_alge = klangc_value_alge_new(klangc_tuple_symbol());
+  }
+  return unit_value_alge;
+}
+
+__attribute_used__ static klangc_value_t *klangc_value_unit(void) {
+  return klangc_value_new_alge(klangc_unit_value_alge());
 }
 
 klangc_parse_result_t klangc_pat_parse_tuple(klangc_input_t *input,

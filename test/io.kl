@@ -23,4 +23,16 @@
     IO ~h = ~g ~a;
   });
 
+  \println (ref ~ref) -> IO (\(~prog, ~seq) -> (
+    (~prog addinst (println ~ref), ~seq), ()
+  ));
+
+  \println ~s -> chain (~IO toRef ~s) (~IO printlnRef);
+
+  \readlnRef -> IO (\(~prog, ~seq) -> (
+    (~prog addinst (readln ~seq), ~incr ~seq), ref ~seq
+  ));
+
+  \readln -> chain (~IO readlnRef) (~IO fromRef);
 };
+
