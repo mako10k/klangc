@@ -12,6 +12,7 @@ void klangc_parser_error(const char *s);
 %option reentrant bison-bridge
 %option prefix="klangc_parser_"
 %option outfile="lexer.c"
+%option header-file="lexer.h"
 
 %x COMMENT
 %%
@@ -41,7 +42,7 @@ void klangc_parser_error(const char *s);
     return KLANGC_FLOAT;
 }
 \"([^\\"]|\\.)*\"	{
-    yylval->kyy_str = klangc_str_new(yytext, strlen(yytext));
+    yylval->kyy_str = klangc_str_parse_str(yytext, strlen(yytext));
     return KLANGC_STRING;
 }
 [{}\[\]();:=\\]	{ return yytext[0]; }

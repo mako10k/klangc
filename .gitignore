@@ -33,3 +33,4 @@ src/parser.c
 ylwrap
 src/lexer.c
 src/parser.h
+src/lexer.h

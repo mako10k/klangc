@@ -97,6 +97,35 @@ static int klangc_parse_hexchar(klangc_input_t *input) {
   return hex;
 }
 
+static int klangc_parse_hexchar_str(const char *str, unsigned int *pi,
+                                    unsigned int slen) {
+  int hex = 0;
+  int c = *pi < slen ? str[(*pi)++] : EOF;
+  if (c == EOF)
+    return EOF;
+
+  if ('0' <= c && c <= '9')
+    hex = c - '0';
+  else if ('a' <= c && c <= 'f')
+    hex = c - 'a' + 10;
+  else if ('A' <= c && c <= 'F')
+    hex = c - 'A' + 10;
+  else
+    return 'x';
+  c = *pi < slen ? str[(*pi)++] : EOF;
+  if (c == EOF)
+    return EOF;
+  if ('0' <= c && c <= '9')
+    hex = hex * 16 + (c - '0');
+  else if ('a' <= c && c <= 'f')
+    hex = hex * 16 + (c - 'a' + 10);
+  else if ('A' <= c && c <= 'F')
+    hex = hex * 16 + (c - 'A' + 10);
+  else
+    return hex;
+  return hex;
+}
+
 static int klangc_parse_octchar(klangc_input_t *input, int oct) {
   oct = oct - '0';
   klangc_ipos_t ipos = klangc_input_save(input);
@@ -109,6 +138,19 @@ static int klangc_parse_octchar(klangc_input_t *input, int oct) {
     klangc_input_restore(input, ipos);
     return oct;
   }
+  return oct;
+}
+
+static int klangc_parse_octchar_str(const char *str, unsigned int *pi,
+                                    unsigned int slen, int oct) {
+  oct = oct - '0';
+  int c = *pi < slen ? str[(*pi)++] : EOF;
+  if (c == EOF)
+    return EOF;
+  if ('0' <= c && c <= '7')
+    oct = oct * 8 + (c - '0');
+  else
+    return oct;
   return oct;
 }
 
@@ -164,6 +206,57 @@ static int klangc_parse_escchar(klangc_input_t *input) {
   return c;
 }
 
+static int klangc_parse_escchar_str(const char *str, unsigned int *pi,
+                                    unsigned int slen) {
+  int c = *pi < slen ? str[(*pi)++] : EOF;
+  switch (c) {
+  case EOF:
+    return EOF;
+  case 'n':
+  case 'N':
+    c = '\n';
+    break;
+  case 't':
+  case 'T':
+    c = '\t';
+    break;
+  case 'r':
+  case 'R':
+    c = '\r';
+    break;
+  case '0':
+    c = '\0';
+    break;
+  case '\\':
+  case '"':
+  case '\'':
+    break;
+  case 'a':
+  case 'A':
+    c = '\a';
+    break;
+  case 'b':
+  case 'B':
+    c = '\b';
+    break;
+  case 'f':
+  case 'F':
+    c = '\f';
+    break;
+  case 'v':
+  case 'V':
+    c = '\v';
+    break;
+  case 'x':
+  case 'X':
+    c = klangc_parse_hexchar_str(str, pi, slen);
+  default:
+    if ('0' <= c && c <= '7')
+      c = klangc_parse_octchar_str(str, pi, slen, c);
+  }
+  return c;
+}
+
 klangc_parse_result_t klangc_str_parse(klangc_input_t *input,
                                        const klangc_str_t **pstrval) {
   klangc_ipos_t ipos = klangc_input_save(input);
@@ -200,6 +293,34 @@ klangc_parse_result_t klangc_str_parse(klangc_input_t *input,
   strval = klangc_realloc(strval, len + 1);
   *pstrval = klangc_str_new(strval, len);
   return KLANGC_PARSE_OK;
+}
+
+const klangc_str_t *klangc_str_parse_str(const char *str, size_t slen) {
+  unsigned int i = 0;
+  int c;
+  c = i < slen ? str[i++] : EOF;
+  if (c != '"')
+    return NULL;
+  char *strval = klangc_malloc(16);
+  size_t len = 0;
+  size_t cap = 16;
+  while (1) {
+    c = i < len ? str[i++] : EOF;
+    if (c == '"')
+      break;
+    if (c == '\\')
+      c = klangc_parse_escchar_str(str, &i, slen);
+    if (c == EOF)
+      return NULL;
+    if (cap <= len + 1) {
+      cap *= 2;
+      strval = klangc_realloc(strval, cap);
+    }
+    strval[len++] = c;
+  }
+  strval[len] = '\0';
+  strval = klangc_realloc(strval, len + 1);
+  return klangc_str_new(strval, len);
 }
 
 void klangc_str_print(klangc_output_t *output, const klangc_str_t *str) {

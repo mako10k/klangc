@@ -18,4 +18,6 @@ const char *klangc_str_get_cstr(const klangc_str_t *str);
 klangc_parse_result_t klangc_str_parse(klangc_input_t *input,
                                        const klangc_str_t **pstrval);
 
+const klangc_str_t* klangc_str_parse_str(const char *str, size_t slen);
+
 void klangc_str_print(klangc_output_t *output, const klangc_str_t *str);

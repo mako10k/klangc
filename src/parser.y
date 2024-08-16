@@ -1,6 +1,9 @@
-%{
-#include "klangc.h"
-%}
+%code top {
+}
+
+%code requires {
+    #include "klangc.h"
+}
 
 %union {
     const klangc_symbol_t* kyy_symbol;
@@ -11,12 +14,29 @@
     double kyy_float;
 }
 
+%code requires {
+  #define KLANGC_PARSER_LTYPE KLANGC_PARSER_LTYPE
+  typedef struct KLANGC_PARSER_LTYPE
+  {
+    int first_line;
+    int first_column;
+    int last_line;
+    int last_column;
+    char *filename;
+  } KLANGC_PARSER_LTYPE;
+}
+
+%code {
+    void klangc_parser_error(const char *s);
+    int klangc_parser_lex(KLANGC_PARSER_STYPE *lval);
+}
+
 %define api.pure full
 %define api.prefix {klangc_parser_}
 %header "parser.h"
 %output "parser.c"
 
-%token KLANGC_SYMBOL
+%token <kyy_symbol> KLANGC_SYMBOL
 %token KLANGC_INT
 %token KLANGC_FLOAT
 %token KLANGC_STRING
