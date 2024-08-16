@@ -10,10 +10,11 @@ typedef enum klangc_eval_result_t {
 
 // ----- CONSTRUCTORS -----
 klangc_value_t *klangc_value_new_alge(klangc_value_alge_t *alge);
+klangc_value_t *klangc_value_new_appl(klangc_value_appl_t *appl);
 klangc_value_t *klangc_value_new_str(const klangc_str_t *str);
 klangc_value_t *klangc_value_new_ioref(klangc_value_ioref_t *ioref);
 klangc_value_t *klangc_value_new_error(const char *message);
-
+klangc_value_t *klangc_value_new_int(int val);
 /**
  * evaluate value to WHNF
  * @param val value

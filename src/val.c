@@ -1,5 +1,8 @@
 #include "val.h"
 #include "env.h"
+#include "expr.h"
+#include "expr_alge.h"
+#include "expr_appl.h"
 #include "malloc.h"
 #include "pat.h"
 #include "pat_alge.h"
@@ -27,7 +30,7 @@ struct klangc_value {
   };
 };
 
-klangc_value_t *klangc_value_new(klangc_expr_t *expr) {
+klangc_value_t *klangc_value_new_expr(klangc_expr_t *expr) {
   assert(expr != NULL);
   klangc_value_t *value = klangc_malloc(sizeof(klangc_value_t));
   value->kv_type = KLANGC_VTYPE_EXPR;
@@ -35,20 +38,62 @@ klangc_value_t *klangc_value_new(klangc_expr_t *expr) {
   return value;
 }
 
-klangc_value_t *klangc_value_new_from_expr(klangc_expr_t *expr) {
+klangc_value_t *klangc_value_new_appl(klangc_value_appl_t *appl) {
+  assert(appl != NULL);
+  klangc_value_t *value = klangc_malloc(sizeof(klangc_value_t));
+  value->kv_type = KLANGC_VTYPE_APPL;
+  value->kv_appl = appl;
+  return value;
+}
+
+klangc_value_t *klangc_value_convert_from_expr(klangc_expr_t *expr) {
   assert(expr != NULL);
-  klangc_value_t *val = klangc_malloc(sizeof(klangc_value_t));
-  val->kv_type = KLANGC_VTYPE_EXPR;
-  val->kv_expr = expr;
-  return val;
+  switch (klangc_expr_get_type(expr)) {
+  case KLANGC_ETYPE_ALGE: {
+    klangc_expr_alge_t *ealge = klangc_expr_get_alge(expr);
+    const klangc_symbol_t *constr = klangc_expr_alge_get_constr(ealge);
+    unsigned int argc = klangc_expr_alge_get_argc(ealge);
+    klangc_value_alge_t *valge = klangc_value_alge_new(constr);
+    for (unsigned int i = 0; i < argc; i++) {
+      klangc_expr_t *earg = klangc_expr_alge_get_arg(ealge, i);
+      klangc_value_alge_add_arg(valge, klangc_value_new_expr(earg));
+    }
+    return klangc_value_new_alge(valge);
+  }
+  case KLANGC_ETYPE_APPL: {
+    klangc_expr_appl_t *eappl = klangc_expr_get_appl(expr);
+    klangc_expr_t *efunc = klangc_expr_appl_get_func(eappl);
+    unsigned int argc = klangc_expr_appl_get_argc(eappl);
+    klangc_value_t *vfunc = klangc_value_convert_from_expr(efunc);
+    klangc_value_appl_t *appl = klangc_value_appl_new(vfunc);
+    for (unsigned int i = 0; i < argc; i++) {
+      klangc_expr_t *earg = klangc_expr_appl_get_arg(eappl, i);
+      klangc_value_t *varg = klangc_value_convert_from_expr(earg);
+      klangc_value_appl_add_arg(appl, varg);
+    }
+    return klangc_value_new_appl(appl);
+  }
+  case KLANGC_ETYPE_INT: {
+    int intval = klangc_expr_get_int(expr);
+    return klangc_value_new_int(intval);
+  }
+  case KLANGC_ETYPE_STRING: {
+    const klangc_str_t *str = klangc_expr_get_str(expr);
+    return klangc_value_new_str(str);
+  }
+  default:
+    return NULL;
+  }
+  return NULL;
 }
 
 klangc_eval_result_t klangc_value_eval(klangc_value_t *val) {
   assert(val != NULL);
   switch (val->kv_type) {
   case KLANGC_VTYPE_EXPR:
-    return klangc_value_eval(klangc_value_new_from_expr(val->kv_expr));
-  case KLANGC_VTYPE_ALGE:
+    return klangc_value_eval(klangc_value_convert_from_expr(val->kv_expr));
+  case KLANGC_VTYPE_ALGE: // ALREADY WHNF State (WHNF: Weak Head Normal Form)
+    return KLANGC_EVAL_RESULT_OK;
   default:
     return KLANGC_EVAL_RESULT_OK;
   }
@@ -59,7 +104,7 @@ klangc_eval_result_t klangc_value_eval_appl(klangc_value_t *val) {
   assert(val->kv_type == KLANGC_VTYPE_APPL);
   klangc_value_appl_t *appl = val->kv_appl;
   klangc_value_t *func = klangc_value_appl_get_func(appl);
-  klangc_value_t *arg = klangc_value_appl_get_arg(appl);
+  klangc_value_t *arg = klangc_value_appl_get_arg(appl, 0);
   klangc_eval_result_t res = klangc_value_eval(func);
   if (res == KLANGC_EVAL_RESULT_ERROR)
     return KLANGC_EVAL_RESULT_ERROR;

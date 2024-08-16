@@ -1,6 +1,21 @@
 bin_PROGRAMS = klangc
 
 AM_CFLAGS=-O3 -Wall -Werror -I$(top_srcdir)/src
+AM_YFLAGS=-d
+
+EXTRA_DIST = \
+    parser.y    \
+    lexer.l
+
+CLEANFILES = \
+    parser.c    \
+    parser.h    \
+    lexer.c     \
+    lexer.h
+
+BUILT_SOURCES = \
+    parser.h    \
+    lexer.c
 
 klangc_SOURCES =   \
     bind.h         \
@@ -31,6 +46,7 @@ klangc_SOURCES =   \
     inst.c         \
     klangc.h       \
     klangc.c       \
+    lexer.l        \
     list.h         \
     list.c         \
     malloc.h       \
@@ -39,6 +55,7 @@ klangc_SOURCES =   \
     output.c       \
     parse.h        \
     parse.c        \
+    parser.y       \
     pat.h          \
     pat.c          \
     pat_alge.h     \

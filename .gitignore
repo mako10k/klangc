@@ -28,3 +28,8 @@ Makefile.in
 
 /docs/
 
+src/parser.c
+
+ylwrap
+src/lexer.c
+src/parser.h

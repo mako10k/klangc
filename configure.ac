@@ -8,11 +8,18 @@ AC_CONFIG_HEADERS([config.h])
 
 AC_USE_SYSTEM_EXTENSIONS
 
-LT_INIT
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_YACC
+if test "x$YACC" = "xbison -y"; then
+    YACC="bison"
+else
+    printf "YACC: $YACC needs bison\n"
+    exit 1
+fi
+AC_PROG_LEX([noyywrap])
 
 # Checks for libraries.
 PKG_CHECK_MODULES([GC], [bdw-gc])
